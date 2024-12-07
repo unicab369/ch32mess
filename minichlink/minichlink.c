@@ -43,9 +43,9 @@ void * MiniCHLinkInitAsDLL( struct MiniChlinkFunctions ** MCFO, const init_hints
 		else if( strcmp( specpgm, "nchlink" ) == 0 )
 			dev = TryInit_NHCLink042();
 		else if( strcmp( specpgm, "b003boot" ) == 0 )
-			dev = TryInit_B003Fun();
+			dev = TryInit_B003Fun(SimpleReadNumberInt(init_hints->serial_port, 0x1209b003));
 		else if( strcmp( specpgm, "ardulink" ) == 0 )
-			dev = TryInit_B003Fun();
+			dev = TryInit_Ardulink(init_hints);
 	}
 	else
 	{
@@ -61,7 +61,7 @@ void * MiniCHLinkInitAsDLL( struct MiniChlinkFunctions ** MCFO, const init_hints
 		{
 			fprintf( stderr, "Found NHC-Link042 Programmer\n" );
 		}
-		else if ((dev = TryInit_B003Fun()))
+		else if ((dev = TryInit_B003Fun(SimpleReadNumberInt(init_hints->serial_port, 0x1209b003))))
 		{
 			fprintf( stderr, "Found B003Fun Bootloader\n" );
 		}
@@ -159,6 +159,7 @@ int main( int argc, char ** argv )
 	int must_be_end = 0;
 
 	int skip_startup = 
+		(argc > 1 && argv[1][0] == '-' && argv[1][1] == 'k' ) |
 		(argc > 1 && argv[1][0] == '-' && argv[1][1] == 'e' ) |
 		(argc > 1 && argv[1][0] == '-' && argv[1][1] == 'A' ) |
 		(argc > 1 && argv[1][0] == '-' && argv[1][1] == 'u' ) |
@@ -204,6 +205,10 @@ keep_going:
 				fprintf( stderr, "Error: Unknown command %c\n", argchar[1] );
 			case 'h':
 				goto help;
+      case 'k':
+        printf( "Skipping programmer initialization\n" );
+        argchar++;
+        goto keep_going;
 			case '3':
 				if( MCF.Control3v3 )
 					MCF.Control3v3( dev, 1 );
@@ -358,7 +363,7 @@ keep_going:
 				{
 					fprintf( stderr, "GDBServer Running\n" );
 				}
-				else if( argchar[1] == 'T' )
+				else if( argchar[1] == 'T' && argchar[0] != 'k')
 				{
 					// In case we aren't running already.
 					MCF.HaltMode( dev, 2 );
@@ -715,7 +720,8 @@ help:
 	fprintf( stderr, " -5 Enable 5V\n" );
 	fprintf( stderr, " -t Disable 3.3V\n" );
 	fprintf( stderr, " -f Disable 5V\n" );
-	fprintf( stderr, " -c [serial port for Ardulink, try /dev/ttyACM0 or COM11 etc]\n" );
+	fprintf( stderr, " -k Skip programmer initialization\n" );
+	fprintf( stderr, " -c [serial port for Ardulink, try /dev/ttyACM0 or COM11 etc] or [VID+PID of USB for b003boot, try 0x1209b003]\n" );
 	fprintf( stderr, " -C [specified programmer, eg. b003boot, ardulink, esp32s2chfun]\n" );
 	fprintf( stderr, " -u Clear all code flash - by power off (also can unbrick)\n" );
 	fprintf( stderr, " -E Erase chip\n" );

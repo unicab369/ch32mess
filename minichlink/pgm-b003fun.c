@@ -541,13 +541,61 @@ int B003FunPrepForLongOp( void * dev )
 	return 0;
 }
 
-
-void * TryInit_B003Fun()
+int B003PollTerminal( struct B003FunProgrammerStruct * eps, uint8_t * buffer, int maxlen, uint32_t leaveflagA, int leaveflagB )
 {
+	struct InternalState * iss = (struct InternalState*)(((struct ProgrammerStructBase*)eps)->internal);
+	int r;
+	uint8_t rr;
+	if( iss->statetag != STTAG( "TERM" ) )
+	{
+    int dmlock[6] = {'d','m','l','o','c','k'};
+    eps->respbuffer[0] = 0xab;
+    hid_get_feature_report( eps->hd, eps->respbuffer, 8 );
+    if (memcmp(eps->respbuffer+1, dmlock, 6)) {
+      eps->commandbuffer[0] = 0xaa;
+      eps->commandbuffer[1] = 0xa5;
+      eps->commandbuffer[2] = 2;
+      hid_send_feature_report( eps->hd, eps->commandbuffer, 8 );
+    }
+		iss->statetag = STTAG( "TERM" );
+	}
+
+  eps->respbuffer[0] = 0xab;
+	r = hid_get_feature_report( eps->hd, eps->respbuffer, 8 );
+
+  if( leaveflagA>>8 ) {
+    // fprintf( stderr, "leaveflagA: %lu\n", leaveflagA );
+    memset( eps->commandbuffer, 0, 8 );
+    eps->commandbuffer[0] = 0xab;
+    eps->commandbuffer[1] = (leaveflagA>>8) & 0xFF;
+    hid_send_feature_report( eps->hd, eps->commandbuffer, 8 );
+  }
+
+	if( r < 0 ) return r;
+	if( maxlen < 8 ) return -9;
+
+  rr = eps->respbuffer[0];
+	if( rr & 0x80 )
+	{
+		int num_printf_chars = (rr & 0xf)-4;
+		memcpy( buffer, eps->respbuffer+1, num_printf_chars );
+		return num_printf_chars;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+void * TryInit_B003Fun(uint32_t id)
+{
+
 	#define VID 0x1209
-	#define PID 0xb003
+	#define PID 0xd003
 	hid_init();
-	hid_device * hd = hid_open( VID, PID, 0); // third parameter is "serial"
+  fprintf(stderr, "VID:0x%04x, PID:0x%04x\n", id>>16, id&0xFFFF);
+	// hid_device * hd = hid_open( VID, PID, 0); // third parameter is "serial"
+	hid_device * hd = hid_open( id>>16, id&0xFFFF, 0); // third parameter is "serial"
 	if( !hd ) return 0;
 
 	//extern int g_hidapiSuppress;
@@ -568,7 +616,7 @@ void * TryInit_B003Fun()
 	MCF.Exit = B003FunExit;
 	MCF.HaltMode = 0;
 	MCF.VoidHighLevelState = 0;
-	MCF.PollTerminal = 0;
+	MCF.PollTerminal = B003PollTerminal;
 
 	// These are optional. Disabling these is a good mechanism to make sure the core functions still work.
 	
