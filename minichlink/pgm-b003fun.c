@@ -545,34 +545,36 @@ int B003PollTerminal( struct B003FunProgrammerStruct * eps, uint8_t * buffer, in
 {
 	struct InternalState * iss = (struct InternalState*)(((struct ProgrammerStructBase*)eps)->internal);
 	int r;
+  int ack;
 	uint8_t rr;
 	if( iss->statetag != STTAG( "TERM" ) )
 	{
-    int dmlock[6] = {'d','m','l','o','c','k'};
-    eps->respbuffer[0] = 0xab;
-    hid_get_feature_report( eps->hd, eps->respbuffer, 8 );
-    if (memcmp(eps->respbuffer+1, dmlock, 6)) {
-      eps->commandbuffer[0] = 0xaa;
-      eps->commandbuffer[1] = 0xa5;
-      eps->commandbuffer[2] = 2;
-      hid_send_feature_report( eps->hd, eps->commandbuffer, 8 );
-    }
+    // int dmlock[6] = {'d','m','l','o','c','k'};
+    // eps->respbuffer[0] = 0xfd;
+    // hid_get_feature_report( eps->hd, eps->respbuffer, 8 );
+    // if (memcmp(eps->respbuffer+1, dmlock, 6)) {
+    //   eps->commandbuffer[0] = 0xaa;
+    //   eps->commandbuffer[1] = 0xa5;
+    //   eps->commandbuffer[2] = 2;
+    //   hid_send_feature_report( eps->hd, eps->commandbuffer, 8 );
+    // }
 		iss->statetag = STTAG( "TERM" );
 	}
 
-  eps->respbuffer[0] = 0xab;
+  eps->respbuffer[0] = 0xfd;
 	r = hid_get_feature_report( eps->hd, eps->respbuffer, 8 );
 
-  if( leaveflagA>>8 ) {
-    // fprintf( stderr, "leaveflagA: %lu\n", leaveflagA );
-    memset( eps->commandbuffer, 0, 8 );
-    eps->commandbuffer[0] = 0xab;
-    eps->commandbuffer[1] = (leaveflagA>>8) & 0xFF;
-    hid_send_feature_report( eps->hd, eps->commandbuffer, 8 );
-  }
-
-	if( r < 0 ) return r;
+  if( r < 0 ) return 0;
 	if( maxlen < 8 ) return -9;
+
+  if( (leaveflagA>>8) ) {
+    memset( eps->commandbuffer, 0, 8 );
+    *((uint32_t*)eps->commandbuffer) = leaveflagA;
+    *((uint32_t*)eps->commandbuffer+1) = leaveflagB;
+    eps->commandbuffer[0] = 0xfd;
+    eps->commandbuffer[1] = (leaveflagA>>8) & 0xFF;
+    ack = hid_send_feature_report( eps->hd, eps->commandbuffer, 8 );
+  }
 
   rr = eps->respbuffer[0];
 	if( rr & 0x80 )
@@ -583,7 +585,7 @@ int B003PollTerminal( struct B003FunProgrammerStruct * eps, uint8_t * buffer, in
 	}
 	else
 	{
-		return 0;
+		return -1;
 	}
 }
 

@@ -363,7 +363,7 @@ keep_going:
 				{
 					fprintf( stderr, "GDBServer Running\n" );
 				}
-				else if( argchar[1] == 'T' && argchar[0] != 'k')
+				else if( argchar[1] == 'T' )
 				{
 					// In case we aren't running already.
 					MCF.HaltMode( dev, 2 );
