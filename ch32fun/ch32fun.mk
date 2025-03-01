@@ -36,7 +36,7 @@ endif
 CFLAGS?=-g -Os -flto -ffunction-sections -fdata-sections -fmessage-length=0 -msmall-data-limit=8
 LDFLAGS+=-Wl,--print-memory-usage -Wl,-Map=$(TARGET).map
 
-GCCVERSION13 := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 13)
+GCCVERSION13 := $(shell expr `$(PREFIX)-gcc -dumpversion | cut -f1 -d.` \>= 13)
 
 ifeq ($(TARGET_MCU),CH32V003)
 	CFLAGS_ARCH+=-march=rv32ec -mabi=ilp32e -DCH32V003=1
