@@ -212,7 +212,7 @@ FILES_TO_COMPILE:=$(SYSTEM_C) $(TARGET).$(TARGET_EXT) $(ADDITIONAL_C_FILES)
 
 $(TARGET).bin : $(TARGET).elf
 	$(PREFIX)-objdump -S $^ > $(TARGET).lst
-	$(PREFIX)-objcopy -O binary $< $(TARGET).bin
+	$(PREFIX)-objcopy $(OBJCOPY_FLAGS) -O binary $< $(TARGET).bin
 	$(PREFIX)-objcopy -O ihex $< $(TARGET).hex
 
 ifeq ($(OS),Windows_NT)
