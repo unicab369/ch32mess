@@ -841,15 +841,7 @@ extern "C" {
 #define GPIO_InverseBits(pin)     { if(pin & PB) GPIOB_InverseBits(pin); else GPIOA_InverseBits(pin); }
 #define funDigitalRead(pin)       ( (pin & PB) ? GPIOB_ReadPortPin(pin) : GPIOA_ReadPortPin(pin) )
 #define funDigitalWrite( pin, value ) { if(value==FUN_HIGH){GPIO_SetBits(pin);} else if(value==FUN_LOW){GPIO_ResetBits(pin);} }
-typedef enum
-{
-    GPIO_ModeIN_Floating,
-    GPIO_ModeIN_PU,
-    GPIO_ModeIN_PD,
-    GPIO_ModeOut_PP_5mA,
-    GPIO_ModeOut_PP_20mA,
 
-} GPIOModeTypeDef;
 #define GPIO_ModeCfg(pd_drv, pu, dir, pin, mode) { switch(mode) { \
 																										case GPIO_ModeIN_Floating: \
 																											pd_drv &= ~pin; pu &= ~pin; dir &= ~pin; break; \

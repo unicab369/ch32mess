@@ -168,6 +168,11 @@ typedef enum
     CLK_SOURCE_PLL_24MHz = (0x40 | 20),
 } SYS_CLKTypeDef;
 
+// For debug writing to the debug interface.
+#define DMDATA0 			((vu32*)0xe0000380)
+#define DMDATA1 			((vu32*)0xe0000384)
+#define DMSTATUS_SENTINEL	((vu32*)0xe0000388)// Reads as 0x00000000 if debugger is attached.
+
 /* System: clock configuration register */
 #define R32_CLK_SYS_CFG     (*((vu32*)0x40001008)) // RWA, system clock configuration, SAM
 #define  RB_CLK_PLL_DIV     0x1F                      // RWA, output clock divider from PLL or CK32M
@@ -290,6 +295,26 @@ typedef enum
 #define PB23     (0x10800000) /*!< Pin 23 selected */
 #define P_All    (0xFFFFFFFF) /*!< All pins selected */
 
+typedef enum
+{
+    GPIO_ModeIN_Floating,
+    GPIO_ModeIN_PU,
+    GPIO_ModeIN_PD,
+    GPIO_ModeOut_PP_5mA,
+    GPIO_ModeOut_PP_20mA,
+} GPIOModeTypeDef;
+
+/* General Purpose I/O */
+typedef enum
+{
+	GPIO_CFGLR_IN_FLOAT = GPIO_ModeIN_Floating,
+	GPIO_CFGLR_IN_PUPD = GPIO_ModeIN_PU, // is most common
+	GPIO_CFGLR_IN_PU = GPIO_ModeIN_PU,
+	GPIO_CFGLR_IN_PD = GPIO_ModeIN_PD, // to suppress the -Wswitch warning
+	GPIO_CFGLR_OUT_10Mhz_PP = GPIO_ModeOut_PP_20mA,
+	GPIO_CFGLR_OUT_2Mhz_PP = GPIO_ModeOut_PP_5mA,
+	GPIO_CFGLR_OUT_50Mhz_PP = GPIO_ModeOut_PP_20mA,
+} GPIO_CFGLR_PIN_MODE_Typedef;
 
 #define HardFault_IRQn        EXC_IRQn
 

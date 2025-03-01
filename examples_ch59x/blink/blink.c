@@ -5,7 +5,7 @@ int main()
 {
 	SystemInit();
 
-	funPinMode( PA8, GPIO_ModeOut_PP_5mA );
+	funPinMode( PA8, GPIO_CFGLR_OUT_2Mhz_PP );
 
 	while(1)
 	{
