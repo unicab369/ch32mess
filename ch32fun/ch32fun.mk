@@ -36,7 +36,7 @@ endif
 CFLAGS?=-g -Os -flto -ffunction-sections -fdata-sections -fmessage-length=0 -msmall-data-limit=8
 LDFLAGS+=-Wl,--print-memory-usage -Wl,-Map=$(TARGET).map
 
-GCCVERSION12 := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 12)
+GCCVERSION13 := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 13)
 
 ifeq ($(TARGET_MCU),CH32V003)
 	CFLAGS_ARCH+=-march=rv32ec -mabi=ilp32e -DCH32V003=1
@@ -48,7 +48,7 @@ else
 	MCU_PACKAGE?=1
 	ifeq ($(findstring CH32V00,$(TARGET_MCU)),CH32V00) # CH32V002, 4, 5, 6, 7
 		# Note: The CH32V003 is not a CH32V00x.
-		ifeq "$(GCCVERSION12)" "1"
+		ifeq "$(GCCVERSION13)" "1"
 			CFLAGS_ARCH+=-march=rv32ec_zmmul -mabi=ilp32e -DCH32V00x=1
 		else
 			CFLAGS_ARCH+=-march=rv32ec -mabi=ilp32e -DCH32V00x=1  # If not GCC 13 or higher, does not support zmmul as a command line
