@@ -380,7 +380,7 @@ keep_going:
 				{
 					uint8_t buffer[256];
 #if TERMINAL_INPUT_BUFFER
-					char print_buf[300]; // Buffer that is filled with everything and will be written to stdout (basically it's for formatting)
+					char print_buf[TERMINAL_BUFFER_SIZE]; // Buffer that is filled with everything and will be written to stdout (basically it's for formatting)
 					uint8_t update = 0;
 #endif
 					if( !IsGDBServerInShadowHaltState( dev ) )
@@ -417,17 +417,11 @@ keep_going:
 							}
 							if( to_send == 0 )
 							{
-								strcpy( print_buf, TERMINAL_CLEAR_CUR );
-								strcat( print_buf, TERMIANL_INPUT_SENT );
-								strcat( print_buf, input_buf );
-								strcat( print_buf, "\n" );
-								strcat( print_buf, pline_buf );
-								strcat( print_buf, TERMINAL_SEND_LABEL );
+                snprintf(print_buf, TERMINAL_BUFFER_SIZE - 1, "%s%s%s\n%s%s", TERMINAL_CLEAR_CUR, TERMIANL_INPUT_SENT, input_buf, pline_buf, TERMINAL_SEND_LABEL);
 								fwrite( print_buf, strlen( print_buf ), 1, stdout );
 								fflush( stdout );
 								input_pos = 0;
-								input_buf[0] = 0;
-								// memset( input_buf, 0, sizeof( input_buf ) );
+								memset( input_buf, 0, sizeof( input_buf ) );
 							}
 							appendword |= i + 4;
 						}
@@ -448,10 +442,10 @@ keep_going:
 #if TERMINAL_INPUT_BUFFER
 						if( ( r == -1 || r == 0 ) && update > 0 )
 						{
-							strcpy( print_buf, TERMINAL_CLEAR_CUR );
-							if ( to_send > 0 ) strcat( print_buf, TERMINAL_DIM );
-							strcat( print_buf, TERMINAL_SEND_LABEL );
-							strcat( print_buf, input_buf );
+							strncpy( print_buf, TERMINAL_CLEAR_CUR, TERMINAL_BUFFER_SIZE - 1 );
+							if ( to_send > 0 ) strncat( print_buf, TERMINAL_DIM, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) );
+							strncat( print_buf, TERMINAL_SEND_LABEL, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) );
+							strncat( print_buf, input_buf, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) );
 							fwrite( print_buf, strlen( print_buf ), 1, stdout );
 							fflush( stdout );
 						}
@@ -471,13 +465,13 @@ keep_going:
 #if TERMINAL_INPUT_BUFFER
 							uint8_t new_line = 0;
 							if( buffer[r - 1] == '\n' ) new_line = 1;
-							if( new_line == 0 ) strcpy( print_buf, TERMINAL_CLEAR_PREV ); //  Go one line up and erase it
-							else strcpy( print_buf, TERMINAL_CLEAR_CUR ); // Go to the start of the line and erase it
-							strncat( pline_buf, (char *)buffer, r ); // Add newely received chars to line buffer
-							strcat( print_buf, pline_buf ); // Add line to buffer
-							if( to_send > 0 ) strcat( print_buf, TERMINAL_DIM );
-							strcat( print_buf, TERMINAL_SEND_LABEL ); // Print styled "Send" label
-							strcat( print_buf, input_buf ); // Print current input
+							if( new_line == 0 ) strncpy( print_buf, TERMINAL_CLEAR_PREV, TERMINAL_BUFFER_SIZE - 1 ); //  Go one line up and erase it
+							else strncpy( print_buf, TERMINAL_CLEAR_CUR, TERMINAL_BUFFER_SIZE - 1 ); // Go to the start of the line and erase it
+							strncat( pline_buf, (char *)buffer, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Add newely received chars to line buffer
+							strncat( print_buf, pline_buf, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Add line to buffer
+							if( to_send > 0 ) strncat( print_buf, TERMINAL_DIM, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) );
+							strncat( print_buf, TERMINAL_SEND_LABEL, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Print styled "Send" label
+							strncat( print_buf, input_buf, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Print current input
 							fwrite( print_buf, strlen( print_buf ), 1, stdout );
 							print_buf[0] = 0;
 							if( new_line == 1 ) pline_buf[0] = 0;

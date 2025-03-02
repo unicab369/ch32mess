@@ -195,7 +195,11 @@ struct InternalState
 	#define DLLDECORATE
 #endif
 
-#define TERMINAL_INPUT_BUFFER 1
+#ifndef TERMINAL_INPUT_BUFFER
+#define TERMINAL_INPUT_BUFFER 0
+#endif
+
+#define TERMINAL_BUFFER_SIZE 512
 
 #define STR_(x) #x
 #define STR(x) STR_(x)
@@ -206,7 +210,6 @@ struct InternalState
 #endif
 
 #define TERMIANL_INPUT_SENT "\x1b[1F\x1b[2K\x1b[2K\033[38;" STR(TERMINAL_ACCENT_COLOR) "m> "
-#define TERMINAL_SEND_LABEL_N "\033[7m\033[1m\033[38;" STR(TERMINAL_ACCENT_COLOR) "mSend:\x1b[0m "
 #define TERMINAL_SEND_LABEL "\n\x1b[2K\033[7m\033[1m\033[38;" STR(TERMINAL_ACCENT_COLOR) "mSend:\x1b[0m "
 #define TERMINAL_SEND_BUSY "\n\x1b[2K\033[7m\033[1m\033[2m\033[38;" STR(TERMINAL_ACCENT_COLOR) "mSend:\x1b[0m "
 #define TERMINAL_CLEAR_PREV "\x1b[1F\x1b[2K"
