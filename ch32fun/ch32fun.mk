@@ -1,6 +1,9 @@
 # Default prefix for Windows
 ifeq ($(OS),Windows_NT)
 	PREFIX?=riscv64-unknown-elf
+	ifeq ($(shell which $(PREFIX)),)
+		PREFIX:=riscv-none-elf
+	endif
 # Check if riscv64-unknown-elf-gcc exists
 else ifneq ($(shell which riscv64-unknown-elf-gcc),)
 	PREFIX?=riscv64-unknown-elf

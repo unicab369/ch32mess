@@ -578,7 +578,7 @@ keep_going:
 			}
 			case 'w':
 			{
-				struct InternalState * iss = (struct InternalState*)(((struct ProgrammerStructBase*)dev)->internal);
+				//struct InternalState * iss = (struct InternalState*)(((struct ProgrammerStructBase*)dev)->internal);
 				if( argchar[2] != 0 ) goto help;
 				iarg++;
 				argchar = 0; // Stop advancing
