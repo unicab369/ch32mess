@@ -1,7 +1,7 @@
 # Default prefix for Windows
 ifeq ($(OS),Windows_NT)
 	PREFIX?=riscv64-unknown-elf
-	ifeq ($(shell which $(PREFIX)),)
+	ifeq ($(shell where $(PREFIX)-gcc),)
 		PREFIX:=riscv-none-elf
 	endif
 # Check if riscv64-unknown-elf-gcc exists
@@ -21,7 +21,7 @@ else
 	NEWLIB?=/usr/include/newlib
 endif
 
-CH32FUN?=$(shell dirname $(lastword $(MAKEFILE_LIST)))
+CH32FUN?=$(dir $(lastword $(MAKEFILE_LIST)))
 #TARGET_MCU?=CH32V003 # Because we are now opening up to more processors, don't assume this.
 
 TARGET_EXT?=c
