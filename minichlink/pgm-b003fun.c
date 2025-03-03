@@ -577,6 +577,7 @@ int B003PollTerminal( struct B003FunProgrammerStruct * eps, uint8_t * buffer, in
   }
 
   rr = eps->respbuffer[0];
+  // fprintf( stderr, "r0 %u r1 %u r2 %u r3 %u\n", eps->respbuffer[0], eps->respbuffer[1], eps->respbuffer[2], eps->respbuffer[3] );
 	if( rr & 0x80 )
 	{
 		int num_printf_chars = (rr & 0xf)-4;
@@ -591,12 +592,8 @@ int B003PollTerminal( struct B003FunProgrammerStruct * eps, uint8_t * buffer, in
 
 void * TryInit_B003Fun(uint32_t id)
 {
-
-	#define VID 0x1209
-	#define PID 0xd003
 	hid_init();
-  fprintf(stderr, "VID:0x%04x, PID:0x%04x\n", id>>16, id&0xFFFF);
-	// hid_device * hd = hid_open( VID, PID, 0); // third parameter is "serial"
+	fprintf( stderr, "VID:0x%04x, PID:0x%04x\n", id>>16, id&0xFFFF );
 	hid_device * hd = hid_open( id>>16, id&0xFFFF, 0); // third parameter is "serial"
 	if( !hd ) return 0;
 
