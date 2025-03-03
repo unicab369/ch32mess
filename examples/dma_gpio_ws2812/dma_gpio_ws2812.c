@@ -9,7 +9,7 @@
 // of how you would do arbitrary things on various
 // ports.
 
-#include "ch32v003fun.h"
+#include "ch32fun.h"
 #include <stdio.h>
 
 
@@ -192,7 +192,7 @@ int main()
 
 
 	// GPIO D0 Output (where we are connecting our LED)
-	funPinMode( PD0, GPIO_CFGLR_OUT_10Mhz_PP );
+	funPinMode( gpio_pin, GPIO_CFGLR_OUT_10Mhz_PP );
 
 	// Setup visual effect
 	for( i = 0; i < NR_LEDS; i++ ) phases[i] = i<<8;

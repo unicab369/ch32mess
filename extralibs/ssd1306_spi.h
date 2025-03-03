@@ -76,7 +76,7 @@ void ssd1306_rst(void)
 /*
  * packet send for blocking polled operation via spi
  */
-uint8_t ssd1306_pkt_send(uint8_t *data, uint8_t sz, uint8_t cmd)
+uint8_t ssd1306_pkt_send(const uint8_t *data, int sz, uint8_t cmd)
 {
 	if(cmd)
 	{
@@ -100,7 +100,7 @@ uint8_t ssd1306_pkt_send(uint8_t *data, uint8_t sz, uint8_t cmd)
 	}
 	
 	// wait for not busy before exiting
-	while(SPI1->STATR & SPI_STATR_BSY);
+	while(SPI1->STATR & SPI_STATR_BSY) { }
 	
 	funDigitalWrite( SSD1306_CS_PIN, FUN_HIGH );
 	
