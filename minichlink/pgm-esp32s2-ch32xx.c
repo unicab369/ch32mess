@@ -5,6 +5,8 @@
 #define PROGRAMMER_TYPE_ESP32S2 0
 #define PROGRAMMER_TYPE_CH32V003 1
 
+#define DETAILED_DEBUG 0
+
 struct ESP32ProgrammerStruct
 {
 	void * internal;
@@ -221,8 +223,9 @@ int ESPFlushLLCommands( void * dev )
 	eps->commandbuffer[0] = 0xad; // Key report ID
 	memset( eps->commandbuffer + eps->commandplace, 0xff, eps->commandbuffersize - eps->commandplace - 1 );
 
-#if 0
+#if DETAILED_DEBUG
 	int i;
+	printf( "CHAL: %d\n", eps->commandplace );
 	for( i = 0; i < eps->commandplace; i++ )
 	{
 		if( ( i & 0xff ) == 0 ) printf( "\n" );
@@ -241,7 +244,7 @@ int ESPFlushLLCommands( void * dev )
 retry:
 	eps->reply[0] = 0xad; // Key report ID
 	r = hid_get_feature_report( eps->hd, eps->reply, eps->replysize );
-#if 0
+#if DETAILED_DEBUG
 	printf( "RESP: %d %d\n", r,eps->reply[0] );
 
 	for( int i = 0; i < eps->reply[0]; i++ )
@@ -566,14 +569,15 @@ void * TryInit_ESP32S2CHFUN()
 	MCF.ReadAllCPURegisters = ESPReadAllCPURegisters;
 #endif
 
-	// Reset internal programmer state.
-	Write2LE( eps, 0x0afe );
-	ESPFlushLLCommands( eps );
-	Write2LE( eps, 0xfefe );
+	// Reset internal programmer state and force programmer mode.
+	Write1( eps, 0xfe );
+	Write1( eps, 0xfd );
+	Write1( eps, 0x00 );
 	ESPFlushLLCommands( eps );
 	if( eps->replylen > 1 )
 	{
 		eps->dev_version = eps->reply[1];
+		printf( "Dev Version: %d\n", eps->dev_version );
 	}
 	Write2LE( eps, 0x0efe ); // Trigger Init.
 	ESPFlushLLCommands( eps );
