@@ -1,6 +1,5 @@
 # Installer script based on TinyCC installer script by Macyler (CaiB) from https://raw.githubusercontent.com/cntools/Install-TCC
-param
-(
+param (
 	# The folder where Xpack will be installed to (default is %LOCALAPPDATA%\xpack-*)
 	[Parameter(Position = 0, Mandatory = $false)]
 	[string]$XpackInstallPath,
@@ -34,7 +33,7 @@ $MakeArch = 'w32';
 $XpackName = "xpack-$XpackEdition-$XpackVersion";
 $MakeName = "make-$MakeVersion-$MakeEdition"
 $XpackNameFull = "$XpackName-$XpackArch";
-$MakeNameFull = "$MakeName-$MakeArch"
+$MakeNameFull = "$MakeName-$MakeArch";
 $XpackDownloadFilename = "$XpackNameFull.zip";
 $MakeDownloadFilename = "$MakeNameFull-bin.zip";
 $XpackDownloadUrl = "https://github.com/xpack-dev-tools/$XpackEdition-xpack/releases/download/v$XpackVersion/$XpackDownloadFilename";
@@ -61,10 +60,10 @@ if (-NOT $SkipPrompts) {
 	if ($Answer -NE 'y') { Exit; }
 }
 
-[void](New-Item -Path $TempFolder -ItemType Directory -Force)
+[void](New-Item -Path $TempFolder -ItemType Directory -Force);
 
 Write-Host "(Showing progress makes it download very slowly for some reason, so we won't show progress)";
-$ProgressPreference = 'SilentlyContinue'
+$ProgressPreference = 'SilentlyContinue';
 
 Write-Host "Downloading $XpackDownloadFilename...";
 Invoke-WebRequest -UseBasicParsing -Uri $XpackDownloadUrl -OutFile $XpackDownloadFilePath;
@@ -83,13 +82,13 @@ Move-Item -Force -Path $(Join-Path $(Join-Path $XpackInstallPath $XpackName) *) 
 Remove-Item $(Join-Path $XpackInstallPath $XpackName);
 
 if (-NOT $NoMake) {
-	Write-Host "Moving $MakeTempExePath to $XpackBinPath..."
-	Move-Item -Force -Path $MakeTempExePath -Destination $XpackBinPath
+	Write-Host "Moving $MakeTempExePath to $XpackBinPath...";
+	Move-Item -Force -Path $MakeTempExePath -Destination $XpackBinPath;
 }
 
 if (-NOT $NoClearTemp) {
-	Write-Host "Deleting $TempFolder..."
-	Remove-Item $TempFolder -Force -Recurse
+	Write-Host "Deleting $TempFolder...";
+	Remove-Item $TempFolder -Force -Recurse;
 }
 
 if (-NOT $NoPath)
@@ -105,7 +104,7 @@ if (-NOT $NoPath)
 		Write-Host '  It looks like this xpack installation is already in your user PATH, so it will not be edited.';
 	} else {
 		$NewPATH = "$CurrentPATH;$XpackBinPath";
-		Set-ItemProperty -Path $PathPath -Name 'PATH' -Value $NewPATH
+		Set-ItemProperty -Path $PathPath -Name 'PATH' -Value $NewPATH;
 		Write-Host '  You may need to restart your terminal before you can use xpack gcc.';
 	}
 }
