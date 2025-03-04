@@ -671,7 +671,7 @@ keep_going:
 				
 				if( MCF.WriteBinaryBlob )
 				{
-				        printf("Writing image\n");
+					printf("Writing image\n");
 					if( MCF.WriteBinaryBlob( dev, offset, len, image ) )
 					{
 						fprintf( stderr, "Error: Fault writing image.\n" );
@@ -889,7 +889,6 @@ int DefaultSetupInterface( void * dev )
 		fprintf( stderr, "Error: Could not read dmstatus.\n" );
 		return r;
 	}
-
 
 	iss->statetag = STTAG( "STRT" );
 	return 0;
