@@ -4,9 +4,9 @@ using namespace System.IO.Compression.FileSystem;
 [CmdletBinding(DefaultParameterSetName = 'DestPreset')]
 param (
 	# Uses one of the preset locations to install to
-	[Parameter(ParameterSetName = 'DestPreset', Position = 0, Mandatory = $true)]
+	[Parameter(ParameterSetName = 'DestPreset', Position = 0)]
 	[ValidateSet('User', 'System')]
-	[string]$Destination,
+	[string]$Destination = 'User',
 
 	# If a preset location is not used, then the user must specify a path to install to
 	[Parameter(ParameterSetName = 'DestPath', Position = 0, Mandatory = $true)]
@@ -43,7 +43,7 @@ $ErrorActionPreference = 'Stop';
 
 [EnvironmentVariableTarget] $PathScope = [EnvironmentVariableTarget]::User;
 [string] $TempFolder = [Path]::GetTempPath();
-[bool] $NoClearTemp = $true;
+[bool] $NoClearTemp = $false;
 
 if ($PSCmdlet.ParameterSetName -EQ 'DestPreset')
 {
