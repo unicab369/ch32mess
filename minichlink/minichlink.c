@@ -373,10 +373,9 @@ keep_going:
 				memset( input_buf, 0, sizeof( input_buf ) );
 				uint8_t input_pos = 0;
 				uint8_t to_send = 0;
+        uint8_t nice_terminal = isatty(1);
 #endif
 				printf( "Terminal started\n\n" );
-        uint8_t nice_terminal = isatty(1);
-				printf( "Writing to the terminal = %d\n\n", nice_terminal );
 				uint32_t appendword = 0;
 				do
 				{
