@@ -541,8 +541,9 @@ int B003FunPrepForLongOp( void * dev )
 	return 0;
 }
 
-int B003PollTerminal( struct B003FunProgrammerStruct * eps, uint8_t * buffer, int maxlen, uint32_t leaveflagA, int leaveflagB )
+int B003PollTerminal( void * dev, uint8_t * buffer, int maxlen, uint32_t leaveflagA, int leaveflagB )
 {
+  struct B003FunProgrammerStruct * eps = (struct B003FunProgrammerStruct *)dev;
 	struct InternalState * iss = (struct InternalState*)(((struct ProgrammerStructBase*)eps)->internal);
 	int r;
   int ack;
