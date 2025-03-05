@@ -7,6 +7,12 @@
 
 #define DETAILED_DEBUG 0
 
+#if defined( WIN32 ) || defined( _WIN32 )
+#define WIN32ADD1 1
+#else
+#define WIN32ADD1 0
+#endif
+
 struct ESP32ProgrammerStruct
 {
 	void * internal;
@@ -234,7 +240,7 @@ int ESPFlushLLCommands( void * dev )
 	printf("\n" );
 #endif
 
-	r = hid_send_feature_report( eps->hd, eps->commandbuffer, eps->commandbuffersize );
+	r = hid_send_feature_report( eps->hd, eps->commandbuffer, eps->commandbuffersize+WIN32ADD1 );
 	eps->commandplace = 1;
 	if( r < 0 )
 	{
@@ -243,7 +249,7 @@ int ESPFlushLLCommands( void * dev )
 	}
 retry:
 	eps->reply[0] = 0xad; // Key report ID
-	r = hid_get_feature_report( eps->hd, eps->reply, eps->replysize );
+	r = hid_get_feature_report( eps->hd, eps->reply, eps->replysize+WIN32ADD1 );
 #if DETAILED_DEBUG
 	printf( "RESP: %d %d", (int)r, (int)eps->reply[0] );
 	for( int i = 0; i < eps->reply[0]; i++ )
@@ -258,7 +264,7 @@ retry:
 //printf( ">:::%d: %02x %02x %02x %02x %02x %02x\n", eps->replylen, eps->reply[0], eps->reply[1], eps->reply[2], eps->reply[3], eps->reply[4], eps->reply[5] );
 	if( r < 0 )
 	{
-		fprintf( stderr, "Error: Got error %d when sending hid feature report.\n", r );
+		fprintf( stderr, "Error: Got error %d when getting hid feature report. (Size %d/%d)\n", r, eps->commandbuffersize, eps->replysize );
 		return r;
 	}
 	eps->replylen = eps->reply[0] + 1; // Include the header byte.
