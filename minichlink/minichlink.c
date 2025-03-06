@@ -1046,15 +1046,18 @@ int DefaultDetermineChipType( void * dev )
 		MCF.WriteReg32( dev, DMCOMMAND, 0x00231008 );		// Copy data to x8
 		MCF.WriteReg32( dev, DMDATA0, old_data0 );
 
+		uint32_t chip_type = (vendorid & 0xfff00000)>>20;
+		printf( "Chip Type: %03x\n", chip_type );
 		if( data0offset == 0xe00000f4 )
 		{
-			// Only known processor with this signature = 0 is a CH32V003.
-			switch( vendorid >> 20 )
+			// Only known processor with this signature = 0 is qingke-v2.
+			switch( chip_type )
 			{
 			case 0x002: iss->target_chip_type = CHIP_CH32V002; break;
 			case 0x004: iss->target_chip_type = CHIP_CH32V004; break;
 			case 0x005: iss->target_chip_type = CHIP_CH32V005; break;
 			case 0x006: iss->target_chip_type = CHIP_CH32V006; break;
+			case 0x641: iss->target_chip_type = CHIP_CH641; break;
 			default:    iss->target_chip_type = CHIP_CH32V003; break; // not usually 003
 			}
 			// Examples:
@@ -1065,8 +1068,6 @@ int DefaultDetermineChipType( void * dev )
 		else if( data0offset == 0xe0000380 )
 		{
 			// All other known chips.
-			uint32_t chip_type = (vendorid & 0xfff00000)>>20;
-			printf( "Chip Type: %03x\n", chip_type );
 			switch( chip_type )
 			{
 				case 0x103:
@@ -1341,7 +1342,7 @@ static int DefaultWriteWord( void * dev, uint32_t address_to_write, uint32_t dat
 			// fc75 c.bnez x8, -4
 			// c.ebreak
 			MCF.WriteReg32( dev, DMPROGBUF3, 
-				(iss->target_chip_type == CHIP_CH32X03x || iss->target_chip_type == CHIP_CH32V003 || (iss->target_chip_type >= CHIP_CH32V002 && iss->target_chip_type <= CHIP_CH32V006 ) ) ? 
+				(iss->target_chip_type == CHIP_CH32X03x || iss->target_chip_type == CHIP_CH32V003 || iss->target_chip_type == CHIP_CH641 || (iss->target_chip_type >= CHIP_CH32V002 && iss->target_chip_type <= CHIP_CH32V006 ) ) ? 
 				0x4200c254 : 0x42000001  );
 
 			MCF.WriteReg32( dev, DMPROGBUF4,
@@ -2143,6 +2144,7 @@ void PostSetupConfigureInterface( void * dev )
 		break;
 	default:
 	case CHIP_CH32V003:
+	case CHIP_CH641:
 		iss->sector_size = 64;
 		iss->nr_registers_for_debug = 16;
 		break;
@@ -2492,7 +2494,7 @@ int DefaultUnbrick( void * dev )
 	InternalUnlockFlash(dev, iss);
 
 	const uint8_t * option_data = 
-		( iss->target_chip_type == CHIP_CH32X03x || iss->target_chip_type == CHIP_CH32V003 || (iss->target_chip_type >= CHIP_CH32V002 && iss->target_chip_type <= CHIP_CH32V006 ) ) ?
+		( iss->target_chip_type == CHIP_CH32X03x || iss->target_chip_type == CHIP_CH32V003 || iss->target_chip_type == CHIP_CH641 || (iss->target_chip_type >= CHIP_CH32V002 && iss->target_chip_type <= CHIP_CH32V006 ) ) ?
 		option_data_003_x03x : option_data_20x_30x;
 
 	DefaultWriteBinaryBlob(dev, 0x1ffff800, 16, option_data );
