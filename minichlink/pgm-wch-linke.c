@@ -40,8 +40,20 @@ static void printChipInfo(enum RiscVChip chip) {
 		case CHIP_CH58x:
 			fprintf(stderr, "Detected: CH58x\n");
 			break;
+		case CHIP_CH59x:
+			fprintf(stderr, "Detected: CH59x\n");
+			break;
+		case CHIP_CH643:
+			fprintf(stderr, "Detected: CH643\n");
+			break;
 		case CHIP_CH32X03x:
 			fprintf(stderr, "Detected: CH32X03x\n");
+			break;
+		case CHIP_CH32L10x:
+			fprintf(stderr, "Detected: CH32L10x\n");
+			break;
+		case CHIP_CH564:
+			fprintf(stderr, "Detected: CH564\n");
 			break;
 		case CHIP_CH32V003:
 			fprintf(stderr, "Detected: CH32V003\n");
@@ -58,6 +70,15 @@ static void printChipInfo(enum RiscVChip chip) {
 		case CHIP_CH32V006:
 			fprintf(stderr, "Detected: CH32V006\n");
 			break;
+		case CHIP_CH645:
+			fprintf(stderr, "Detected: CH645\n");
+			break;
+		case CHIP_CH641:
+			fprintf(stderr, "Detected: CH641\n");
+			break;
+		case CHIP_CH32V317:
+			fprintf(stderr, "Detected: CH32V317\n");
+			break;
 	}
 }
 
@@ -70,6 +91,7 @@ static int checkChip(enum RiscVChip chip) {
 		case CHIP_CH32V004:
 		case CHIP_CH32V006:
 		case CHIP_CH32V005:
+		case CHIP_CH641:
 			return 0; // Use direct mode
 		case CHIP_CH32V10x:
 		case CHIP_CH32V20x:
@@ -444,7 +466,8 @@ static int LESetupInterface( void * d )
 		// It's one of the 00x's.  AND we're on a new programmer, so no need to unknown' it.
 		chip = CHIP_CH32V006;
 	}
-	else if( ( chip == 0x08 || chip > 0x09 ) && chip != CHIP_CH32X03x ) {
+	else if( ( chip == 0x04 || chip == 0x08 || chip == 0x0a || chip > 0x0f )
+		&& chip != CHIP_CH645  && chip != CHIP_CH641 && chip != CHIP_CH32V317 ) {
 		fprintf( stderr, "Chip Type unknown [%02x]. Aborting...\n", chip );
 		return -1;
 	}
