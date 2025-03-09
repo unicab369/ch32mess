@@ -430,7 +430,11 @@ typedef struct
 	    __IO uint32_t APB2PRSTR; // For 003 compatibility
 	};
     __IO uint32_t PB1PRSTR;
-    __IO uint32_t HBPCENR;
+	union
+	{
+	    __IO uint32_t HBPCENR;
+	    __IO uint32_t AHBPCENR; // For 003 compatibility
+	};
 	union
 	{
 	    __IO uint32_t PB2PCENR;
@@ -1649,20 +1653,37 @@ typedef struct
 #define GPIO_LCK7                               ((uint32_t)0x00000080) /* Port x Lock bit 7 */
 #define GPIO_LCKK                               ((uint32_t)0x00010000) /* Lock key */
 
-
 /******************  Bit definition for AFIO_PCFR1register  *******************/
 #define AFIO_PCFR1_SPI1_RM                      ((uint32_t)0x00000007) /* SPI1 remapping */
+#define AFIO_PCFR1_SPI1_RM_0                    ((uint32_t)0x00000001) /* SPI1 remapping */
+#define AFIO_PCFR1_SPI1_RM_1                    ((uint32_t)0x00000002) /* SPI1 remapping */
+#define AFIO_PCFR1_SPI1_RM_2                    ((uint32_t)0x00000004) /* SPI1 remapping */
 #define AFIO_PCFR1_I2C1_RM                      ((uint32_t)0x00000038) /* I2C1 remapping */
+#define AFIO_PCFR1_I2C1_RM_0                    ((uint32_t)0x00000008) /* I2C1 remapping */
+#define AFIO_PCFR1_I2C1_RM_1                    ((uint32_t)0x00000010) /* I2C1 remapping */
+#define AFIO_PCFR1_I2C1_RM_2                    ((uint32_t)0x00000020) /* I2C1 remapping */
 #define AFIO_PCFR1_USART1_RM                    ((uint32_t)0x000003C0) /* USART1 remapping */
+#define AFIO_PCFR1_USART1_RM_0                  ((uint32_t)0x00000040) /* USART1 remapping */
+#define AFIO_PCFR1_USART1_RM_1                  ((uint32_t)0x00000080) /* USART1 remapping */
+#define AFIO_PCFR1_USART1_RM_2                  ((uint32_t)0x00000100) /* USART1 remapping */
+#define AFIO_PCFR1_USART1_RM_3                  ((uint32_t)0x00000200) /* USART1 remapping */
 #define AFIO_PCFR1_TIM1_RM                      ((uint32_t)0x00003C00) /* TIM1_REMAP remapping */
+#define AFIO_PCFR1_TIM1_RM_0                    ((uint32_t)0x00000400) /* TIM1_REMAP remapping */
+#define AFIO_PCFR1_TIM1_RM_1                    ((uint32_t)0x00000800) /* TIM1_REMAP remapping */
+#define AFIO_PCFR1_TIM1_RM_2                    ((uint32_t)0x00001000) /* TIM1_REMAP remapping */
+#define AFIO_PCFR1_TIM1_RM_3                    ((uint32_t)0x00002000) /* TIM1_REMAP remapping */
 #define AFIO_PCFR1_TIM2_RM                      ((uint32_t)0x0001C000) /* TIM2_REMAP remapping */
+#define AFIO_PCFR1_TIM2_RM_0                    ((uint32_t)0x00004000) /* TIM2_REMAP remapping */
+#define AFIO_PCFR1_TIM2_RM_1                    ((uint32_t)0x00008000) /* TIM2_REMAP remapping */
+#define AFIO_PCFR1_TIM2_RM_2                    ((uint32_t)0x00010000) /* TIM2_REMAP remapping */
 #define AFIO_PCFR1_PA12_RM                      ((uint32_t)0x00020000) /* PA1/2 OSC_IN/OSC_OUT remapping */
 #define AFIO_PCFR1_ADC_ETRGINJ_RM               ((uint32_t)0x00040000) /* ADC external triggered injection remapping */
 #define AFIO_PCFR1_ADC_ETRGREG_RM               ((uint32_t)0x00080000) /* ADC external triggered rule remapping */
 #define AFIO_PCFR1_USART2_RM                    ((uint32_t)0x00700000) /* USART2 remapping */
-#define AFIO_PCFR1_SWCFG                        ((uint32_t)0x07000000) /* SWCFG  SDI or GPIO configuration */
-
-
+#define AFIO_PCFR1_USART2_RM_0                  ((uint32_t)0x00700000) /* USART2 remapping */
+#define AFIO_PCFR1_USART2_RM_1                  ((uint32_t)0x00700000) /* USART2 remapping */
+#define AFIO_PCFR1_USART2_RM_2                  ((uint32_t)0x00700000) /* USART2 remapping */
+#define AFIO_PCFR1_SWCFG                        ((uint32_t)0x07000000) /* SWCFG  SDI or GPIO configuration (Please reconsider your design if you find yourself setting this bit) */
 
 /*****************  Bit definition for AFIO_EXTICR register  *****************/
 #define AFIO_EXTICR_EXTI0                       ((uint32_t)0x00000003) /* EXTI 0 configuration */
