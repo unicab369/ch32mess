@@ -185,7 +185,7 @@ else
 		TARGET_MCU_LD:=3
 	else ifeq ($(findstring CH59,$(TARGET_MCU)),CH59) # CH592 1
 		TARGET_MCU_PACKAGE?=CH592F
-		CFLAGS_ARCH+=-march=rv32imac_zicsr \
+		CFLAGS_ARCH+=-march=rv32imac \
 			-mabi=ilp32 \
 			-DCH59x=1
 
