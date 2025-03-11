@@ -208,7 +208,12 @@
 #endif
 
 #ifndef FUNCONF_SYSTEM_CORE_CLOCK
-	#if defined(FUNCONF_USE_HSI) && FUNCONF_USE_HSI
+	#if defined(CH59x) // no PLL multiplier, but a divider from the 480 MHz clock
+		#define FUNCONF_SYSTEM_CORE_CLOCK 60000000 // default in ch32fun.c using CLK_SOURCE_PLL_60MHz
+		#if defined(CLK_SOURCE_CH59X)
+			#error Must define FUNCONF_SYSTEM_CORE_CLOCK too if CLK_SOURCE_CH59X is defined
+		#endif
+	#elif defined(FUNCONF_USE_HSI) && FUNCONF_USE_HSI
 		#define FUNCONF_SYSTEM_CORE_CLOCK ((HSI_VALUE)*(FUNCONF_PLL_MULTIPLIER))
 	#elif defined(FUNCONF_USE_HSE) && FUNCONF_USE_HSE
 		#define FUNCONF_SYSTEM_CORE_CLOCK ((HSE_VALUE)*(FUNCONF_PLL_MULTIPLIER))
