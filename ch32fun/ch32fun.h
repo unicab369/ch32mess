@@ -833,34 +833,42 @@ extern "C" {
 #define FUN_HIGH 0x1
 #define FUN_LOW 0x0
 #if defined(CH59x)
-#define GPIOA_ResetBits(pin)      (R32_PA_CLR |= pin)
-#define GPIOA_SetBits(pin)        (R32_PA_OUT |= pin)
-#define GPIOA_InverseBits(pin)    (R32_PA_OUT ^= pin)
-#define GPIOA_ReadPortPin(pin)    (R32_PA_PIN & (pin))
-#define GPIOB_ResetBits(pin)      (R32_PB_CLR |= pin)
-#define GPIOB_SetBits(pin)        (R32_PB_OUT |= pin)
-#define GPIOB_InverseBits(pin)    (R32_PB_OUT ^= pin)
-#define GPIOB_ReadPortPin(pin)    (R32_PB_PIN & (pin))
-#define GPIO_ResetBits(pin)       { if(pin & PB) GPIOB_ResetBits(pin); else GPIOA_ResetBits(pin); }
-#define GPIO_SetBits(pin)         { if(pin & PB) GPIOB_SetBits(pin); else GPIOA_SetBits(pin); }
-#define GPIO_InverseBits(pin)     { if(pin & PB) GPIOB_InverseBits(pin); else GPIOA_InverseBits(pin); }
-#define funDigitalRead(pin)       ( (pin & PB) ? GPIOB_ReadPortPin(pin) : GPIOA_ReadPortPin(pin) )
-#define funDigitalWrite( pin, value ) { if(value==FUN_HIGH){GPIO_SetBits(pin);} else if(value==FUN_LOW){GPIO_ResetBits(pin);} }
+#define OFFSET_FOR_GPIOB(pin)         (((pin & PB) >> 31) * (&R32_PB_PIN - &R32_PA_PIN)) // 0 if GPIOA, 0x20 if GPIOB
+#define GPIO_ResetBits(pin)           (*(&R32_PA_CLR + OFFSET_FOR_GPIOB(pin)) |= (pin & ~PB))
+#define GPIO_SetBits(pin)             (*(&R32_PA_OUT + OFFSET_FOR_GPIOB(pin)) |= (pin & ~PB))
+#define GPIO_InverseBits(pin)         (*(&R32_PA_OUT + OFFSET_FOR_GPIOB(pin)) ^= (pin & ~PB))
+#define GPIO_ReadPortPin(pin)         (*(&R32_PA_PIN + OFFSET_FOR_GPIOB(pin)) &  (pin & ~PB))
+#define funDigitalRead(pin)           GPIO_ReadPortPin(pin)
+#define funDigitalWrite( pin, value ) { if((value)==FUN_HIGH){GPIO_SetBits(pin);} else if((value)==FUN_LOW){GPIO_ResetBits(pin);} }
 
-#define GPIO_ModeCfg(pd_drv, pu, dir, pin, mode) { switch(mode) { \
-																										case GPIO_ModeIN_Floating: \
-																											pd_drv &= ~pin; pu &= ~pin; dir &= ~pin; break; \
-																										case GPIO_ModeIN_PU: \
-																											pd_drv &= ~pin; pu |= pin; dir &= ~pin; break; \
-																										case GPIO_ModeIN_PD: \
-																											pd_drv |= pin; pu &= ~pin; dir &= ~pin; break; \
-																										case GPIO_ModeOut_PP_5mA: \
-																											pd_drv &= ~pin; dir |= pin; break; \
-																										case GPIO_ModeOut_PP_20mA: \
-																											pd_drv |= pin; dir |= pin; break; \
-																									} }
-#define funPinMode( pin, mode ) { if(pin & PB) GPIO_ModeCfg(R32_PB_PD_DRV, R32_PB_PU, R32_PB_DIR, pin, mode) \
-																	else GPIO_ModeCfg(R32_PA_PD_DRV, R32_PA_PU, R32_PA_DIR, pin, mode) }
+RV_STATIC_INLINE void funPinMode(u32 pin, GPIOModeTypeDef mode)
+{
+	switch(mode) {
+	case GPIO_ModeIN_Floating:
+		*(&R32_PA_PD_DRV + OFFSET_FOR_GPIOB(pin)) &= ~(pin & ~PB);
+		*(&R32_PA_PU + OFFSET_FOR_GPIOB(pin))     &= ~(pin & ~PB);
+		*(&R32_PA_DIR + OFFSET_FOR_GPIOB(pin))    &= ~(pin & ~PB);
+		break;
+	case GPIO_ModeIN_PU:
+		*(&R32_PA_PD_DRV + OFFSET_FOR_GPIOB(pin)) &= ~(pin & ~PB);
+		*(&R32_PA_PU + OFFSET_FOR_GPIOB(pin))     |= (pin & ~PB);
+		*(&R32_PA_DIR + OFFSET_FOR_GPIOB(pin))    &= ~(pin & ~PB);
+		break;
+	case GPIO_ModeIN_PD:
+		*(&R32_PA_PD_DRV + OFFSET_FOR_GPIOB(pin)) |= (pin & ~PB);
+		*(&R32_PA_PU + OFFSET_FOR_GPIOB(pin))     &= ~(pin & ~PB);
+		*(&R32_PA_DIR + OFFSET_FOR_GPIOB(pin))    &= ~(pin & ~PB);
+		break;
+	case GPIO_ModeOut_PP_5mA:
+		*(&R32_PA_PD_DRV + OFFSET_FOR_GPIOB(pin)) &= ~(pin & ~PB);
+		*(&R32_PA_DIR + OFFSET_FOR_GPIOB(pin))    |= (pin & ~PB);
+		break;
+	case GPIO_ModeOut_PP_20mA:
+		*(&R32_PA_PD_DRV + OFFSET_FOR_GPIOB(pin)) |= (pin & ~PB);
+		*(&R32_PA_DIR + OFFSET_FOR_GPIOB(pin))    |= (pin & ~PB);
+		break;
+	}
+}
 #else
 // Arduino-like GPIO Functionality
 #define GpioOf( pin ) ((GPIO_TypeDef *)(GPIOA_BASE + 0x400 * ((pin)>>4)))

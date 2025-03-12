@@ -207,49 +207,19 @@ typedef enum
 
 /* GPIO PA register */
 #define R32_PA_DIR          (*((vu32*)0x400010A0)) // RW, GPIO PA I/O direction: 0=in, 1=out
-#define R8_PA_DIR_0         (*((vu8*)0x400010A0))  // RW, GPIO PA I/O direction byte 0
-#define R8_PA_DIR_1         (*((vu8*)0x400010A1))  // RW, GPIO PA I/O direction byte 1
 #define R32_PA_PIN          (*((vu32*)0x400010A4)) // RO, GPIO PA input
-#define R8_PA_PIN_0         (*((vu8*)0x400010A4))  // RO, GPIO PA input byte 0
-#define R8_PA_PIN_1         (*((vu8*)0x400010A5))  // RO, GPIO PA input byte 1
 #define R32_PA_OUT          (*((vu32*)0x400010A8)) // RW, GPIO PA output
-#define R8_PA_OUT_0         (*((vu8*)0x400010A8))  // RW, GPIO PA output byte 0
-#define R8_PA_OUT_1         (*((vu8*)0x400010A9))  // RW, GPIO PA output byte 1
 #define R32_PA_CLR          (*((vu32*)0x400010AC)) // WZ, GPIO PA clear output: 0=keep, 1=clear
-#define R8_PA_CLR_0         (*((vu8*)0x400010AC))  // WZ, GPIO PA clear output byte 0
-#define R8_PA_CLR_1         (*((vu8*)0x400010AD))  // WZ, GPIO PA clear output byte 1
 #define R32_PA_PU           (*((vu32*)0x400010B0)) // RW, GPIO PA pullup resistance enable
-#define R8_PA_PU_0          (*((vu8*)0x400010B0))  // RW, GPIO PA pullup resistance enable byte 0
-#define R8_PA_PU_1          (*((vu8*)0x400010B1))  // RW, GPIO PA pullup resistance enable byte 1
 #define R32_PA_PD_DRV       (*((vu32*)0x400010B4)) // RW, PA pulldown for input or PA driving capability for output
-#define R8_PA_PD_DRV_0      (*((vu8*)0x400010B4))  // RW, PA pulldown for input or PA driving capability for output byte 0
-#define R8_PA_PD_DRV_1      (*((vu8*)0x400010B5))  // RW, PA pulldown for input or PA driving capability for output byte 1
 
 /* GPIO PB register */
 #define R32_PB_DIR          (*((vu32*)0x400010C0)) // RW, GPIO PB I/O direction: 0=in, 1=out
-#define R8_PB_DIR_0         (*((vu8*)0x400010C0))  // RW, GPIO PB I/O direction byte 0
-#define R8_PB_DIR_1         (*((vu8*)0x400010C1))  // RW, GPIO PB I/O direction byte 1
-#define R8_PB_DIR_2         (*((vu8*)0x400010C2))  // RW, GPIO PB I/O direction byte 2
 #define R32_PB_PIN          (*((vu32*)0x400010C4)) // RO, GPIO PB input
-#define R8_PB_PIN_0         (*((vu8*)0x400010C4))  // RO, GPIO PB input byte 0
-#define R8_PB_PIN_1         (*((vu8*)0x400010C5))  // RO, GPIO PB input byte 1
-#define R8_PB_PIN_2         (*((vu8*)0x400010C6))  // RO, GPIO PB input byte 2
 #define R32_PB_OUT          (*((vu32*)0x400010C8)) // RW, GPIO PB output
-#define R8_PB_OUT_0         (*((vu8*)0x400010C8))  // RW, GPIO PB output byte 0
-#define R8_PB_OUT_1         (*((vu8*)0x400010C9))  // RW, GPIO PB output byte 1
-#define R8_PB_OUT_2         (*((vu8*)0x400010CA))  // RW, GPIO PB output byte 2
 #define R32_PB_CLR          (*((vu32*)0x400010CC)) // WZ, GPIO PB clear output: 0=keep, 1=clear
-#define R8_PB_CLR_0         (*((vu8*)0x400010CC))  // WZ, GPIO PB clear output byte 0
-#define R8_PB_CLR_1         (*((vu8*)0x400010CD))  // WZ, GPIO PB clear output byte 1
-#define R8_PB_CLR_2         (*((vu8*)0x400010CE))  // WZ, GPIO PB clear output byte 2
 #define R32_PB_PU           (*((vu32*)0x400010D0)) // RW, GPIO PB pullup resistance enable
-#define R8_PB_PU_0          (*((vu8*)0x400010D0))  // RW, GPIO PB pullup resistance enable byte 0
-#define R8_PB_PU_1          (*((vu8*)0x400010D1))  // RW, GPIO PB pullup resistance enable byte 1
-#define R8_PB_PU_2          (*((vu8*)0x400010D2))  // RW, GPIO PB pullup resistance enable byte 2
 #define R32_PB_PD_DRV       (*((vu32*)0x400010D4)) // RW, PB pulldown for input or PB driving capability for output
-#define R8_PB_PD_DRV_0      (*((vu8*)0x400010D4))  // RW, PB pulldown for input or PB driving capability for output byte 0
-#define R8_PB_PD_DRV_1      (*((vu8*)0x400010D5))  // RW, PB pulldown for input or PB driving capability for output byte 1
-#define R8_PB_PD_DRV_2      (*((vu8*)0x400010D6))  // RW, PB pulldown for input or PB driving capability for output byte 2
 
 #define PA0      (0x00000001) /*!< Pin 0 selected */
 #define PA1      (0x00000002) /*!< Pin 1 selected */
@@ -268,31 +238,31 @@ typedef enum
 #define PA14     (0x00004000) /*!< Pin 14 selected */
 #define PA15     (0x00008000) /*!< Pin 15 selected */
 
-#define PB       (0x10000000) /*!< Pin 0 selected */
-#define PB0      (0x10000001) /*!< Pin 0 selected */
-#define PB1      (0x10000002) /*!< Pin 1 selected */
-#define PB2      (0x10000004) /*!< Pin 2 selected */
-#define PB3      (0x10000008) /*!< Pin 3 selected */
-#define PB4      (0x10000010) /*!< Pin 4 selected */
-#define PB5      (0x10000020) /*!< Pin 5 selected */
-#define PB6      (0x10000040) /*!< Pin 6 selected */
-#define PB7      (0x10000080) /*!< Pin 7 selected */
-#define PB8      (0x10000100) /*!< Pin 8 selected */
-#define PB9      (0x10000200) /*!< Pin 9 selected */
-#define PB10     (0x10000400) /*!< Pin 10 selected */
-#define PB11     (0x10000800) /*!< Pin 11 selected */
-#define PB12     (0x10001000) /*!< Pin 12 selected */
-#define PB13     (0x10002000) /*!< Pin 13 selected */
-#define PB14     (0x10004000) /*!< Pin 14 selected */
-#define PB15     (0x10008000) /*!< Pin 15 selected */
-#define PB16     (0x10010000) /*!< Pin 16 selected */
-#define PB17     (0x10020000) /*!< Pin 17 selected */
-#define PB18     (0x10040000) /*!< Pin 18 selected */
-#define PB19     (0x10080000) /*!< Pin 19 selected */
-#define PB20     (0x10100000) /*!< Pin 20 selected */
-#define PB21     (0x10200000) /*!< Pin 21 selected */
-#define PB22     (0x10400000) /*!< Pin 22 selected */
-#define PB23     (0x10800000) /*!< Pin 23 selected */
+#define PB       (0x80000000) /* Bit mask to indicate bank B */
+#define PB0      (0x80000001) /*!< Pin 0 selected */
+#define PB1      (0x80000002) /*!< Pin 1 selected */
+#define PB2      (0x80000004) /*!< Pin 2 selected */
+#define PB3      (0x80000008) /*!< Pin 3 selected */
+#define PB4      (0x80000010) /*!< Pin 4 selected */
+#define PB5      (0x80000020) /*!< Pin 5 selected */
+#define PB6      (0x80000040) /*!< Pin 6 selected */
+#define PB7      (0x80000080) /*!< Pin 7 selected */
+#define PB8      (0x80000100) /*!< Pin 8 selected */
+#define PB9      (0x80000200) /*!< Pin 9 selected */
+#define PB10     (0x80000400) /*!< Pin 10 selected */
+#define PB11     (0x80000800) /*!< Pin 11 selected */
+#define PB12     (0x80001000) /*!< Pin 12 selected */
+#define PB13     (0x80002000) /*!< Pin 13 selected */
+#define PB14     (0x80004000) /*!< Pin 14 selected */
+#define PB15     (0x80008000) /*!< Pin 15 selected */
+#define PB16     (0x80010000) /*!< Pin 16 selected */
+#define PB17     (0x80020000) /*!< Pin 17 selected */
+#define PB18     (0x80040000) /*!< Pin 18 selected */
+#define PB19     (0x80080000) /*!< Pin 19 selected */
+#define PB20     (0x80100000) /*!< Pin 20 selected */
+#define PB21     (0x80200000) /*!< Pin 21 selected */
+#define PB22     (0x80400000) /*!< Pin 22 selected */
+#define PB23     (0x80800000) /*!< Pin 23 selected */
 #define P_All    (0xFFFFFFFF) /*!< All pins selected */
 
 typedef enum
