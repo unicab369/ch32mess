@@ -128,6 +128,10 @@
 	#define FUNCONF_DEBUG_HARDFAULT 1
 #endif
 
+#if !defined( FUNCONF_INIT_ANALOG )
+	#define FUNCONF_INIT_ANALOG 1
+#endif
+
 #if defined( CH32X03x ) && FUNCONF_USE_PLL
 	#error No PLL on the X03x
 #endif
@@ -160,6 +164,8 @@
 		#endif
 	#elif defined(CH32V30x)
 		#define HSE_VALUE				  (8000000)
+	#elif defined(CH59x)
+		#define HSE_VALUE				  (32000000)
 	#endif
 #endif
 
@@ -202,7 +208,12 @@
 #endif
 
 #ifndef FUNCONF_SYSTEM_CORE_CLOCK
-	#if defined(FUNCONF_USE_HSI) && FUNCONF_USE_HSI
+	#if defined(CH59x) // no PLL multiplier, but a divider from the 480 MHz clock
+		#define FUNCONF_SYSTEM_CORE_CLOCK 60000000 // default in ch32fun.c using CLK_SOURCE_PLL_60MHz
+		#if defined(CLK_SOURCE_CH59X)
+			#error Must define FUNCONF_SYSTEM_CORE_CLOCK too if CLK_SOURCE_CH59X is defined
+		#endif
+	#elif defined(FUNCONF_USE_HSI) && FUNCONF_USE_HSI
 		#define FUNCONF_SYSTEM_CORE_CLOCK ((HSI_VALUE)*(FUNCONF_PLL_MULTIPLIER))
 	#elif defined(FUNCONF_USE_HSE) && FUNCONF_USE_HSE
 		#define FUNCONF_SYSTEM_CORE_CLOCK ((HSE_VALUE)*(FUNCONF_PLL_MULTIPLIER))
@@ -350,6 +361,8 @@ typedef enum {RESET = 0, SET = !RESET} FlagStatus, ITStatus;
 	#include "ch32v20xhw.h"
 #elif defined( CH32V30x )
 	#include "ch32v30xhw.h"
+#elif defined( CH59x )
+	#include "ch59xhw.h"
 #endif
 
 #if defined(__riscv) || defined(__riscv__) || defined( CH32V003FUN_BASE )
@@ -819,11 +832,49 @@ extern "C" {
 // and take two cycles, so you typically would use 0, 2, 4, etc.
 #define ADD_N_NOPS( n ) asm volatile( ".rept " #n "\nc.nop\n.endr" );
 
+#define FUN_HIGH 0x1
+#define FUN_LOW 0x0
+#if defined(CH59x)
+#define OFFSET_FOR_GPIOB(pin)         (((pin & PB) >> 31) * (&R32_PB_PIN - &R32_PA_PIN)) // 0 if GPIOA, 0x20 if GPIOB
+#define GPIO_ResetBits(pin)           (*(&R32_PA_CLR + OFFSET_FOR_GPIOB(pin)) |= (pin & ~PB))
+#define GPIO_SetBits(pin)             (*(&R32_PA_OUT + OFFSET_FOR_GPIOB(pin)) |= (pin & ~PB))
+#define GPIO_InverseBits(pin)         (*(&R32_PA_OUT + OFFSET_FOR_GPIOB(pin)) ^= (pin & ~PB))
+#define GPIO_ReadPortPin(pin)         (*(&R32_PA_PIN + OFFSET_FOR_GPIOB(pin)) &  (pin & ~PB))
+#define funDigitalRead(pin)           GPIO_ReadPortPin(pin)
+#define funDigitalWrite( pin, value ) { if((value)==FUN_HIGH){GPIO_SetBits(pin);} else if((value)==FUN_LOW){GPIO_ResetBits(pin);} }
+
+RV_STATIC_INLINE void funPinMode(u32 pin, GPIOModeTypeDef mode)
+{
+	switch(mode) {
+	case GPIO_ModeIN_Floating:
+		*(&R32_PA_PD_DRV + OFFSET_FOR_GPIOB(pin)) &= ~(pin & ~PB);
+		*(&R32_PA_PU + OFFSET_FOR_GPIOB(pin))     &= ~(pin & ~PB);
+		*(&R32_PA_DIR + OFFSET_FOR_GPIOB(pin))    &= ~(pin & ~PB);
+		break;
+	case GPIO_ModeIN_PU:
+		*(&R32_PA_PD_DRV + OFFSET_FOR_GPIOB(pin)) &= ~(pin & ~PB);
+		*(&R32_PA_PU + OFFSET_FOR_GPIOB(pin))     |= (pin & ~PB);
+		*(&R32_PA_DIR + OFFSET_FOR_GPIOB(pin))    &= ~(pin & ~PB);
+		break;
+	case GPIO_ModeIN_PD:
+		*(&R32_PA_PD_DRV + OFFSET_FOR_GPIOB(pin)) |= (pin & ~PB);
+		*(&R32_PA_PU + OFFSET_FOR_GPIOB(pin))     &= ~(pin & ~PB);
+		*(&R32_PA_DIR + OFFSET_FOR_GPIOB(pin))    &= ~(pin & ~PB);
+		break;
+	case GPIO_ModeOut_PP_5mA:
+		*(&R32_PA_PD_DRV + OFFSET_FOR_GPIOB(pin)) &= ~(pin & ~PB);
+		*(&R32_PA_DIR + OFFSET_FOR_GPIOB(pin))    |= (pin & ~PB);
+		break;
+	case GPIO_ModeOut_PP_20mA:
+		*(&R32_PA_PD_DRV + OFFSET_FOR_GPIOB(pin)) |= (pin & ~PB);
+		*(&R32_PA_DIR + OFFSET_FOR_GPIOB(pin))    |= (pin & ~PB);
+		break;
+	}
+}
+#else
 // Arduino-like GPIO Functionality
 #define GpioOf( pin ) ((GPIO_TypeDef *)(GPIOA_BASE + 0x400 * ((pin)>>4)))
 
-#define FUN_HIGH 0x1
-#define FUN_LOW 0x0
 #define FUN_OUTPUT (GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)
 #define FUN_INPUT (GPIO_CNF_IN_FLOATING)
 
@@ -848,6 +899,7 @@ extern "C" {
 #define funGpioInitC() { RCC->APB2PCENR |= ( RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOC ); }
 #define funGpioInitD() { RCC->APB2PCENR |= ( RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOD ); }
 #define funDigitalRead( pin ) ((int)((GpioOf(pin)->INDR >> ((pin)&0xf)) & 1))
+#endif
 
 
 #define ANALOG_0 0
