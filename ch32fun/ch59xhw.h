@@ -142,15 +142,15 @@ typedef struct
 #define	NVIC_KEY3		           ((uint32_t)0xBEEF0000)
 
 #define SysTick                    ((SysTick_Type *) SysTick_BASE)
-#define SysTick_LOAD_RELOAD_Msk    (0xFFFFFFFFFFFFFFFF)
-#define SysTick_CTLR_SWIE          (1 << 31)
-#define SysTick_CTLR_INIT          (1 << 5)
-#define SysTick_CTLR_MODE          (1 << 4)
-#define SysTick_CTLR_STRE          (1 << 3)
-#define SysTick_CTLR_STCLK         (1 << 2)
-#define SysTick_CTLR_STIE          (1 << 1)
-#define SysTick_CTLR_STE           (1 << 0)
-#define SysTick_SR_CNTIF           (1 << 0)
+#define SYSTICK_LOAD_RELOAD_MSK    (0xFFFFFFFFFFFFFFFF)
+#define SYSTICK_CTLR_SWIE          (1 << 31)
+#define SYSTICK_CTLR_INIT          (1 << 5)
+#define SYSTICK_CTLR_MODE          (1 << 4)
+#define SYSTICK_CTLR_STRE          (1 << 3)
+#define SYSTICK_CTLR_STCLK         (1 << 2)
+#define SYSTICK_CTLR_STIE          (1 << 1)
+#define SYSTICK_CTLR_STE           (1 << 0)
+#define SYSTICK_SR_CNTIF           (1 << 0)
 
 typedef enum
 {
