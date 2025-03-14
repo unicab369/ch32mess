@@ -64,8 +64,8 @@ void WaitForDebuggerToAttach()
 #endif
 
 #if (defined( FUNCONF_USE_DEBUGPRINTF ) && !FUNCONF_USE_DEBUGPRINTF) && \
-    (defined( FUNCONF_USE_UARTPRINTF ) && !FUNCONF_USE_UARTPRINTF) && \
-    (defined( FUNCONF_NULL_PRINTF ) && FUNCONF_NULL_PRINTF)
+	(defined( FUNCONF_USE_UARTPRINTF ) && !FUNCONF_USE_UARTPRINTF) && \
+	(defined( FUNCONF_NULL_PRINTF ) && FUNCONF_NULL_PRINTF)
 
 int _write(int fd, const char *buf, int size)
 int putchar(int c)
@@ -1087,7 +1087,7 @@ void handle_reset( void )
 .option pop\n\
 	la sp, _eusrstack\n"
 #if __GNUC__ > 10
-  ".option arch, +zicsr\n"
+	".option arch, +zicsr\n"
 #endif
 			);
 
@@ -1181,7 +1181,7 @@ __attribute__ ((naked)) int setjmp( jmp_buf env )
 "	sw s1, 2*4(a0)\n"
 "	sw sp, 3*4(a0)\n"
 
-    // RV32I only registers
+	// RV32I only registers
 #if !defined( __riscv_abi_rve )
 "	sw s2, 4*4(a0)\n"
 "	sw s3, 5*4(a0)\n"
@@ -1216,14 +1216,14 @@ __attribute__ ((naked)) int setjmp( jmp_buf env )
 
 __attribute__ ((naked)) void longjmp( jmp_buf env, int val )
 {
-    asm volatile(
-    // Common registers
+	asm volatile(
+	// Common registers
 "	lw ra, 0*4(a0)\n"
 "	lw s0, 1*4(a0)\n"
 "	lw s1, 2*4(a0)\n"
 "	lw sp, 3*4(a0)\n"
 
-    // RV32I only registers
+	// RV32I only registers
 #if !defined( __riscv_abi_rve )
 "	lw s2, 4*4(a0)\n"
 "	lw s3, 5*4(a0)\n"
@@ -1279,10 +1279,10 @@ void SetupUART( int uartBRR )
 	funPinMode( PA8, GPIO_CFGLR_IN_PU );
 	funPinMode( PA9, GPIO_CFGLR_OUT_2Mhz_PP );
 	R16_UART1_DL = ((10 * FUNCONF_SYSTEM_CORE_CLOCK / 8 / uartBRR) +5) /10;
-    R8_UART1_FCR = (2 << 6) | RB_FCR_TX_FIFO_CLR | RB_FCR_RX_FIFO_CLR | RB_FCR_FIFO_EN;
-    R8_UART1_LCR = RB_LCR_WORD_SZ;
-    R8_UART1_IER = RB_IER_TXD_EN;
-    R8_UART1_DIV = 1;
+	R8_UART1_FCR = (2 << 6) | RB_FCR_TX_FIFO_CLR | RB_FCR_RX_FIFO_CLR | RB_FCR_FIFO_EN;
+	R8_UART1_LCR = RB_LCR_WORD_SZ;
+	R8_UART1_IER = RB_IER_TXD_EN;
+	R8_UART1_DIV = 1;
 #else
 	RCC->APB2PCENR |= RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1;
 
@@ -1309,8 +1309,8 @@ WEAK int _write(int fd, const char *buf, int size)
 #if defined(CH59x)
 		R8_UART1_THR = buf[i];
 #else
-	    while( !(USART1->STATR & USART_FLAG_TC));
-	    USART1->DATAR = *buf++;
+		while( !(USART1->STATR & USART_FLAG_TC));
+		USART1->DATAR = *buf++;
 #endif
 	}
 	return size;
@@ -1349,7 +1349,7 @@ static void internal_handle_input( volatile uint32_t * dmdata0 )
 void poll_input( void )
 {
 	volatile uint32_t * dmdata0 = (volatile uint32_t *)DMDATA0;
- 	if( ((*dmdata0) & 0x80) == 0 )
+	if( ((*dmdata0) & 0x80) == 0 )
 	{
 		internal_handle_input( dmdata0 );
 		*dmdata0 = 0x84;
@@ -1487,8 +1487,8 @@ int WaitForDebuggerToAttach( int timeout_ms )
 #endif
 
 #if (defined( FUNCONF_USE_DEBUGPRINTF ) && !FUNCONF_USE_DEBUGPRINTF) && \
-    (defined( FUNCONF_USE_UARTPRINTF ) && !FUNCONF_USE_UARTPRINTF) && \
-    (defined( FUNCONF_NULL_PRINTF ) && FUNCONF_NULL_PRINTF)
+	(defined( FUNCONF_USE_UARTPRINTF ) && !FUNCONF_USE_UARTPRINTF) && \
+	(defined( FUNCONF_NULL_PRINTF ) && FUNCONF_NULL_PRINTF)
 
 WEAK int _write(int fd, const char *buf, int size)
 {
