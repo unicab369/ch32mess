@@ -181,6 +181,97 @@ typedef enum
 #define  RB_XT_FORCE_EN     0x80000                   // RWA, system clock control in Halt mode
 #define  RB_PLL_PWR_EN      0x100000                  // RWA, PLL power control
 
+/* System: sleep control register */
+#define R32_SLEEP_CONTROL   (*((vu32*)0x4000100C)) // RWA, sleep control, SAM
+#define R8_SLP_CLK_OFF0     (*((vu8*)0x4000100C))  // RWA, sleep clock off control byte 0, SAM
+#define  RB_SLP_CLK_TMR0    0x01                      // RWA, close TMR0 clock
+#define  RB_SLP_CLK_TMR1    0x02                      // RWA, close TMR1 clock
+#define  RB_SLP_CLK_TMR2    0x04                      // RWA, close TMR2 clock
+#define  RB_SLP_CLK_TMR3    0x08                      // RWA, close TMR3 clock
+#define  RB_SLP_CLK_UART0   0x10                      // RWA, close UART0 clock
+#define  RB_SLP_CLK_UART1   0x20                      // RWA, close UART1 clock
+#define  RB_SLP_CLK_UART2   0x40                      // RWA, close UART2 clock
+#define  RB_SLP_CLK_UART3   0x80                      // RWA, close UART3 clock
+#define R8_SLP_CLK_OFF1     (*((vu8*)0x4000100D))  // RWA, sleep clock off control byte 1, SAM
+#define  RB_SLP_CLK_SPI0    0x01                      // RWA, close SPI0 clock
+#define  RB_SLP_CLK_PWMX    0x04                      // RWA, close PWMx clock
+#define  RB_SLP_CLK_I2C     0x08                      // RWA, close I2C clock
+#define  RB_SLP_CLK_USB     0x10                      // RWA, close USB clock
+#define  RB_SLP_CLK_LCD     0x40                      // RWA, close LCD clock
+#define  RB_SLP_CLK_BLE     0x80                      // RWA, close BLE clock
+#define R8_SLP_WAKE_CTRL    (*((vu8*)0x4000100E))  // RWA, wake control, SAM
+#define  RB_SLP_USB_WAKE    0x01                      // RWA, enable USB waking
+//#define  RB_SLP_BLE_WAKE    0x04                      // RWA, enable BLE waking
+#define  RB_SLP_RTC_WAKE    0x08                      // RWA, enable RTC waking
+#define  RB_SLP_GPIO_WAKE   0x10                      // RWA, enable GPIO waking
+#define  RB_SLP_BAT_WAKE    0x20                      // RWA, enable BAT waking
+#define  RB_WAKE_EV_MODE    0x40                      // RWA, event wakeup mode: 0=event keep valid for long time, 1=short pulse event
+#define  RB_GPIO_WAKE_MODE  0x80                      // RWA,
+#define R8_SLP_POWER_CTRL   (*((vu8*)0x4000100F))  // RWA, peripherals power down control, SAM
+#define  RB_WAKE_DLY_MOD    0x03                      // RWA, wakeup delay time selection
+// RB_WAKE_DLY_MOD select wakeup delay
+//   00: long time, 3590 cycles+TSUHSE
+//   01: short time, 520 cycles+TSUHSE
+//   10: shorter time, 70 cycles+TSUHSE
+//   11: no delay, 8 cycles+TSUHSE
+//#define  RB_SLP_USB_PWR_DN  0x01                      // RWA, enable USB power down
+//#define  RB_SLP_BLE_PWR_DN  0x04                      // RWA, enable BLE power down
+#define  RB_SLP_CLK_RAMX    0x10                      // RWA, close main SRAM clock
+#define  RB_SLP_CLK_RAM2K   0x20                      // RWA, close retention 2KB SRAM clock
+#define  RB_RAM_RET_LV      0x40                      // RWA, SRAM retention voltage selection: 0=normal, 1=low voltage for low power
+#define R32_SLEEP_CTRL2     (*((vu32*)0x40001010)) // RWA, touchkey wake up enable
+#define  RB_TKEY0_5_WAKE_EN    0x003F                 // RWA, touchkey wake up enable channel 0-5
+#define  RB_TKEY8_13_WAKE_EN   0x3F00                 // RWA, touchkey wake up enable channel 8-13
+
+/* System: I/O pin configuration register */
+#define R32_PIN_CONFIG      (*((vu32*)0x40001018)) // RW, I/O pin configuration
+#define R16_PIN_ALTERNATE   (*((vu16*)0x40001018)) // RW, function pin alternate configuration
+#define  RB_PIN_TMR0        0x01                      // RW, TMR0 alternate pin enable: 0=TMR0/PWM0/CAP0 on PA[9], 1=TMR0_/PWM0_/CAP0_ on PB[23]
+#define  RB_PIN_TMR1        0x02                      // RW, TMR1 alternate pin enable: 0=TMR1/PWM1/CAP1 on PA[10], 1=TMR1_/PWM1_/CAP1_ on PB[10]
+#define  RB_PIN_TMR2        0x04                      // RW, TMR2 alternate pin enable: 0=TMR2/PWM2/CAP2 on PA[11], 1=TMR2_/PWM2_/CAP2_ on PB[11]
+#define  RB_PIN_TMR3        0x08                      // RW, TMR3 alternate pin enable: 0=TMR3/PWM3/CAP3 on PA[2], 1=TMR3_/PWM3_/CAP3_ on PB[22]
+#define  RB_PIN_UART0       0x10                      // RW, RXD0/TXD0 alternate pin enable: 0=RXD0/TXD0 on PB[4]/PB[7], 1=RXD0_/TXD0_ on PA[15]/PA[14]
+#define  RB_PIN_UART1       0x20                      // RW, RXD1/TXD1 alternate pin enable: 0=RXD1/TXD1 on PA[8]/PA[9], 1=RXD1_/TXD1_ on PB[12]/PB[13]
+#define  RB_PIN_UART2       0x40                      // RW, RXD2/TXD2 alternate pin enable: 0=RXD2/TXD2 on PA[6]/PA[7], 1=RXD2_/TXD2_ on PB[22]/PB[23]
+#define  RB_PIN_UART3       0x80                      // RW, RXD3/TXD3 alternate pin enable: 0=RXD3/TXD3 on PA[4]/PA[5], 1=RXD3_/TXD3_ on PB[20]/PB[21]
+#define  RB_PIN_SPI0        0x100                     // RW, SCS/SCK0/MOSI/MISO alternate pin enable: 0=SCS/SCK0/MOSI/MISO on PA[12]/PA[13]/PA[14]/PA[15], 1=SCS_/SCK0_/MOSI_/MISO_ on PB[12]/PB[13]/PB[14]/PB[15]
+#define  RB_PIN_PWMX        0x400                     // RW, PWM4/PWM5/PWM7/PWM8/PWM9 alternate pin enable: 0=PWM4/5/7/8/9 on PA[12]/PA[13]/PB[4]/PB[6]/PB[7], 1=PWM4/5/7/8/9 on PA[6]/PA[7]/PB[1]/PB[2]/P[3]
+#define  RB_PIN_I2C         0x800                     // RW, SCL/SDA alternate pin enable: 0=SCL/SDA on PB[13]/PB[12], 1=SCL_/SDA_ on PB[21]/PB[20]
+#define  RB_PIN_MODEM       0x1000                    // RW, DSR/DTR alternate pin enable: 0=DSR/DTR on PB[1]/PB[5], 1=DSR_/DTR_ on PB[14]/PB[15]
+#define  RB_RF_ANT_SW_EN    0x8000                    // RW, RF antenna switch control output enable: 0=disable output, 1=output on PB[16]/PB[17]/PB[18]/PB[19]/PB[20]/PB[21]
+#define R16_PIN_ANALOG_IE   (*((vu16*)0x4000101A)) // RW, analog pin enable and digital input disable
+#define  RB_PIN_USB_DP_PU   0x40                      // RW, USB UDP internal pullup resistance enable: 0=enable/disable by RB_UC_DEV_PU_EN, 1=enable pullup, replace RB_UC_DEV_PU_EN under sleep mode
+#define  RB_PIN_USB_IE      0x80                      // RW, USB analog I/O enable: 0=analog I/O disable, 1=analog I/O enable
+#define R32_PIN_CONFIG2     (*((vu32*)0x4000101C)) // RW, I/O pin configuration
+#define  RB_PIN_PA4_15_DIS  0xFFF0                    // RW, PA4-PA15 digital input disable
+#define  RB_PIN_PB0_DIS     0x10000                   // RW, PB0 digital input disable
+#define  RB_PIN_PB4_DIS     0x100000                  // RW, PB4 digital input disable
+#define  RB_PIN_PB6_7_DIS   0xC00000                  // RW, PB6-PB7 digital input disable
+#define  RB_PIN_PB22_23_DIS 0x3000000                 // RW, PB22-PB23 digital input disable
+#define  RB_PIN_PB10_15_DIS 0xFC000000                // RW, PB10-PB15 digital input disable
+
+/* System: power management register */
+#define R32_POWER_MANAG     (*((vu32*)0x40001020)) // RWA, power management register, SAM
+#define R16_POWER_PLAN      (*((vu16*)0x40001020)) // RWA, power plan before sleep instruction, SAM
+#define  RB_PWR_XROM        0x01                      // RWA, power for flash ROM
+#define  RB_PWR_RAM2K       0x02                      // RWA, power for retention 2KB SRAM
+#define  RB_PWR_CORE        0x04                      // RWA, power retention for core and base peripherals
+#define  RB_PWR_EXTEND      0x08                      // RWA, power retention for USB and BLE
+#define  RB_PWR_RAM24K      0x10                      // RWA, power for main SRAM
+#define  RB_MAIN_ACT        0x40                      // RWA, main power chose
+#define  RB_PWR_SYS_EN      0x80                      // RWA, power for system
+#define  RB_PWR_LDO_EN      0x0100                    // RWA, LDO enable
+#define  RB_PWR_DCDC_EN     0x0200                    // RWA, DC/DC converter enable: 0=DC/DC disable and bypass, 1=DC/DC enable
+#define  RB_PWR_DCDC_PRE    0x0400                    // RWA, DC/DC converter pre-enable
+#define  RB_XT_PRE_CFG      0x1800                    // RWA, extern 32MHz HSE early wake up time configuration
+#define  RB_PWR_MUST_0      0x2000                    // RWA, must write 0
+#define  RB_XT_PRE_EN       0x4000                    // RWA, extern 32MHz HSE early wake up enable, must be used with LSI/LSE
+#define  RB_PWR_PLAN_EN     0x8000                    // RWA/WZ, power plan enable, auto clear after sleep executed
+#define R16_AUX_POWER_ADJ   (*((vu16*)0x40001022))  // RWA, aux power adjust control, SAM
+#define  RB_ULPLDO_ADJ      0x0007                    // RWA, Ultra-Low-Power LDO voltage adjust
+#define  RB_DCDC_CHARGE     0x0080                    // RWA, DC/DC aux charge enable
+#define  RB_IPU_TKEY_SEL    0xC000                    // RWA, TouchKey wakeup
+
 /* System: safe accessing register */
 #define R32_SAFE_ACCESS     (*((vu32*)0x40001040)) // RW, safe accessing
 #define R8_SAFE_ACCESS_SIG  (*((vu8*)0x40001040))  // WO, safe accessing sign register, must write SAFE_ACCESS_SIG1 then SAFE_ACCESS_SIG2 to enter safe accessing mode
@@ -285,6 +376,168 @@ typedef enum
 	GPIO_CFGLR_OUT_2Mhz_PP = GPIO_ModeOut_PP_5mA,
 	GPIO_CFGLR_OUT_50Mhz_PP = GPIO_ModeOut_PP_20mA,
 } GPIO_CFGLR_PIN_MODE_Typedef;
+
+/* UART0 register */
+#define R32_UART0_CTRL      (*((vu32*)0x40003000)) // RW, UART0 control
+#define R8_UART0_MCR        (*((vu8*)0x40003000))  // RW, UART0 modem control
+#define R8_UART0_IER        (*((vu8*)0x40003001))  // RW, UART0 interrupt enable
+#define R8_UART0_FCR        (*((vu8*)0x40003002))  // RW, UART0 FIFO control
+#define R8_UART0_LCR        (*((vu8*)0x40003003))  // RW, UART0 line control
+#define R32_UART0_STAT      (*((vu32*)0x40003004)) // RO, UART0 status
+#define R8_UART0_IIR        (*((vu8*)0x40003004))  // RO, UART0 interrupt identification
+#define R8_UART0_LSR        (*((vu8*)0x40003005))  // RO, UART0 line status
+#define R8_UART0_MSR        (*((vu8*)0x40003006))  // RO, UART0 modem status
+#define R32_UART0_FIFO      (*((vu32*)0x40003008)) // RW, UART0 data or FIFO port
+#define R8_UART0_RBR        (*((vu8*)0x40003008))  // RO, UART0 receiver buffer, receiving byte
+#define R8_UART0_THR        (*((vu8*)0x40003008))  // WO, UART0 transmitter holding, transmittal byte
+#define R8_UART0_RFC        (*((vu8*)0x4000300A))  // RO, UART0 receiver FIFO count
+#define R8_UART0_TFC        (*((vu8*)0x4000300B))  // RO, UART0 transmitter FIFO count
+#define R32_UART0_SETUP     (*((vu32*)0x4000300C)) // RW, UART0 setup
+#define R16_UART0_DL        (*((vu16*)0x4000300C)) // RW, UART0 divisor latch
+#define R8_UART0_DLL        (*((vu8*)0x4000300C))  // RW, UART0 divisor latch LSB byte
+// #define R8_UART0_DLM        (*((vu8*)0x4000300D))  // RW, UART0 divisor latch MSB byte
+#define R8_UART0_DIV        (*((vu8*)0x4000300E))  // RW, UART0 pre-divisor latch byte, only low 7 bit, from 1 to 0/128
+#define R8_UART0_ADR        (*((vu8*)0x4000300F))  // RW, UART0 slave address: 0xFF=disable, other=enable
+
+/* UART1 register */
+#define R32_UART1_CTRL      (*((vu32*)0x40003400)) // RW, UART1 control
+#define R8_UART1_MCR        (*((vu8*)0x40003400))  // RW, UART1 modem control
+#define R8_UART1_IER        (*((vu8*)0x40003401))  // RW, UART1 interrupt enable
+#define R8_UART1_FCR        (*((vu8*)0x40003402))  // RW, UART1 FIFO control
+#define R8_UART1_LCR        (*((vu8*)0x40003403))  // RW, UART1 line control
+#define R32_UART1_STAT      (*((vu32*)0x40003404)) // RO, UART1 status
+#define R8_UART1_IIR        (*((vu8*)0x40003404))  // RO, UART1 interrupt identification
+#define R8_UART1_LSR        (*((vu8*)0x40003405))  // RO, UART1 line status
+#define R32_UART1_FIFO      (*((vu32*)0x40003408)) // RW, UART1 data or FIFO port
+#define R8_UART1_RBR        (*((vu8*)0x40003408))  // RO, UART1 receiver buffer, receiving byte
+#define R8_UART1_THR        (*((vu8*)0x40003408))  // WO, UART1 transmitter holding, transmittal byte
+#define R8_UART1_RFC        (*((vu8*)0x4000340A))  // RO, UART1 receiver FIFO count
+#define R8_UART1_TFC        (*((vu8*)0x4000340B))  // RO, UART1 transmitter FIFO count
+#define R32_UART1_SETUP     (*((vu32*)0x4000340C)) // RW, UART1 setup
+#define R16_UART1_DL        (*((vu16*)0x4000340C)) // RW, UART1 divisor latch
+#define R8_UART1_DLL        (*((vu8*)0x4000340C))  // RW, UART1 divisor latch LSB byte
+// #define R8_UART1_DLM        (*((vu8*)0x4000340D))  // RW, UART1 divisor latch MSB byte
+#define R8_UART1_DIV        (*((vu8*)0x4000340E))  // RW, UART1 pre-divisor latch byte, only low 7 bit, from 1 to 0/128
+
+/* UART2 register */
+#define R32_UART2_CTRL      (*((vu32*)0x40003800)) // RW, UART2 control
+#define R8_UART2_MCR        (*((vu8*)0x40003800))  // RW, UART2 modem control
+#define R8_UART2_IER        (*((vu8*)0x40003801))  // RW, UART2 interrupt enable
+#define R8_UART2_FCR        (*((vu8*)0x40003802))  // RW, UART2 FIFO control
+#define R8_UART2_LCR        (*((vu8*)0x40003803))  // RW, UART2 line control
+#define R32_UART2_STAT      (*((vu32*)0x40003804)) // RO, UART2 status
+#define R8_UART2_IIR        (*((vu8*)0x40003804))  // RO, UART2 interrupt identification
+#define R8_UART2_LSR        (*((vu8*)0x40003805))  // RO, UART2 line status
+#define R32_UART2_FIFO      (*((vu32*)0x40003808)) // RW, UART2 data or FIFO port
+#define R8_UART2_RBR        (*((vu8*)0x40003808))  // RO, UART2 receiver buffer, receiving byte
+#define R8_UART2_THR        (*((vu8*)0x40003808))  // WO, UART2 transmitter holding, transmittal byte
+#define R8_UART2_RFC        (*((vu8*)0x4000380A))  // RO, UART2 receiver FIFO count
+#define R8_UART2_TFC        (*((vu8*)0x4000380B))  // RO, UART2 transmitter FIFO count
+#define R32_UART2_SETUP     (*((vu32*)0x4000380C)) // RW, UART2 setup
+#define R16_UART2_DL        (*((vu16*)0x4000380C)) // RW, UART2 divisor latch
+#define R8_UART2_DLL        (*((vu8*)0x4000380C))  // RW, UART2 divisor latch LSB byte
+// #define R8_UART2_DLM        (*((vu8*)0x4000380D))  // RW, UART2 divisor latch MSB byte
+#define R8_UART2_DIV        (*((vu8*)0x4000380E))  // RW, UART2 pre-divisor latch byte, only low 7 bit, from 1 to 0/128
+
+/* UART3 register */
+#define R32_UART3_CTRL      (*((vu32*)0x40003C00)) // RW, UART3 control
+#define R8_UART3_MCR        (*((vu8*)0x40003C00))  // RW, UART3 modem control
+#define R8_UART3_IER        (*((vu8*)0x40003C01))  // RW, UART3 interrupt enable
+#define R8_UART3_FCR        (*((vu8*)0x40003C02))  // RW, UART3 FIFO control
+#define R8_UART3_LCR        (*((vu8*)0x40003C03))  // RW, UART3 line control
+#define R32_UART3_STAT      (*((vu32*)0x40003C04)) // RO, UART3 status
+#define R8_UART3_IIR        (*((vu8*)0x40003C04))  // RO, UART3 interrupt identification
+#define R8_UART3_LSR        (*((vu8*)0x40003C05))  // RO, UART3 line status
+#define R32_UART3_FIFO      (*((vu32*)0x40003C08)) // RW, UART3 data or FIFO port
+#define R8_UART3_RBR        (*((vu8*)0x40003C08))  // RO, UART3 receiver buffer, receiving byte
+#define R8_UART3_THR        (*((vu8*)0x40003C08))  // WO, UART3 transmitter holding, transmittal byte
+#define R8_UART3_RFC        (*((vu8*)0x40003C0A))  // RO, UART3 receiver FIFO count
+#define R8_UART3_TFC        (*((vu8*)0x40003C0B))  // RO, UART3 transmitter FIFO count
+#define R32_UART3_SETUP     (*((vu32*)0x40003C0C)) // RW, UART3 setup
+#define R16_UART3_DL        (*((vu16*)0x40003C0C)) // RW, UART3 divisor latch
+#define R8_UART3_DLL        (*((vu8*)0x40003C0C))  // RW, UART3 divisor latch LSB byte
+// #define R8_UART3_DLM        (*((vu8*)0x40003C0D))  // RW, UART3 divisor latch MSB byte
+#define R8_UART3_DIV        (*((vu8*)0x40003C0E))  // RW, UART3 pre-divisor latch byte, only low 7 bit, from 1 to 0/128
+
+/* UART register address offset and bit define */
+#define UART_FIFO_SIZE      8                         // UART FIFO size (depth)
+#define UART_RECV_RDY_SZ    7                         // the max FIFO trigger level for UART receiver data available
+#define BA_UART0            ((vu8*)0x40003000)     // point UART0 base address
+#define BA_UART1            ((vu8*)0x40003400)     // point UART1 base address
+#define BA_UART2            ((vu8*)0x40003800)     // point UART2 base address
+#define BA_UART3            ((vu8*)0x40003C00)     // point UART3 base address
+#define UART_MCR            0
+#define  RB_MCR_DTR         0x01                      // RW, UART0 control DTR
+#define  RB_MCR_RTS         0x02                      // RW, UART0 control RTS
+#define  RB_MCR_OUT1        0x04                      // RW, UART0 control OUT1
+#define  RB_MCR_OUT2        0x08                      // RW, UART control OUT2
+#define  RB_MCR_INT_OE      0x08                      // RW, UART interrupt output enable
+#define  RB_MCR_LOOP        0x10                      // RW, UART0 enable local loop back
+#define  RB_MCR_AU_FLOW_EN  0x20                      // RW, UART0 enable autoflow control
+#define  RB_MCR_TNOW        0x40                      // RW, UART0 enable TNOW output on DTR pin
+#define  RB_MCR_HALF        0x80                      // RW, UART0 enable half-duplex
+#define UART_IER            1
+#define  RB_IER_RECV_RDY    0x01                      // RW, UART interrupt enable for receiver data ready
+#define  RB_IER_THR_EMPTY   0x02                      // RW, UART interrupt enable for THR empty
+#define  RB_IER_LINE_STAT   0x04                      // RW, UART interrupt enable for receiver line status
+#define  RB_IER_MODEM_CHG   0x08                      // RW, UART0 interrupt enable for modem status change
+#define  RB_IER_DTR_EN      0x10                      // RW, UART0 DTR/TNOW output pin enable
+#define  RB_IER_RTS_EN      0x20                      // RW, UART0 RTS output pin enable
+#define  RB_IER_TXD_EN      0x40                      // RW, UART TXD pin enable
+#define  RB_IER_RESET       0x80                      // WZ, UART software reset control, high action, auto clear
+#define UART_FCR            2
+#define  RB_FCR_FIFO_EN     0x01                      // RW, UART FIFO enable
+#define  RB_FCR_RX_FIFO_CLR 0x02                      // WZ, clear UART receiver FIFO, high action, auto clear
+#define  RB_FCR_TX_FIFO_CLR 0x04                      // WZ, clear UART transmitter FIFO, high action, auto clear
+#define  RB_FCR_FIFO_TRIG   0xC0                      // RW, UART receiver FIFO trigger level: 00-1byte, 01-2bytes, 10-4bytes, 11-7bytes
+#define UART_LCR            3
+#define  RB_LCR_WORD_SZ     0x03                      // RW, UART word bit length: 00-5bit, 01-6bit, 10-7bit, 11-8bit
+#define  RB_LCR_STOP_BIT    0x04                      // RW, UART stop bit length: 0-1bit, 1-2bit
+#define  RB_LCR_PAR_EN      0x08                      // RW, UART parity enable
+#define  RB_LCR_PAR_MOD     0x30                      // RW, UART parity mode: 00-odd, 01-even, 10-mark, 11-space
+#define  RB_LCR_BREAK_EN    0x40                      // RW, UART break control enable
+#define  RB_LCR_DLAB        0x80                      // RW, UART reserved bit
+#define  RB_LCR_GP_BIT      0x80                      // RW, UART general purpose bit
+#define UART_IIR            4
+#define  RB_IIR_NO_INT      0x01                      // RO, UART no interrupt flag: 0=interrupt action, 1=no interrupt
+#define  RB_IIR_INT_MASK    0x0F                      // RO, UART interrupt flag bit mask
+#define  RB_IIR_FIFO_ID     0xC0                      // RO, UART FIFO enabled flag
+#define UART_LSR            5
+#define  RB_LSR_DATA_RDY    0x01                      // RO, UART receiver fifo data ready status
+#define  RB_LSR_OVER_ERR    0x02                      // RZ, UART receiver overrun error
+#define  RB_LSR_PAR_ERR     0x04                      // RZ, UART receiver parity error
+#define  RB_LSR_FRAME_ERR   0x08                      // RZ, UART receiver frame error
+#define  RB_LSR_BREAK_ERR   0x10                      // RZ, UART receiver break error
+#define  RB_LSR_TX_FIFO_EMP 0x20                      // RO, UART transmitter fifo empty status
+#define  RB_LSR_TX_ALL_EMP  0x40                      // RO, UART transmitter all empty status
+#define  RB_LSR_ERR_RX_FIFO 0x80                      // RO, indicate error in UART receiver fifo
+#define UART_MSR            6
+#define  RB_MSR_CTS_CHG     0x01                      // RZ, UART0 CTS changed status, high action
+#define  RB_MSR_DSR_CHG     0x02                      // RZ, UART0 DSR changed status, high action
+//#define  RB_MSR_RI_CHG      0x04                      // RZ, UART0 RI changed status, high action
+//#define  RB_MSR_DCD_CHG     0x08                      // RZ, UART0 DCD changed status, high action
+#define  RB_MSR_CTS         0x10                      // RO, UART0 CTS action status
+#define  RB_MSR_DSR         0x20                      // RO, UART0 DSR action status
+//#define  RB_MSR_RI          0x40                      // RO, UART0 RI action status
+//#define  RB_MSR_DCD         0x80                      // RO, UART0 DCD action status
+#define UART_RBR            8
+#define UART_THR            8
+#define UART_RFC            0x0A
+#define UART_TFC            0x0B
+#define UART_DLL            0x0C
+// #define UART_DLM            0x0D
+#define UART_DIV            0x0E
+#define UART_ADR            0x0F
+
+/* UART interrupt identification values for IIR bits 3:0 */
+#define UART_II_SLV_ADDR    0x0E                      // RO, UART0 slave address match
+#define UART_II_LINE_STAT   0x06                      // RO, UART interrupt by receiver line status
+#define UART_II_RECV_RDY    0x04                      // RO, UART interrupt by receiver data available
+#define UART_II_RECV_TOUT   0x0C                      // RO, UART interrupt by receiver fifo timeout
+#define UART_II_THR_EMPTY   0x02                      // RO, UART interrupt by THR empty
+#define UART_II_MODEM_CHG   0x00                      // RO, UART0 interrupt by modem status change
+#define UART_II_NO_INTER    0x01                      // RO, no UART interrupt is pending
+
 
 #define HardFault_IRQn        EXC_IRQn
 
