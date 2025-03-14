@@ -172,7 +172,7 @@
 #ifndef HSI_VALUE
 	#if defined(CH32V003)
 		#define HSI_VALUE                 (24000000) // Value of the Internal oscillator in Hz, default.
-	#elif defined(CH32V006)
+	#elif defined(CH32V00x)
 		#define HSI_VALUE				  (24000000)
 	#elif defined(CH32X03x)
 		#define HSI_VALUE				  (48000000)
