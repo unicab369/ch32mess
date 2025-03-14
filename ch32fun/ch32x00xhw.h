@@ -233,7 +233,7 @@ typedef struct
 /* General Purpose I/O */
 typedef enum
 {
-	GPIO_CFGLR_MASK			 = 0b1111,
+	GPIO_CFGLR_MASK      = 0b1111,
 
 	GPIO_CFGLR_IN_ANALOG = 0b0000,
 	GPIO_CFGLR_IN_FLOAT  = 0b0100,
