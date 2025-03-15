@@ -1128,10 +1128,10 @@ void handle_reset( void )
 	csrw 0xbc0, t0\n"
 
 #if defined(CH32V30x) && !defined( DISABLED_FLOAT )
-"	li t0, 0x6088\n\
+"	li t0, 0x7888\n\
 	csrs mstatus, t0\n"
 #else
-"	li t0, 0x88\n\
+"	li t0, 0x1888\n\
 	csrs mstatus, t0\n"
 #endif
 
