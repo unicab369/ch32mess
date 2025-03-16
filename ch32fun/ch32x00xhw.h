@@ -693,7 +693,7 @@ typedef struct
 #define GPIOC                                   ((GPIO_TypeDef *)GPIOC_BASE)
 #define GPIOD                                   ((GPIO_TypeDef *)GPIOD_BASE)
 #define ADC1                                    ((ADC_TypeDef *)ADC1_BASE)
-#define TIM1                                    ((ADIM_TypeDef *)TIM1_BASE)
+#define TIM1                                    ((ADTM_TypeDef *)TIM1_BASE)
 #define SPI1                                    ((SPI_TypeDef *)SPI1_BASE)
 #define USART1                                  ((USART_TypeDef *)USART1_BASE)
 #define USART2                                  ((USART_TypeDef *)USART2_BASE)
