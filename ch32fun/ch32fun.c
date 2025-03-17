@@ -1307,6 +1307,7 @@ WEAK int _write(int fd, const char *buf, int size)
 {
 	for(int i = 0; i < size; i++){
 #if defined(CH59x)
+		while(!(R8_UART1_LSR & RB_LSR_TX_ALL_EMP));
 		R8_UART1_THR = buf[i];
 #else
 		while( !(USART1->STATR & USART_FLAG_TC));
@@ -1320,6 +1321,7 @@ WEAK int _write(int fd, const char *buf, int size)
 WEAK int putchar(int c)
 {
 #if defined(CH59x)
+	while(!(R8_UART1_LSR & RB_LSR_TX_ALL_EMP));
 	R8_UART1_THR = c;
 #else
 	while( !(USART1->STATR & USART_FLAG_TC));
