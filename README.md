@@ -102,6 +102,8 @@ Other third party tools are adding lots of examples, etc.  See the following rep
  * [CH32Vxxx_lib_i2c](https://github.com/ADBeta/CH32Vxxx_lib_i2c)
  * [CH32Vxxx_lib_swi2c](https://github.com/ADBeta/CH32Vxxx_lib_swi2c)
  * [ch32v003fun_shenanigans](https://github.com/DeadBugEngineering/ch32v003fun_shenanigans)
+ * [ch32fun-bmp280-driver](https://github.com/pabloestrado/ch32fun-bmp280-driver)
+ * [ch32fun-aht20-driver](https://github.com/pabloestrado/ch32fun-aht20-driver)
 
 ## Support
 

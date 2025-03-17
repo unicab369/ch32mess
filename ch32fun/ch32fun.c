@@ -64,8 +64,8 @@ void WaitForDebuggerToAttach()
 #endif
 
 #if (defined( FUNCONF_USE_DEBUGPRINTF ) && !FUNCONF_USE_DEBUGPRINTF) && \
-    (defined( FUNCONF_USE_UARTPRINTF ) && !FUNCONF_USE_UARTPRINTF) && \
-    (defined( FUNCONF_NULL_PRINTF ) && FUNCONF_NULL_PRINTF)
+	(defined( FUNCONF_USE_UARTPRINTF ) && !FUNCONF_USE_UARTPRINTF) && \
+	(defined( FUNCONF_NULL_PRINTF ) && FUNCONF_NULL_PRINTF)
 
 int _write(int fd, const char *buf, int size)
 int putchar(int c)
@@ -964,6 +964,24 @@ void USBPD_WKUP_IRQHandler( void )		__attribute__((section(".text.vector_handler
 void TIM2_CC_IRQHandler( void )			__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
 void TIM2_TRG_IRQHandler( void )		__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
 void TIM2_BRK_IRQHandler( void )		__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
+// CH59x
+void TMR0_IRQHandler( void )			__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
+void GPIOA_IRQHandler( void )			__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
+void GPIOB_IRQHandler( void )			__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
+void SPI0_IRQHandler( void )			__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
+void USB_IRQHandler( void )				__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
+void TMR1_IRQHandler( void )			__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
+void TMR2_IRQHandler( void )			__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
+void UART0_IRQHandler( void )			__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
+void UART1_IRQHandler( void )			__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
+void ADC_IRQHandler( void )				__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
+void I2C_IRQHandler( void )				__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
+void PWMX_IRQHandler( void )			__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
+void TMR3_IRQHandler( void )			__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
+void UART2_IRQHandler( void )			__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
+void UART3_IRQHandler( void )			__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
+void WDOG_BAT_IRQHandler( void )		__attribute__((section(".text.vector_handler"))) __attribute((weak,alias("DefaultIRQHandler"))) __attribute__((used));
+
 
 
 void InterruptVector()         __attribute__((naked)) __attribute((section(".init"))) __attribute((weak,alias("InterruptVectorDefault"))) __attribute((naked));
@@ -984,7 +1002,7 @@ void InterruptVectorDefault( void )
 #endif
 }
 
-#if defined( CH32V003 ) || defined( CH32X03x )
+#if defined( CH32V003 ) || defined( CH32X03x ) || defined(CH32V00x)
 
 void handle_reset( void )
 {
@@ -1058,7 +1076,7 @@ asm volatile(
 "	mret\n" : : [main]"r"(main) );
 }
 
-#elif defined(CH32V10x) || defined(CH32V20x) || defined(CH32V30x)
+#elif defined(CH32V10x) || defined(CH32V20x) || defined(CH32V30x) || defined(CH59x)
 
 void handle_reset( void )
 {
@@ -1069,7 +1087,7 @@ void handle_reset( void )
 .option pop\n\
 	la sp, _eusrstack\n"
 #if __GNUC__ > 10
-  ".option arch, +zicsr\n"
+	".option arch, +zicsr\n"
 #endif
 			);
 
@@ -1163,7 +1181,7 @@ __attribute__ ((naked)) int setjmp( jmp_buf env )
 "	sw s1, 2*4(a0)\n"
 "	sw sp, 3*4(a0)\n"
 
-    // RV32I only registers
+	// RV32I only registers
 #if !defined( __riscv_abi_rve )
 "	sw s2, 4*4(a0)\n"
 "	sw s3, 5*4(a0)\n"
@@ -1198,14 +1216,14 @@ __attribute__ ((naked)) int setjmp( jmp_buf env )
 
 __attribute__ ((naked)) void longjmp( jmp_buf env, int val )
 {
-    asm volatile(
-    // Common registers
+	asm volatile(
+	// Common registers
 "	lw ra, 0*4(a0)\n"
 "	lw s0, 1*4(a0)\n"
 "	lw s1, 2*4(a0)\n"
 "	lw sp, 3*4(a0)\n"
 
-    // RV32I only registers
+	// RV32I only registers
 #if !defined( __riscv_abi_rve )
 "	lw s2, 4*4(a0)\n"
 "	lw s3, 5*4(a0)\n"
@@ -1256,6 +1274,15 @@ void SetupUART( int uartBRR )
 	// Push-Pull, 10MHz Output, GPIO A9, with AutoFunction
 	GPIOB->CFGHR &= ~(0xf<<(4*2));
 	GPIOB->CFGHR |= (GPIO_Speed_10MHz | GPIO_CNF_OUT_PP_AF)<<(4*2);
+#elif defined(CH59x)
+	// rx,tx:PA8,PA9 on uart1
+	funPinMode( PA8, GPIO_CFGLR_IN_PU );
+	funPinMode( PA9, GPIO_CFGLR_OUT_2Mhz_PP );
+	R16_UART1_DL = ((10 * FUNCONF_SYSTEM_CORE_CLOCK / 8 / uartBRR) +5) /10;
+	R8_UART1_FCR = (2 << 6) | RB_FCR_TX_FIFO_CLR | RB_FCR_RX_FIFO_CLR | RB_FCR_FIFO_EN;
+	R8_UART1_LCR = RB_LCR_WORD_SZ;
+	R8_UART1_IER = RB_IER_TXD_EN;
+	R8_UART1_DIV = 1;
 #else
 	RCC->APB2PCENR |= RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1;
 
@@ -1264,6 +1291,7 @@ void SetupUART( int uartBRR )
 	GPIOA->CFGHR |= (GPIO_Speed_10MHz | GPIO_CNF_OUT_PP_AF)<<(4*1);
 #endif
 
+#if !defined(CH59x)
 	// 115200, 8n1.  Note if you don't specify a mode, UART remains off even when UE_Set.
 	USART1->CTLR1 = USART_WordLength_8b | USART_Parity_No | USART_Mode_Tx;
 	USART1->CTLR2 = USART_StopBits_1;
@@ -1271,14 +1299,19 @@ void SetupUART( int uartBRR )
 
 	USART1->BRR = uartBRR;
 	USART1->CTLR1 |= CTLR1_UE_Set;
+#endif
 }
 
 // For debug writing to the UART.
 WEAK int _write(int fd, const char *buf, int size)
 {
 	for(int i = 0; i < size; i++){
-	    while( !(USART1->STATR & USART_FLAG_TC));
-	    USART1->DATAR = *buf++;
+#if defined(CH59x)
+		R8_UART1_THR = buf[i];
+#else
+		while( !(USART1->STATR & USART_FLAG_TC));
+		USART1->DATAR = *buf++;
+#endif
 	}
 	return size;
 }
@@ -1286,8 +1319,12 @@ WEAK int _write(int fd, const char *buf, int size)
 // single char to UART
 WEAK int putchar(int c)
 {
+#if defined(CH59x)
+	R8_UART1_THR = c;
+#else
 	while( !(USART1->STATR & USART_FLAG_TC));
 	USART1->DATAR = (const char)c;
+#endif
 	return 1;
 }
 #endif
@@ -1312,7 +1349,7 @@ static void internal_handle_input( volatile uint32_t * dmdata0 )
 void poll_input( void )
 {
 	volatile uint32_t * dmdata0 = (volatile uint32_t *)DMDATA0;
- 	if( ((*dmdata0) & 0x80) == 0 )
+	if( ((*dmdata0) & 0x80) == 0 )
 	{
 		internal_handle_input( dmdata0 );
 		*dmdata0 = 0x84;
@@ -1450,8 +1487,8 @@ int WaitForDebuggerToAttach( int timeout_ms )
 #endif
 
 #if (defined( FUNCONF_USE_DEBUGPRINTF ) && !FUNCONF_USE_DEBUGPRINTF) && \
-    (defined( FUNCONF_USE_UARTPRINTF ) && !FUNCONF_USE_UARTPRINTF) && \
-    (defined( FUNCONF_NULL_PRINTF ) && FUNCONF_NULL_PRINTF)
+	(defined( FUNCONF_USE_UARTPRINTF ) && !FUNCONF_USE_UARTPRINTF) && \
+	(defined( FUNCONF_NULL_PRINTF ) && FUNCONF_NULL_PRINTF)
 
 WEAK int _write(int fd, const char *buf, int size)
 {
@@ -1467,10 +1504,10 @@ WEAK int putchar(int c)
 
 void DelaySysTick( uint32_t n )
 {
-#ifdef CH32V003
+#if defined(CH32V003) || defined(CH32V00x)
 	uint32_t targend = SysTick->CNT + n;
 	while( ((int32_t)( SysTick->CNT - targend )) < 0 );
-#elif defined(CH32V20x) || defined(CH32V30x)
+#elif defined(CH32V20x) || defined(CH32V30x) || defined(CH59x)
 	uint64_t targend = SysTick->CNT + n;
 	while( ((int64_t)( SysTick->CNT - targend )) < 0 );
 #elif defined(CH32V10x) || defined(CH32X03x)
@@ -1500,7 +1537,7 @@ void SystemInit( void )
 #endif
 
 #if defined(FUNCONF_USE_PLL) && FUNCONF_USE_PLL
-	#if defined(CH32V003)
+	#if defined(CH32V003) || defined(CH32V00x)
 		#define BASE_CFGR0 RCC_HPRE_DIV1 | RCC_PLLSRC_HSI_Mul2    // HCLK = SYSCLK = APB1 And, enable PLL
 	#elif defined(CH32V20x_D8W)
 		#define BASE_CFGR0 RCC_HPRE_DIV1 | RCC_PPRE2_DIV1 | RCC_PPRE1_DIV1 | PLL_MULTIPLICATION
@@ -1508,7 +1545,7 @@ void SystemInit( void )
 		#define BASE_CFGR0 RCC_HPRE_DIV1 | RCC_PPRE2_DIV1 | RCC_PPRE1_DIV2 | PLL_MULTIPLICATION
 	#endif
 #else
-	#if defined(CH32V003) || defined(CH32X03x)
+	#if defined(CH32V003) || defined(CH32X03x) || defined(CH32V00x)
 		#define BASE_CFGR0 RCC_HPRE_DIV1     					  // HCLK = SYSCLK = APB1 And, no pll.
 	#else
 		#define BASE_CFGR0 RCC_HPRE_DIV1 | RCC_PPRE2_DIV1 | RCC_PPRE1_DIV1
@@ -1539,7 +1576,36 @@ void SystemInit( void )
 	#endif
 #endif
 
-#if defined(FUNCONF_USE_HSI) && FUNCONF_USE_HSI
+#if defined(CH59x) // has no HSI
+	// SYS_SAFE_ACCESS for writing RWA and WA registers
+	#define SYS_SAFE_ACCESS_ENABLE  { R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG1; R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG2; ADD_N_NOPS(2); }
+	#define SYS_SAFE_ACCESS_DISABLE { R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG0; ADD_N_NOPS(2); }
+#ifndef CLK_SOURCE_CH59X
+	#define CLK_SOURCE_CH59X CLK_SOURCE_PLL_60MHz
+#endif
+	SYS_SAFE_ACCESS_ENABLE
+	R8_PLL_CONFIG &= ~(1 << 5);
+	SYS_CLKTypeDef sc = CLK_SOURCE_CH59X;
+	if(sc & 0x20)  // HSE div
+	{
+		R32_CLK_SYS_CFG = (0 << 6) | (sc & 0x1f) | RB_TX_32M_PWR_EN | RB_PLL_PWR_EN;
+		ADD_N_NOPS(4);
+		R8_FLASH_CFG = 0X51;
+	}
+
+	else if(sc & 0x40) // PLL div
+	{
+		R32_CLK_SYS_CFG = (1 << 6) | (sc & 0x1f) | RB_TX_32M_PWR_EN | RB_PLL_PWR_EN;
+		ADD_N_NOPS(4);
+		R8_FLASH_CFG = 0X52;
+	}
+	else
+	{
+		R32_CLK_SYS_CFG |= RB_CLK_SYS_MOD;
+	}
+	R8_PLL_CONFIG |= 1 << 7;
+	SYS_SAFE_ACCESS_DISABLE
+#elif defined(FUNCONF_USE_HSI) && FUNCONF_USE_HSI
 	#if defined(CH32V30x) || defined(CH32V20x) || defined(CH32V10x)
 		EXTEN->EXTEN_CTR |= EXTEN_PLL_HSI_PRE;
 	#endif
@@ -1553,7 +1619,7 @@ void SystemInit( void )
 
 #elif defined(FUNCONF_USE_HSE) && FUNCONF_USE_HSE
 
-	#if defined(CH32V003)
+	#if defined(CH32V003) || defined(CH32V00x)
 		RCC->CTLR = BASE_CTLR | RCC_HSION | RCC_HSEON ;       		  // Keep HSI on while turning on HSE
 	#else
 		RCC->CTLR = RCC_HSEON;							  			  // Only turn on HSE.
@@ -1562,7 +1628,7 @@ void SystemInit( void )
 	// Values lifted from the EVT.  There is little to no documentation on what this does.
 	while(!(RCC->CTLR&RCC_HSERDY)) {};
 
-	#if defined(CH32V003)
+	#if defined(CH32V003) || defined(CH32V00x)
 		RCC->CFGR0 = RCC_PLLSRC_HSE_Mul2 | RCC_SW_HSE;
 	#else
 		RCC->CFGR0 = BASE_CFGR0 | RCC_PLLSRC_HSE | RCC_PLLXTPRE_HSE;
@@ -1598,9 +1664,11 @@ void SystemInit( void )
 	#endif
 #endif
 
+#if !defined(CH59x)
 	RCC->INTR  = 0x009F0000;                               // Clear PLL, CSSC, HSE, HSI and LSI ready flags.
+#endif
 
-#if defined(FUNCONF_USE_PLL) && FUNCONF_USE_PLL
+#if defined(FUNCONF_USE_PLL) && FUNCONF_USE_PLL && !defined(CH59x)
 	while((RCC->CTLR & RCC_PLLRDY) == 0);                       	// Wait till PLL is ready
 	uint32_t tmp32 = RCC->CFGR0 & ~(0x03);							// clr the SW
 	RCC->CFGR0 = tmp32 | RCC_SW_PLL;                       			// Select PLL as system clock source
@@ -1615,6 +1683,7 @@ void SystemInit( void )
 #endif
 }
 
+#if defined(FUNCONF_INIT_ANALOG) && FUNCONF_INIT_ANALOG
 void funAnalogInit( void )
 {
 	//RCC->CFGR0 &= ~(0x1F<<11); // Assume ADCPRE = 0
@@ -1631,12 +1700,12 @@ void funAnalogInit( void )
 	ADC1->CTLR2 |= ADC_ADON | ADC_EXTSEL;	// turn on ADC and set rule group to sw trig
 
 	// Reset calibration
-	ADC1->CTLR2 |= ADC_RSTCAL;
-	while(ADC1->CTLR2 & ADC_RSTCAL);
+	ADC1->CTLR2 |= CTLR2_RSTCAL_Set;
+	while(ADC1->CTLR2 & CTLR2_RSTCAL_Set);
 	
 	// Calibrate
-	ADC1->CTLR2 |= ADC_CAL;
-	while(ADC1->CTLR2 & ADC_CAL);
+	ADC1->CTLR2 |= CTLR2_CAL_Set;
+	while(ADC1->CTLR2 & CTLR2_CAL_Set);
 
 }
 
@@ -1653,6 +1722,7 @@ int funAnalogRead( int nAnalogNumber )
 	// get result
 	return ADC1->RDATAR;
 }
+#endif
 
 // C++ Support
 
