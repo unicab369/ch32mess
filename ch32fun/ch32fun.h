@@ -410,6 +410,9 @@ RV_STATIC_INLINE void __NOP()
 }
 
 // Enable Interrupt (by interrupt number)
+#if defined(CH59x)
+__HIGH_CODE
+#endif
 RV_STATIC_INLINE void NVIC_EnableIRQ(IRQn_Type IRQn)
 {
 	NVIC->IENR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
@@ -936,6 +939,9 @@ void DefaultIRQHandler( void ) __attribute__((section(".text.vector_handler"))) 
 	void NMI_RCC_CSS_IRQHandler( void ) __attribute__((section(".text.vector_handler"))) __attribute__((naked)) __attribute__((used));
 #endif
 
+#if defined(CH59x)
+__HIGH_CODE
+#endif
 void DelaySysTick( uint32_t n );
 
 

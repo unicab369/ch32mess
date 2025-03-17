@@ -12,14 +12,14 @@ extern "C" {
 /* Interrupt Number Definition, according to the selected device */
 typedef enum IRQn
 {
-    /******  RISC-V Processor Exceptions Numbers *******************************************************/
-    NonMaskableInt_IRQn = 2, /* 2 Non Maskable Interrupt                             */
-    EXC_IRQn = 3,            /* 3 Exception Interrupt                                */
+	/******  RISC-V Processor Exceptions Numbers *******************************************************/
+	NonMaskableInt_IRQn = 2, /* 2 Non Maskable Interrupt                             */
+	EXC_IRQn = 3,            /* 3 Exception Interrupt                                */
 	Ecall_M_Mode_IRQn = 5,   /* 5 Ecall M Mode Interrupt                             */
 	Ecall_U_Mode_IRQn = 8,   /* 8 Ecall U Mode Interrupt                             */
 	Break_Point_IRQn = 9,    /* 9 Break Point Interrupt                              */
-    SysTicK_IRQn = 12,       /* 12 System timer Interrupt                            */
-    Software_IRQn = 14,      /* 14 software Interrupt                                */
+	SysTicK_IRQn = 12,       /* 12 System timer Interrupt                            */
+	Software_IRQn = 14,      /* 14 software Interrupt                                */
 
 	/******  RISC-V specific Interrupt Numbers *********************************************************/
 	TMR0_IRQn = 16,          /* 0:  TMR0 */
@@ -87,6 +87,9 @@ typedef enum IRQn
 
 #define DEFAULT_INTERRUPT_VECTOR_CONTENTS BASE_VECTOR "\n.option pop;\n"
 
+#define __HIGH_CODE __attribute__((section(".highcode"), used))
+#define __INTERRUPT __attribute__((interrupt))
+
 /* memory mapped structure for SysTick */
 typedef struct
 {
@@ -100,29 +103,29 @@ typedef struct
 /* memory mapped structure for Program Fast Interrupt Controller (PFIC) */
 typedef struct
 {
-    __I uint32_t  ISR[8];           // 0
-    __I uint32_t  IPR[8];           // 20H
-    __IO uint32_t ITHRESDR;         // 40H
-    uint8_t       RESERVED[4];      // 44H
-    __O uint32_t  CFGR;             // 48H
-    __I uint32_t  GISR;             // 4CH
-    __IO uint8_t  VTFIDR[4];        // 50H
-    uint8_t       RESERVED0[0x0C];  // 54H
-    __IO uint32_t VTFADDR[4];       // 60H
-    uint8_t       RESERVED1[0x90];  // 70H
-    __O uint32_t  IENR[8];          // 100H
-    uint8_t       RESERVED2[0x60];  // 120H
-    __O uint32_t  IRER[8];          // 180H
-    uint8_t       RESERVED3[0x60];  // 1A0H
-    __O uint32_t  IPSR[8];          // 200H
-    uint8_t       RESERVED4[0x60];  // 220H
-    __O uint32_t  IPRR[8];          // 280H
-    uint8_t       RESERVED5[0x60];  // 2A0H
-    __IO uint32_t IACTR[8];         // 300H
-    uint8_t       RESERVED6[0xE0];  // 320H
-    __IO uint8_t  IPRIOR[256];      // 400H
-    uint8_t       RESERVED7[0x810]; // 500H
-    __IO uint32_t SCTLR;            // D10H
+	__I uint32_t  ISR[8];           // 0
+	__I uint32_t  IPR[8];           // 20H
+	__IO uint32_t ITHRESDR;         // 40H
+	uint8_t       RESERVED[4];      // 44H
+	__O uint32_t  CFGR;             // 48H
+	__I uint32_t  GISR;             // 4CH
+	__IO uint8_t  VTFIDR[4];        // 50H
+	uint8_t       RESERVED0[0x0C];  // 54H
+	__IO uint32_t VTFADDR[4];       // 60H
+	uint8_t       RESERVED1[0x90];  // 70H
+	__O uint32_t  IENR[8];          // 100H
+	uint8_t       RESERVED2[0x60];  // 120H
+	__O uint32_t  IRER[8];          // 180H
+	uint8_t       RESERVED3[0x60];  // 1A0H
+	__O uint32_t  IPSR[8];          // 200H
+	uint8_t       RESERVED4[0x60];  // 220H
+	__O uint32_t  IPRR[8];          // 280H
+	uint8_t       RESERVED5[0x60];  // 2A0H
+	__IO uint32_t IACTR[8];         // 300H
+	uint8_t       RESERVED6[0xE0];  // 320H
+	__IO uint8_t  IPRIOR[256];      // 400H
+	uint8_t       RESERVED7[0x810]; // 500H
+	__IO uint32_t SCTLR;            // D10H
 } PFIC_Type;
 #endif /* __ASSEMBLER__*/
 
@@ -154,19 +157,35 @@ typedef struct
 
 typedef enum
 {
-    CLK_SOURCE_LSI = 0x00,
-    CLK_SOURCE_LSE,
+	CLK_SOURCE_LSI = 0x00,
+	CLK_SOURCE_LSE,
 
-    CLK_SOURCE_HSE_16MHz =  (0x20 |  2),
-    CLK_SOURCE_HSE_8MHz =   (0x20 |  4),
-    CLK_SOURCE_HSE_6_4MHz = (0x20 |  5),
-    CLK_SOURCE_HSE_4MHz =   (0x20 |  8),
+	CLK_SOURCE_HSE_16MHz =  (0x20 |  2),
+	CLK_SOURCE_HSE_8MHz =   (0x20 |  4),
+	CLK_SOURCE_HSE_6_4MHz = (0x20 |  5),
+	CLK_SOURCE_HSE_4MHz =   (0x20 |  8),
 
-    CLK_SOURCE_PLL_60MHz =  (0x40 |  8),
-    CLK_SOURCE_PLL_48MHz =  (0x40 | 10),
-    CLK_SOURCE_PLL_32MHz =  (0x40 | 15),
-    CLK_SOURCE_PLL_24MHz =  (0x40 | 20),
+	CLK_SOURCE_PLL_60MHz =  (0x40 |  8),
+	CLK_SOURCE_PLL_48MHz =  (0x40 | 10),
+	CLK_SOURCE_PLL_32MHz =  (0x40 | 15),
+	CLK_SOURCE_PLL_24MHz =  (0x40 | 20),
 } SYS_CLKTypeDef;
+
+typedef enum
+{
+	LSE_RCur_70 = 0,
+	LSE_RCur_100,
+	LSE_RCur_140,
+	LSE_RCur_200
+} LSECurrentTypeDef;
+
+typedef enum
+{
+	HSE_RCur_75 = 0,
+	HSE_RCur_100,
+	HSE_RCur_125,
+	HSE_RCur_150
+} HSECurrentTypeDef;
 
 // For debug writing to the debug interface.
 #define DMDATA0 			((vu32*)0xe0000380)
@@ -272,6 +291,64 @@ typedef enum
 #define  RB_DCDC_CHARGE     0x0080                    // RWA, DC/DC aux charge enable
 #define  RB_IPU_TKEY_SEL    0xC000                    // RWA, TouchKey wakeup
 
+/* System: battery detector register */
+#define R32_BATTERY_CTRL    (*((vu32*)0x40001024)) // RWA, battery voltage detector, SAM
+#define R8_BAT_DET_CTRL     (*((vu8*)0x40001024))  // RWA, battery voltage detector control, SAM
+#define  RB_BAT_DET_EN      0x01                      // RWA, battery voltage detector enable if RB_BAT_MON_EN=0
+#define  RB_BAT_LOW_VTHX    0x01                      // RWA, select monitor threshold voltage if RB_BAT_MON_EN=1
+#define  RB_BAT_MON_EN      0x02                      // RWA, battery voltage monitor enable under sleep mode
+#define  RB_BAT_LOWER_IE    0x04                      // RWA, interrupt enable for battery lower voltage
+#define  RB_BAT_LOW_IE      0x08                      // RWA, interrupt enable for battery low voltage
+// request NMI interrupt if both RB_BAT_LOWER_IE and RB_BAT_LOW_IE enabled
+#define R8_BAT_DET_CFG      (*((vu8*)0x40001025))  // RWA, battery voltage detector configuration, SAM
+#define  RB_BAT_LOW_VTH     0x03                      // RWA, select detector/monitor threshold voltage of battery voltage low
+#define R8_BAT_STATUS       (*((vu8*)0x40001026))  // RO, battery status
+#define  RB_BAT_STAT_LOWER  0x01                      // RO, battery lower voltage status for detector, high action
+#define  RB_BAT_STAT_LOW    0x02                      // RO, battery low voltage status for detector/monitor, high action
+
+/* System: 32KHz oscillator control register */
+#define R32_OSC32K_CTRL     (*((vu32*)0x4000102C)) // RWA, 32KHz oscillator control, SAM
+#define R16_INT32K_TUNE     (*((vu16*)0x4000102C)) // RWA, internal 32KHz oscillator tune control, SAM
+#define  RB_INT32K_TUNE     0x1FFF                    // RWA, internal 32KHz oscillator frequency tune
+#define R8_XT32K_TUNE       (*((vu8*)0x4000102E))  // RWA, external 32KHz oscillator tune control, SAM
+#define  RB_XT32K_I_TUNE    0x03                      // RWA, external 32KHz oscillator current tune: 00=75% current, 01=standard current, 10=150% current, 11=200% current for startup
+#define  RB_XT32K_C_LOAD    0xF0                      // RWA, external 32KHz oscillator load capacitor tune: Cap = RB_XT32K_C_LOAD + 12pF
+#define R8_CK32K_CONFIG     (*((vu8*)0x4000102F))  // RWA, 32KHz oscillator configure
+#define  RB_CLK_XT32K_PON   0x01                      // RWA, external 32KHz oscillator power on
+#define  RB_CLK_INT32K_PON  0x02                      // RWA, internal 32KHz oscillator power on
+#define  RB_CLK_OSC32K_XT   0x04                      // RWA, 32KHz oscillator source selection: 0=RC, 1=XT
+#define  RB_CLK_OSC32K_FILT 0x08                      // RWA, internal 32KHz oscillator low noise mode disable: 1=enable, 0=disable
+#define  RB_32K_CLK_PIN     0x80                      // RO, 32KHz oscillator clock pin status
+
+/* System: real-time clock register */
+#define R32_RTC_CTRL        (*((vu32*)0x40001030)) // RWA, RTC control, SAM
+#define R8_RTC_FLAG_CTRL    (*((vu8*)0x40001030))  // RW, RTC flag and clear control
+#define  RB_RTC_TMR_CLR     0x10                      // RW, set 1 to clear RTC timer action flag, auto clear
+#define  RB_RTC_TRIG_CLR    0x20                      // RW, set 1 to clear RTC trigger action flag, auto clear
+#define  RB_RTC_TMR_FLAG    0x40                      // RO, RTC timer action flag
+#define  RB_RTC_TRIG_FLAG   0x80                      // RO, RTC trigger action flag
+#define R8_RTC_MODE_CTRL    (*((vu8*)0x40001031))  // RWA, RTC mode control, SAM
+#define  RB_RTC_TMR_MODE    0x07                      // RWA, RTC timer mode: 000=0.125S, 001=0.25S, 010=0.5S, 011=1S, 100=2S, 101=4S, 110=8S, 111=16S
+#define  RB_RTC_IGNORE_B0   0x08                      // RWA, force ignore bit0 for trigger mode: 0=compare bit0, 1=ignore bit0
+#define  RB_RTC_TMR_EN      0x10                      // RWA, RTC timer mode enable
+#define  RB_RTC_TRIG_EN     0x20                      // RWA, RTC trigger mode enable
+#define  RB_RTC_LOAD_LO     0x40                      // RWA, set 1 to load RTC count low word R32_RTC_CNT_32K, auto clear after loaded
+#define  RB_RTC_LOAD_HI     0x80                      // RWA, set 1 to load RTC count high word R32_RTC_CNT_DAY, auto clear after loaded
+#define R32_RTC_TRIG        (*((vu32*)0x40001034)) // RWA, RTC trigger value, SAM
+#define R32_RTC_CNT_32K     (*((vu32*)0x40001038)) // RO, RTC count based 32KHz
+#define R16_RTC_CNT_32K     (*((vu16*)0x40001038)) // RO, RTC count based 32KHz
+#define R16_RTC_CNT_2S      (*((vu16*)0x4000103A)) // RO, RTC count based 2 second
+#define R32_RTC_CNT_DAY     (*((vu32*)0x4000103C)) // RO, RTC count based one day, only low 14 bit
+
+#define RTC_MAX_COUNT       0xA8C00000
+#define RTC_FREQ            32000 // LSI
+// #define RTC_FREQ            32768 // LSE
+#define CLK_PER_US          (1.0 / ((1.0 / RTC_FREQ) * 1000 * 1000))
+#define CLK_PER_MS          (CLK_PER_US * 1000)
+#define US_TO_RTC(us)       ((uint32_t)((us) * CLK_PER_US + 0.5))
+#define MS_TO_RTC(ms)       ((uint32_t)((ms) * CLK_PER_MS + 0.5))
+#define RTC_WAIT_TICK       { uint32_t now = R32_RTC_CNT_32K +1; while(R32_RTC_CNT_32K <= now); }
+
 /* System: safe accessing register */
 #define R32_SAFE_ACCESS     (*((vu32*)0x40001040)) // RW, safe accessing
 #define R8_SAFE_ACCESS_SIG  (*((vu8*)0x40001040))  // WO, safe accessing sign register, must write SAFE_ACCESS_SIG1 then SAFE_ACCESS_SIG2 to enter safe accessing mode
@@ -282,11 +359,78 @@ typedef enum
 #define SAFE_ACCESS_SIG2    0xA8                      // WO: safe accessing sign value step 2
 #define SAFE_ACCESS_SIG0    0x00                      // WO: safe accessing sign value for disable
 #define R8_CHIP_ID          (*((vu8*)0x40001041))  // RF, chip ID register, always is ID_CH59*
+#define R8_SAFE_ACCESS_ID   (*((vu8*)0x40001042))  // RF, safe accessing ID register, always 0x0C
+#define R8_WDOG_COUNT       (*((vu8*)0x40001043))  // RW, watch-dog count, count by clock frequency Fsys/131072
+#define SYS_SAFE_ACCESS_ENABLE  { R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG1; R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG2; asm volatile ("nop\nnop"); }
+#define SYS_SAFE_ACCESS_DISABLE { R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG0; asm volatile ("nop\nnop"); }
+
+/* System: global configuration register */
+#define R32_GLOBAL_CONFIG   (*((vu32*)0x40001044)) // RW, global configuration
+#define R8_RESET_STATUS     (*((vu8*)0x40001044))  // RO, reset status
+#define  RB_RESET_FLAG      0x07                      // RO: recent reset flag
+#define  RST_FLAG_SW        0x00
+#define  RST_FLAG_RPOR      0x01
+#define  RST_FLAG_WTR       0x02
+#define  RST_FLAG_MR        0x03
+//#define  RST_FLAG_GPWSM     0x04                      // RO, power on reset flag during sleep/shutdown: 0=no power on reset during sleep/shutdown, 1=power on reset occurred during sleep/shutdown
+#define  RST_FLAG_GPWSM     0x05
+// RB_RESET_FLAG: recent reset flag
+//   000 - SR, software reset, by RB_SOFTWARE_RESET=1 @RB_WDOG_RST_EN=0
+//   001 - RPOR, real power on reset
+//   010 - WTR, watch-dog timer-out reset
+//   011 - MR, external manual reset by RST pin input low
+//   101 - GRWSM, global reset by waking under shutdown mode
+//   1?? - LRW, power on reset occurred during sleep
+#define R8_GLOB_ROM_CFG     R8_RESET_STATUS           // RWA, flash ROM configuration, SAM
+#define  RB_ROM_CODE_OFS    0x10                      // RWA, code offset address selection in Flash ROM: 0=start address 0x000000, 1=start address 0x040000
+#define  RB_ROM_CTRL_EN     0x20                      // RWA, enable flash ROM control interface enable: 0=disable access, 1=enable access control register
+#define  RB_ROM_DATA_WE     0x40                      // RWA, enable flash ROM data & code area being erase/write: 0=all writing protect, 1=enable data area program and erase
+#define  RB_ROM_CODE_WE     0x80                      // RWA, enable flash ROM code area being erase/write: 0=code writing protect, 1=enable code area program and erase
+#define R8_GLOB_CFG_INFO    (*((vu8*)0x40001045))  // RO, global configuration information and status
+#define  RB_CFG_ROM_READ    0x01                      // RO, indicate protected status of Flash ROM code and data: 0=reading protect, 1=enable read by external programmer
+#define  RB_CFG_RESET_EN    0x04                      // RO, manual reset input enable status
+#define  RB_CFG_BOOT_EN     0x08                      // RO, boot-loader enable status
+#define  RB_CFG_DEBUG_EN    0x10                      // RO, debug enable status
+#define  RB_BOOT_LOADER     0x20                      // RO, indicate boot loader status: 0=application status (by software reset), 1=boot loader status
+#define R8_RST_WDOG_CTRL    (*((vu8*)0x40001046))  // RWA, reset and watch-dog control, SAM
+#define  RB_SOFTWARE_RESET  0x01                      // WA/WZ, global software reset, high action, auto clear
+#define  RB_WDOG_RST_EN     0x02                      // RWA, enable watch-dog reset if watch-dog timer overflow: 0=as timer only, 1=enable reset if timer overflow
+#define  RB_WDOG_INT_EN     0x04                      // RWA, watch-dog timer overflow interrupt enable: 0=disable, 1=enable
+#define  RB_WDOG_INT_FLAG   0x10                      // RW1, watch-dog timer overflow interrupt flag, cleared by RW1 or reload watch-dog count or __SEV(Send-Event)
+#define R8_GLOB_RESET_KEEP  (*((vu8*)0x40001047))  // RW, value keeper during global reset
 
 /*System: Miscellaneous Control register */
 #define R32_MISC_CTRL       (*((vu32*)0x40001048)) // RWA, miscellaneous control register
 #define R8_PLL_CONFIG       (*((vu8*)0x4000104B))  // RWA, PLL configuration control, SAM
 #define  RB_PLL_CFG_DAT     0x7F                      // RWA, PLL configuration control, SAM
+
+/* System: 32MHz oscillator control register */
+#define R8_XT32M_TUNE       (*((vu8*)0x4000104E))  // RWA, external 32MHz oscillator tune control, SAM
+#define  RB_XT32M_I_BIAS    0x03                      // RWA, external 32MHz oscillator bias current tune: 00=75% current, 01=standard current, 10=125% current, 11=150% current
+#define  RB_XT32M_C_LOAD    0x70                      // RWA, external 32MHz oscillator load capacitor tune: Cap = RB_XT32M_C_LOAD * 2 + 10pF
+
+/* System: oscillator frequency calibration register */
+#define R32_OSC_CALIB       (*((vu32*)0x40001050)) // RWA, oscillator frequency calibration, SAM
+#define R16_OSC_CAL_CNT     (*((vu16*)0x40001050)) // RO, system clock count value for 32KHz multi-cycles
+#define  RB_OSC_CAL_CNT     0x3FFF                    // RO, system clock count value for 32KHz multi-cycles
+#define  RB_OSC_CAL_OV_CLR  0x4000                    // RW1, indicate R8_OSC_CAL_OV_CNT not zero, set 1 to clear R8_OSC_CAL_OV_CNT
+#define  RB_OSC_CAL_IF      0x8000                    // RW1, interrupt flag for oscillator capture end, set 1 to clear
+#define R8_OSC_CAL_OV_CNT   (*((vu8*)0x40001052))  // RO, oscillator frequency calibration overflow times
+#define R8_OSC_CAL_CTRL     (*((vu8*)0x40001053))  // RWA, oscillator frequency calibration control, SAM
+#define  RB_OSC_CNT_TOTAL   0x07                      // RWA, total cycles mode for oscillator capture
+// RB_OSC_CNT_TOTAL: select total cycles for oscillator capture
+//    000: 1
+//    001: 2
+//    010: 4
+//    011: 32
+//    100: 64
+//    101: 128
+//    110: 1024
+//    111: 2047
+#define  RB_OSC_CNT_HALT    0x08                      // RO, calibration counter halt status: 0=counting, 1=halt for reading count value
+#define  RB_OSC_CAL_IE      0x10                      // RWA, interrupt enable for oscillator capture end
+#define  RB_OSC_CNT_EN      0x20                      // RWA, calibration counter enable
+#define  RB_OSC_CNT_END     0x40                      // RWA, select oscillator capture end mode: 0=normal, 1=append 2 cycles
 
 /* System: Flash ROM control register */
 #define R32_FLASH_DATA      (*((vu32*)0x40001800)) // RO/WO, flash ROM data
@@ -358,11 +502,11 @@ typedef enum
 
 typedef enum
 {
-    GPIO_ModeIN_Floating,
-    GPIO_ModeIN_PU,
-    GPIO_ModeIN_PD,
-    GPIO_ModeOut_PP_5mA,
-    GPIO_ModeOut_PP_20mA,
+	GPIO_ModeIN_Floating,
+	GPIO_ModeIN_PU,
+	GPIO_ModeIN_PD,
+	GPIO_ModeOut_PP_5mA,
+	GPIO_ModeOut_PP_20mA,
 } GPIOModeTypeDef;
 
 /* General Purpose I/O */
@@ -538,6 +682,114 @@ typedef enum
 #define UART_II_MODEM_CHG   0x00                      // RO, UART0 interrupt by modem status change
 #define UART_II_NO_INTER    0x01                      // RO, no UART interrupt is pending
 
+
+__HIGH_CODE
+RV_STATIC_INLINE void RTCInit()
+{
+	SYS_SAFE_ACCESS_ENABLE
+	R8_CK32K_CONFIG &= ~(RB_CLK_OSC32K_XT | RB_CLK_XT32K_PON); // Turn off LSE
+	R8_CK32K_CONFIG |= RB_CLK_INT32K_PON; // turn on LSI
+	R8_RTC_MODE_CTRL |= RB_RTC_TRIG_EN; // enable interrupt trigger
+	R8_RTC_FLAG_CTRL = (RB_RTC_TMR_CLR | RB_RTC_TRIG_CLR); // clear timer and trigger flags
+	SYS_SAFE_ACCESS_DISABLE
+}
+
+__HIGH_CODE
+RV_STATIC_INLINE void RTCTrigger(uint32_t cyc)
+{
+	uint32_t t = R32_RTC_CNT_32K + cyc;
+	if(t > RTC_MAX_COUNT)
+	{
+		t -= RTC_MAX_COUNT;
+	}
+
+	SYS_SAFE_ACCESS_ENABLE
+	R32_RTC_TRIG = t;
+	SYS_SAFE_ACCESS_DISABLE
+}
+
+__HIGH_CODE
+RV_STATIC_INLINE void DCDCEnable()
+{
+	SYS_SAFE_ACCESS_ENABLE
+	R16_AUX_POWER_ADJ |= RB_DCDC_CHARGE;
+	R16_POWER_PLAN |= RB_PWR_DCDC_PRE;
+	SYS_SAFE_ACCESS_DISABLE
+
+	RTC_WAIT_TICK
+
+	SYS_SAFE_ACCESS_ENABLE
+	R16_POWER_PLAN |= RB_PWR_DCDC_EN;
+	SYS_SAFE_ACCESS_DISABLE
+}
+
+__HIGH_CODE
+RV_STATIC_INLINE void LowPowerInit()
+{
+	SYS_SAFE_ACCESS_ENABLE
+	R8_SLP_WAKE_CTRL |= RB_SLP_RTC_WAKE;
+	SYS_SAFE_ACCESS_DISABLE
+}
+
+__HIGH_CODE
+RV_STATIC_INLINE void LowPowerIdle(uint32_t cyc)
+{
+	RTCTrigger(cyc);
+
+	NVIC->SCTLR &= ~(1 << 3); // wfi
+	asm volatile ("wfi\nnop\nnop" );
+}
+
+__HIGH_CODE
+RV_STATIC_INLINE void LowPowerSleep(uint32_t cyc, uint16_t rm)
+{
+	RTCTrigger(cyc);
+
+	uint16_t power_plan;
+
+	SYS_SAFE_ACCESS_ENABLE
+	R8_BAT_DET_CTRL = 0;
+	R8_XT32K_TUNE = LSE_RCur_100;
+	R8_XT32M_TUNE = HSE_RCur_150;
+	SYS_SAFE_ACCESS_DISABLE
+
+	SYS_SAFE_ACCESS_ENABLE
+	R16_POWER_PLAN &= ~RB_XT_PRE_EN;
+	SYS_SAFE_ACCESS_DISABLE
+
+	NVIC->SCTLR |= (1 << 2); //deep sleep
+
+	power_plan = R16_POWER_PLAN & (RB_PWR_DCDC_EN | RB_PWR_DCDC_PRE);
+	power_plan |= RB_PWR_PLAN_EN | RB_PWR_CORE | rm | (2<<11);
+
+	SYS_SAFE_ACCESS_ENABLE
+	R8_SLP_POWER_CTRL |= RB_RAM_RET_LV;
+	R16_POWER_PLAN = power_plan;
+	SYS_SAFE_ACCESS_DISABLE
+
+	if((rm & RB_XT_PRE_EN) == 0)
+	{
+		R8_PLL_CONFIG |= (1 << 5);
+	}
+
+	NVIC->SCTLR &= ~(1 << 3); // wfi
+	asm volatile ("wfi\nnop\nnop" );
+
+	SYS_SAFE_ACCESS_ENABLE
+	R16_POWER_PLAN &= ~RB_XT_PRE_EN;
+	SYS_SAFE_ACCESS_DISABLE
+
+	if((rm & RB_XT_PRE_EN) == 0)
+	{
+		SYS_SAFE_ACCESS_ENABLE
+		R8_PLL_CONFIG &= ~(1 << 5);
+		SYS_SAFE_ACCESS_DISABLE
+	}
+
+    SYS_SAFE_ACCESS_ENABLE
+    R8_XT32M_TUNE = HSE_RCur_100;
+    SYS_SAFE_ACCESS_DISABLE
+}
 
 #define HardFault_IRQn        EXC_IRQn
 

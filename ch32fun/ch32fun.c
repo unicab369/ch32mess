@@ -1100,7 +1100,20 @@ void handle_reset( void )
 1:	sw zero, 0(a0)\n\
 	addi a0, a0, 4\n\
 	bltu a0, a1, 1b\n\
-2:"
+2:\n"
+#if defined(CH59x)
+	/* Load highcode code section from flash to RAM */
+"	la a0, _highcode_lma\n\
+	la a1, _highcode_vma_start\n\
+	la a2, _highcode_vma_end\n\
+	bgeu a1, a2, 2f\n\
+1:	lw t0, (a0)\n\
+	sw t0, (a1)\n\
+	addi a0, a0, 4\n\
+	addi a1, a1, 4\n\
+	bltu a1, a2, 1b\n\
+2:\n"
+#endif
 	// This loads DATA from FLASH to RAM.
 "	la a0, _data_lma\n\
 	la a1, _data_vma\n\
@@ -1502,6 +1515,9 @@ WEAK int putchar(int c)
 }
 #endif
 
+#if defined(CH59x)
+__HIGH_CODE
+#endif
 void DelaySysTick( uint32_t n )
 {
 #if defined(CH32V003) || defined(CH32V00x)
@@ -1518,6 +1534,9 @@ void DelaySysTick( uint32_t n )
 #endif
 }
 
+#if defined(CH59x)
+__HIGH_CODE
+#endif
 void SystemInit( void )
 {
 #if defined(CH32V30x) && defined(TARGET_MCU_MEMORY_SPLIT)
@@ -1577,9 +1596,6 @@ void SystemInit( void )
 #endif
 
 #if defined(CH59x) // has no HSI
-	// SYS_SAFE_ACCESS for writing RWA and WA registers
-	#define SYS_SAFE_ACCESS_ENABLE  { R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG1; R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG2; ADD_N_NOPS(2); }
-	#define SYS_SAFE_ACCESS_DISABLE { R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG0; ADD_N_NOPS(2); }
 #ifndef CLK_SOURCE_CH59X
 	#define CLK_SOURCE_CH59X CLK_SOURCE_PLL_60MHz
 #endif

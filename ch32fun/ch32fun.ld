@@ -95,6 +95,23 @@ SECTIONS
       _einit = .;
     } >FLASH AT>FLASH
 
+#if TARGET_MCU_LD == 8
+    .highcodelalign : 
+    {       
+      . = ALIGN(4);
+      PROVIDE(_highcode_lma = .); 
+    } >FLASH AT>FLASH 
+    
+    .highcode :
+    {
+      . = ALIGN(4);
+      PROVIDE(_highcode_vma_start = .);
+      *(.highcode*)
+      . = ALIGN(4);
+      PROVIDE(_highcode_vma_end = .);
+    } >RAM AT>FLASH
+#endif
+
     .text :
     {
       . = ALIGN(4);
