@@ -16,17 +16,19 @@ void Sleep(uint32_t dwMilliseconds);
 #include <unistd.h>
 #endif
 
+#define MAX_USB_ERR 10000
+#define TERMINAL_FEATURE_ID 0xFD
 
 struct B003FunProgrammerStruct
 {
 	void * internal; // Part of struct ProgrammerStructBase 
-
 	hid_device * hd;
 	uint8_t commandbuffer[128];
 	uint8_t respbuffer[128];
 	int commandplace;
 	int prepping_for_erase;
 	int no_get_report;
+	int err_count;
 };
 
 static const unsigned char byte_wise_read_blob[] = { // No alignment restrictions.
@@ -543,46 +545,43 @@ int B003FunPrepForLongOp( void * dev )
 
 int B003PollTerminal( void * dev, uint8_t * buffer, int maxlen, uint32_t leaveflagA, int leaveflagB )
 {
-  struct B003FunProgrammerStruct * eps = (struct B003FunProgrammerStruct *)dev;
+	struct B003FunProgrammerStruct * eps = (struct B003FunProgrammerStruct *)dev;
 	struct InternalState * iss = (struct InternalState*)(((struct ProgrammerStructBase*)eps)->internal);
 	int r;
-  int ack;
 	uint8_t rr;
 	if( iss->statetag != STTAG( "TERM" ) )
 	{
-    // int dmlock[6] = {'d','m','l','o','c','k'};
-    // eps->respbuffer[0] = 0xfd;
-    // hid_get_feature_report( eps->hd, eps->respbuffer, 8 );
-    // if (memcmp(eps->respbuffer+1, dmlock, 6)) {
-    //   eps->commandbuffer[0] = 0xaa;
-    //   eps->commandbuffer[1] = 0xa5;
-    //   eps->commandbuffer[2] = 2;
-    //   hid_send_feature_report( eps->hd, eps->commandbuffer, 8 );
-    // }
 		iss->statetag = STTAG( "TERM" );
 	}
 
-  eps->respbuffer[0] = 0xfd;
-	r = hid_get_feature_report( eps->hd, eps->respbuffer, 8 );
-
-  if( r < 0 ) return 0;
 	if( maxlen < 8 ) return -9;
 
-  if( (leaveflagA>>8) ) {
-    memset( eps->commandbuffer, 0, 8 );
-    *((uint32_t*)eps->commandbuffer) = leaveflagA;
-    *((uint32_t*)eps->commandbuffer+1) = leaveflagB;
-    eps->commandbuffer[0] = 0xfd;
-    eps->commandbuffer[1] = (leaveflagA>>8) & 0xFF;
-    ack = hid_send_feature_report( eps->hd, eps->commandbuffer, 8 );
-  }
+	eps->respbuffer[0] = TERMINAL_FEATURE_ID;
+	r = hid_get_feature_report( eps->hd, eps->respbuffer, 8 );
 
-  rr = eps->respbuffer[0];
-  // fprintf( stderr, "r0 %u r1 %u r2 %u r3 %u\n", eps->respbuffer[0], eps->respbuffer[1], eps->respbuffer[2], eps->respbuffer[3] );
+	if( (leaveflagA>>8) ) {
+		memset( eps->commandbuffer, 0, 8 );
+		*((uint32_t*)eps->commandbuffer) = leaveflagA;
+		*((uint32_t*)eps->commandbuffer+1) = leaveflagB;
+		eps->commandbuffer[0] = TERMINAL_FEATURE_ID;
+		eps->commandbuffer[1] = (leaveflagA>>8) & 0xFF;
+		r = hid_send_feature_report( eps->hd, eps->commandbuffer, 8 );
+	}
+
+#if MAX_USB_ERR
+	if( r < 0 ) eps->err_count++;
+	else eps->err_count = 0;
+
+	if( eps->err_count > MAX_USB_ERR ) return -8;
+#endif
+
+	rr = eps->respbuffer[0];
+	if( rr == TERMINAL_FEATURE_ID ) return -1;	// USB just ack'ed
 	if( rr & 0x80 )
 	{
 		int num_printf_chars = (rr & 0xf)-4;
 		memcpy( buffer, eps->respbuffer+1, num_printf_chars );
+		*(buffer+num_printf_chars) = 0; //  For ease of mind make the buffer a C-string
 		return num_printf_chars;
 	}
 	else
