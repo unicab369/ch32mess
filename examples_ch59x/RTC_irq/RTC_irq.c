@@ -22,10 +22,12 @@ void RTC_IRQHandler(void)
 int main(void)
 {
 	SystemInit();
-	RTCInit();
-	NVIC_EnableIRQ(RTC_IRQn);
+	RTCInit(); // initialize RTC count to 0
+	NVIC_EnableIRQ(RTC_IRQn); // enable RTC IRQ to hit the RTC_IRQHandler
 
 	funPinMode(LED, GPIO_CFGLR_OUT_2Mhz_PP);
+
+	// set RTC IRQ trigger to hit the RTC_IRQHandler, in specified amount of RTC ticks
 	RTCTrigger( MS_TO_RTC(333) );
 
 	while(1);

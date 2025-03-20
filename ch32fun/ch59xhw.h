@@ -347,7 +347,10 @@ typedef enum
 #define CLK_PER_MS          (CLK_PER_US * 1000)
 #define US_TO_RTC(us)       ((uint32_t)((us) * CLK_PER_US + 0.5))
 #define MS_TO_RTC(ms)       ((uint32_t)((ms) * CLK_PER_MS + 0.5))
-#define RTC_WAIT_TICK       { uint32_t now = R32_RTC_CNT_32K +1; while(R32_RTC_CNT_32K <= now); }
+#define RTC_WAIT_TICKS(t)   uint32_t rtcset = R32_RTC_CNT_32K +(t); while(R32_RTC_CNT_32K <= rtcset)
+#define SLEEP_RTC_MIN_TIME  US_TO_RTC(1000)
+#define SLEEP_RTC_MAX_TIME  (RTC_MAX_COUNT - 1000 * 1000 * 30)
+#define WAKE_UP_RTC_MAX_TIME US_TO_RTC(1600)
 
 /* System: safe accessing register */
 #define R32_SAFE_ACCESS     (*((vu32*)0x40001040)) // RW, safe accessing
@@ -361,8 +364,12 @@ typedef enum
 #define R8_CHIP_ID          (*((vu8*)0x40001041))  // RF, chip ID register, always is ID_CH59*
 #define R8_SAFE_ACCESS_ID   (*((vu8*)0x40001042))  // RF, safe accessing ID register, always 0x0C
 #define R8_WDOG_COUNT       (*((vu8*)0x40001043))  // RW, watch-dog count, count by clock frequency Fsys/131072
-#define SYS_SAFE_ACCESS_ENABLE  { R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG1; R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG2; asm volatile ("nop\nnop"); }
-#define SYS_SAFE_ACCESS_DISABLE { R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG0; asm volatile ("nop\nnop"); }
+#define SYS_SAFE_ACCESS(a)  do { R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG1; \
+								 R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG2; \
+								 asm volatile ("nop\nnop"); \
+								 {a} \
+								 R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG0; \
+								 asm volatile ("nop\nnop"); } while(0)
 
 /* System: global configuration register */
 #define R32_GLOBAL_CONFIG   (*((vu32*)0x40001044)) // RW, global configuration
@@ -683,112 +690,121 @@ typedef enum
 #define UART_II_NO_INTER    0x01                      // RO, no UART interrupt is pending
 
 
-__HIGH_CODE
-RV_STATIC_INLINE void RTCInit()
-{
-	SYS_SAFE_ACCESS_ENABLE
-	R8_CK32K_CONFIG &= ~(RB_CLK_OSC32K_XT | RB_CLK_XT32K_PON); // Turn off LSE
-	R8_CK32K_CONFIG |= RB_CLK_INT32K_PON; // turn on LSI
-	R8_RTC_MODE_CTRL |= RB_RTC_TRIG_EN; // enable interrupt trigger
-	R8_RTC_FLAG_CTRL = (RB_RTC_TMR_CLR | RB_RTC_TRIG_CLR); // clear timer and trigger flags
-	SYS_SAFE_ACCESS_DISABLE
+RV_STATIC_INLINE void LSIEnable() {
+	SYS_SAFE_ACCESS(
+		R8_CK32K_CONFIG &= ~(RB_CLK_OSC32K_XT | RB_CLK_XT32K_PON); // turn off LSE
+		R8_CK32K_CONFIG |= RB_CLK_INT32K_PON; // turn on LSI
+	);
 }
 
-__HIGH_CODE
-RV_STATIC_INLINE void RTCTrigger(uint32_t cyc)
+RV_STATIC_INLINE void DCDCEnable()
 {
+	SYS_SAFE_ACCESS(
+		R16_AUX_POWER_ADJ |= RB_DCDC_CHARGE;
+		R16_POWER_PLAN |= RB_PWR_DCDC_PRE;
+	);
+
+	RTC_WAIT_TICKS(2);
+
+	SYS_SAFE_ACCESS(
+		R16_POWER_PLAN |= RB_PWR_DCDC_EN;
+	);
+}
+
+RV_STATIC_INLINE void SleepInit() {
+	SYS_SAFE_ACCESS(
+		R8_SLP_WAKE_CTRL |= RB_SLP_RTC_WAKE;
+		R8_RTC_MODE_CTRL |= RB_RTC_TRIG_EN;
+	);
+	// NVIC_EnableIRQ(RTC_IRQn) is not available here yet
+	NVIC->IENR[((uint32_t)(RTC_IRQn) >> 5)] = (1 << ((uint32_t)(RTC_IRQn) & 0x1F));
+}
+
+RV_STATIC_INLINE void RTCInit() {
+	SYS_SAFE_ACCESS(
+		R32_RTC_TRIG = 0;
+		R8_RTC_MODE_CTRL |= RB_RTC_LOAD_HI;
+	);
+	while((R32_RTC_TRIG & 0x3FFF) != (R32_RTC_CNT_DAY & 0x3FFF));
+	SYS_SAFE_ACCESS(
+		R32_RTC_TRIG = 0;
+		R8_RTC_MODE_CTRL |= RB_RTC_LOAD_LO;
+	);
+}
+
+RV_STATIC_INLINE void RTCTrigger(uint32_t cyc) {
 	uint32_t t = R32_RTC_CNT_32K + cyc;
-	if(t > RTC_MAX_COUNT)
-	{
+	if(t > RTC_MAX_COUNT) {
 		t -= RTC_MAX_COUNT;
 	}
 
-	SYS_SAFE_ACCESS_ENABLE
-	R32_RTC_TRIG = t;
-	SYS_SAFE_ACCESS_DISABLE
+	SYS_SAFE_ACCESS(
+		R32_RTC_TRIG = t;
+	);
 }
 
-__HIGH_CODE
-RV_STATIC_INLINE void DCDCEnable()
-{
-	SYS_SAFE_ACCESS_ENABLE
-	R16_AUX_POWER_ADJ |= RB_DCDC_CHARGE;
-	R16_POWER_PLAN |= RB_PWR_DCDC_PRE;
-	SYS_SAFE_ACCESS_DISABLE
-
-	RTC_WAIT_TICK
-
-	SYS_SAFE_ACCESS_ENABLE
-	R16_POWER_PLAN |= RB_PWR_DCDC_EN;
-	SYS_SAFE_ACCESS_DISABLE
-}
-
-__HIGH_CODE
-RV_STATIC_INLINE void LowPowerInit()
-{
-	SYS_SAFE_ACCESS_ENABLE
-	R8_SLP_WAKE_CTRL |= RB_SLP_RTC_WAKE;
-	SYS_SAFE_ACCESS_DISABLE
-}
-
-__HIGH_CODE
 RV_STATIC_INLINE void LowPowerIdle(uint32_t cyc)
 {
 	RTCTrigger(cyc);
 
+	NVIC->SCTLR &= ~(1 << 2); // sleep
 	NVIC->SCTLR &= ~(1 << 3); // wfi
 	asm volatile ("wfi\nnop\nnop" );
 }
 
-__HIGH_CODE
-RV_STATIC_INLINE void LowPowerSleep(uint32_t cyc, uint16_t rm)
-{
+RV_STATIC_INLINE void LowPowerSleep(uint32_t cyc, uint16_t power_plan) {
 	RTCTrigger(cyc);
 
-	uint16_t power_plan;
-
-	SYS_SAFE_ACCESS_ENABLE
-	R8_BAT_DET_CTRL = 0;
-	R8_XT32K_TUNE = LSE_RCur_100;
-	R8_XT32M_TUNE = HSE_RCur_150;
-	SYS_SAFE_ACCESS_DISABLE
-
-	SYS_SAFE_ACCESS_ENABLE
-	R16_POWER_PLAN &= ~RB_XT_PRE_EN;
-	SYS_SAFE_ACCESS_DISABLE
+	SYS_SAFE_ACCESS(
+		R8_BAT_DET_CTRL = 0;
+		R8_XT32K_TUNE = (R16_RTC_CNT_32K > 0x3fff) ? (R8_XT32K_TUNE & 0xfc) | 0x01 : R8_XT32K_TUNE;
+		R8_XT32M_TUNE = (R8_XT32M_TUNE & 0xfc) | 0x03;
+	);
 
 	NVIC->SCTLR |= (1 << 2); //deep sleep
 
-	power_plan = R16_POWER_PLAN & (RB_PWR_DCDC_EN | RB_PWR_DCDC_PRE);
-	power_plan |= RB_PWR_PLAN_EN | RB_PWR_CORE | rm | (2<<11);
-
-	SYS_SAFE_ACCESS_ENABLE
-	R8_SLP_POWER_CTRL |= RB_RAM_RET_LV;
-	R16_POWER_PLAN = power_plan;
-	SYS_SAFE_ACCESS_DISABLE
-
-	if((rm & RB_XT_PRE_EN) == 0)
-	{
+	SYS_SAFE_ACCESS(
+		R8_SLP_POWER_CTRL |= RB_RAM_RET_LV;
+		R16_POWER_PLAN = RB_PWR_PLAN_EN | RB_PWR_CORE | power_plan;
 		R8_PLL_CONFIG |= (1 << 5);
-	}
+	);
 
 	NVIC->SCTLR &= ~(1 << 3); // wfi
 	asm volatile ("wfi\nnop\nnop" );
 
-	SYS_SAFE_ACCESS_ENABLE
-	R16_POWER_PLAN &= ~RB_XT_PRE_EN;
-	SYS_SAFE_ACCESS_DISABLE
-
-	if((rm & RB_XT_PRE_EN) == 0)
-	{
-		SYS_SAFE_ACCESS_ENABLE
+	SYS_SAFE_ACCESS(
+		R16_POWER_PLAN &= ~RB_XT_PRE_EN;
 		R8_PLL_CONFIG &= ~(1 << 5);
-		SYS_SAFE_ACCESS_DISABLE
+		R8_XT32M_TUNE = (R8_XT32M_TUNE & 0xfc) | 0x01;
+	);
+}
+
+RV_STATIC_INLINE void LowPower(uint32_t time, uint16_t power_plan) {
+	uint32_t time_sleep, time_curr;
+	
+	if (time <= WAKE_UP_RTC_MAX_TIME) {
+		time = time + (RTC_MAX_COUNT - WAKE_UP_RTC_MAX_TIME);
+	}
+	else {
+		time = time - WAKE_UP_RTC_MAX_TIME;
 	}
 
-    SYS_SAFE_ACCESS_ENABLE
-    R8_XT32M_TUNE = HSE_RCur_100;
-    SYS_SAFE_ACCESS_DISABLE
+	time_curr = R32_RTC_CNT_32K;
+	if (time < time_curr) {
+		time_sleep = time + (RTC_MAX_COUNT - time_curr);
+	}
+	else {
+		time_sleep = time - time_curr;
+	}
+	
+	if ((SLEEP_RTC_MIN_TIME < time_sleep) && (time_sleep < SLEEP_RTC_MAX_TIME)) {
+		LowPowerSleep( time, power_plan );
+	}
+	else {
+		LowPowerIdle( time );
+	}
+	
+	RTCInit(); // after sleeping this is necessary, but resets the RTC to 0 so don't use it to keep wall time
 }
 
 #define HardFault_IRQn        EXC_IRQn

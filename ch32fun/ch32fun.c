@@ -1102,7 +1102,7 @@ void handle_reset( void )
 	bltu a0, a1, 1b\n\
 2:\n"
 #if defined(CH59x)
-	/* Load highcode code section from flash to RAM */
+	/* Load highcode code section from FLASH to HIGHRAM */
 "	la a0, _highcode_lma\n\
 	la a1, _highcode_vma_start\n\
 	la a2, _highcode_vma_end\n\
@@ -1515,9 +1515,6 @@ WEAK int putchar(int c)
 }
 #endif
 
-#if defined(CH59x)
-__HIGH_CODE
-#endif
 void DelaySysTick( uint32_t n )
 {
 #if defined(CH32V003) || defined(CH32V00x)
@@ -1534,9 +1531,6 @@ void DelaySysTick( uint32_t n )
 #endif
 }
 
-#if defined(CH59x)
-__HIGH_CODE
-#endif
 void SystemInit( void )
 {
 #if defined(CH32V30x) && defined(TARGET_MCU_MEMORY_SPLIT)
@@ -1599,28 +1593,36 @@ void SystemInit( void )
 #ifndef CLK_SOURCE_CH59X
 	#define CLK_SOURCE_CH59X CLK_SOURCE_PLL_60MHz
 #endif
-	SYS_SAFE_ACCESS_ENABLE
-	R8_PLL_CONFIG &= ~(1 << 5);
+	SYS_SAFE_ACCESS(
+		R8_PLL_CONFIG &= ~(1 << 5);
+	);
 	SYS_CLKTypeDef sc = CLK_SOURCE_CH59X;
 	if(sc & 0x20)  // HSE div
 	{
-		R32_CLK_SYS_CFG = (0 << 6) | (sc & 0x1f) | RB_TX_32M_PWR_EN | RB_PLL_PWR_EN;
+		SYS_SAFE_ACCESS(
+			R32_CLK_SYS_CFG = (0 << 6) | (sc & 0x1f) | RB_TX_32M_PWR_EN | RB_PLL_PWR_EN;
+		);
 		ADD_N_NOPS(4);
 		R8_FLASH_CFG = 0X51;
 	}
 
 	else if(sc & 0x40) // PLL div
 	{
-		R32_CLK_SYS_CFG = (1 << 6) | (sc & 0x1f) | RB_TX_32M_PWR_EN | RB_PLL_PWR_EN;
+		SYS_SAFE_ACCESS(
+			R32_CLK_SYS_CFG = (1 << 6) | (sc & 0x1f) | RB_TX_32M_PWR_EN | RB_PLL_PWR_EN;
+		);
 		ADD_N_NOPS(4);
 		R8_FLASH_CFG = 0X52;
 	}
 	else
 	{
-		R32_CLK_SYS_CFG |= RB_CLK_SYS_MOD;
+		SYS_SAFE_ACCESS(
+			R32_CLK_SYS_CFG |= RB_CLK_SYS_MOD;
+		);
 	}
-	R8_PLL_CONFIG |= 1 << 7;
-	SYS_SAFE_ACCESS_DISABLE
+	SYS_SAFE_ACCESS(
+		R8_PLL_CONFIG |= 1 << 7;
+	);
 #elif defined(FUNCONF_USE_HSI) && FUNCONF_USE_HSI
 	#if defined(CH32V30x) || defined(CH32V20x) || defined(CH32V10x)
 		EXTEN->EXTEN_CTR |= EXTEN_PLL_HSI_PRE;
