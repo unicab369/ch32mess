@@ -1018,12 +1018,12 @@ void handle_reset( void )
 	// Setup the interrupt vector, processor status and INTSYSCR.
 
 #if FUNCONF_ENABLE_HPE	// Enabled nested and hardware (HPE) stack, since it's really good on the x035.
-"	li t0, 0x88\n\
+"	li t0, 0x1888\n\
 	csrs mstatus, t0\n"
 "	li t0, 0x0b\n\
 	csrw 0x804, t0\n"
 #else
-"	li a0, 0x80\n\
+"	li a0, 0x1880\n\
 	csrw mstatus, a0\n"
 #endif
 "	li a3, 0x3\n\
@@ -1128,10 +1128,10 @@ void handle_reset( void )
 	csrw 0xbc0, t0\n"
 
 #if defined(CH32V30x) && !defined( DISABLED_FLOAT )
-"	li t0, 0x6088\n\
+"	li t0, 0x7888\n\
 	csrs mstatus, t0\n"
 #else
-"	li t0, 0x88\n\
+"	li t0, 0x1888\n\
 	csrs mstatus, t0\n"
 #endif
 
