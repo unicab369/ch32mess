@@ -16,17 +16,19 @@ void Sleep(uint32_t dwMilliseconds);
 #include <unistd.h>
 #endif
 
+#define MAX_USB_ERR 10000
+#define TERMINAL_FEATURE_ID 0xFD
 
 struct B003FunProgrammerStruct
 {
 	void * internal; // Part of struct ProgrammerStructBase 
-
 	hid_device * hd;
 	uint8_t commandbuffer[128];
 	uint8_t respbuffer[128];
 	int commandplace;
 	int prepping_for_erase;
 	int no_get_report;
+	int err_count;
 };
 
 static const unsigned char byte_wise_read_blob[] = { // No alignment restrictions.
@@ -541,13 +543,58 @@ int B003FunPrepForLongOp( void * dev )
 	return 0;
 }
 
-
-void * TryInit_B003Fun()
+int B003PollTerminal( void * dev, uint8_t * buffer, int maxlen, uint32_t leaveflagA, int leaveflagB )
 {
-	#define VID 0x1209
-	#define PID 0xb003
+	struct B003FunProgrammerStruct * eps = (struct B003FunProgrammerStruct *)dev;
+	struct InternalState * iss = (struct InternalState*)(((struct ProgrammerStructBase*)eps)->internal);
+	int r;
+	uint8_t rr;
+	if( iss->statetag != STTAG( "TERM" ) )
+	{
+		iss->statetag = STTAG( "TERM" );
+	}
+
+	if( maxlen < 8 ) return -9;
+
+	eps->respbuffer[0] = TERMINAL_FEATURE_ID;
+	r = hid_get_feature_report( eps->hd, eps->respbuffer, 8 );
+
+	if( (leaveflagA>>8) ) {
+		memset( eps->commandbuffer, 0, 8 );
+		*((uint32_t*)eps->commandbuffer) = leaveflagA;
+		*((uint32_t*)eps->commandbuffer+1) = leaveflagB;
+		eps->commandbuffer[0] = TERMINAL_FEATURE_ID;
+		eps->commandbuffer[1] = (leaveflagA>>8) & 0xFF;
+		r = hid_send_feature_report( eps->hd, eps->commandbuffer, 8 );
+	}
+
+#if MAX_USB_ERR
+	if( r < 0 ) eps->err_count++;
+	else eps->err_count = 0;
+
+	if( eps->err_count > MAX_USB_ERR ) return -8;
+#endif
+
+	rr = eps->respbuffer[0];
+	if( rr == TERMINAL_FEATURE_ID ) return -1;	// USB just ack'ed
+	if( rr & 0x80 )
+	{
+		int num_printf_chars = (rr & 0xf)-4;
+		memcpy( buffer, eps->respbuffer+1, num_printf_chars );
+		*(buffer+num_printf_chars) = 0; //  For ease of mind make the buffer a C-string
+		return num_printf_chars;
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+void * TryInit_B003Fun(uint32_t id)
+{
 	hid_init();
-	hid_device * hd = hid_open( VID, PID, 0); // third parameter is "serial"
+	fprintf( stderr, "VID:0x%04x, PID:0x%04x\n", id>>16, id&0xFFFF );
+	hid_device * hd = hid_open( id>>16, id&0xFFFF, 0); // third parameter is "serial"
 	if( !hd ) return 0;
 
 	//extern int g_hidapiSuppress;
@@ -568,7 +615,7 @@ void * TryInit_B003Fun()
 	MCF.Exit = B003FunExit;
 	MCF.HaltMode = 0;
 	MCF.VoidHighLevelState = 0;
-	MCF.PollTerminal = 0;
+	MCF.PollTerminal = B003PollTerminal;
 
 	// These are optional. Disabling these is a good mechanism to make sure the core functions still work.
 	

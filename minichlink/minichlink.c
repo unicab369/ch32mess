@@ -44,7 +44,7 @@ void * MiniCHLinkInitAsDLL( struct MiniChlinkFunctions ** MCFO, const init_hints
 		else if( strcmp( specpgm, "nchlink" ) == 0 )
 			dev = TryInit_NHCLink042();
 		else if( strcmp( specpgm, "b003boot" ) == 0 )
-			dev = TryInit_B003Fun();
+			dev = TryInit_B003Fun(SimpleReadNumberInt(init_hints->serial_port, 0x1209b003));
 		else if( strcmp( specpgm, "ardulink" ) == 0 )
 			dev = TryInit_Ardulink(init_hints);
 	}
@@ -62,7 +62,7 @@ void * MiniCHLinkInitAsDLL( struct MiniChlinkFunctions ** MCFO, const init_hints
 		{
 			fprintf( stderr, "Found NHC-Link042 Programmer\n" );
 		}
-		else if ((dev = TryInit_B003Fun()))
+		else if ((dev = TryInit_B003Fun(SimpleReadNumberInt(init_hints->serial_port, 0x1209b003))))
 		{
 			fprintf( stderr, "Found B003Fun Bootloader\n" );
 		}
@@ -159,6 +159,7 @@ int main( int argc, char ** argv )
 	int must_be_end = 0;
 
 	int skip_startup = 
+		(argc > 1 && argv[1][0] == '-' && argv[1][1] == 'k' ) |
 		(argc > 1 && argv[1][0] == '-' && argv[1][1] == 'e' ) |
 		(argc > 1 && argv[1][0] == '-' && argv[1][1] == 'A' ) |
 		(argc > 1 && argv[1][0] == '-' && argv[1][1] == 'u' ) |
@@ -204,6 +205,10 @@ keep_going:
 				fprintf( stderr, "Error: Unknown command %c\n", argchar[1] );
 			case 'h':
 				goto help;
+      case 'k':
+        printf( "Skipping programmer initialization\n" );
+        argchar++;
+        goto keep_going;
 			case '3':
 				if( MCF.Control3v3 )
 					MCF.Control3v3( dev, 1 );
@@ -485,7 +490,7 @@ keep_going:
 								if( buffer[r - 1] == '\n' ) new_line = 1;
 								if( new_line == 0 ) strncpy( print_buf, TERMINAL_CLEAR_PREV, TERMINAL_BUFFER_SIZE - 1 ); //  Go one line up and erase it
 								else strncpy( print_buf, TERMINAL_CLEAR_CUR, TERMINAL_BUFFER_SIZE - 1 ); // Go to the start of the line and erase it
-								strncat( pline_buf, (char *)buffer, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Add newely received chars to line buffer
+								strncat( pline_buf, (char *)buffer, r ); // Add newly received chars to line buffer
 								strncat( print_buf, pline_buf, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Add line to buffer
 								if( to_send > 0 ) strncat( print_buf, TERMINAL_DIM, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) );
 								strncat( print_buf, TERMINAL_SEND_LABEL, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Print styled "Send" label
@@ -814,7 +819,8 @@ help:
 	fprintf( stderr, " -5 Enable 5V\n" );
 	fprintf( stderr, " -t Disable 3.3V\n" );
 	fprintf( stderr, " -f Disable 5V\n" );
-	fprintf( stderr, " -c [serial port for Ardulink, try /dev/ttyACM0 or COM11 etc]\n" );
+	fprintf( stderr, " -k Skip programmer initialization\n" );
+	fprintf( stderr, " -c [serial port for Ardulink, try /dev/ttyACM0 or COM11 etc] or [VID+PID of USB for b003boot, try 0x1209b003]\n" );
 	fprintf( stderr, " -C [specified programmer, eg. b003boot, ardulink, esp32s2chfun]\n" );
 	fprintf( stderr, " -u Clear all code flash - by power off (also can unbrick)\n" );
 	fprintf( stderr, " -E Erase chip\n" );
