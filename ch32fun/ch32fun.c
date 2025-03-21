@@ -1100,7 +1100,20 @@ void handle_reset( void )
 1:	sw zero, 0(a0)\n\
 	addi a0, a0, 4\n\
 	bltu a0, a1, 1b\n\
-2:"
+2:\n"
+#if defined(CH59x)
+	/* Load highcode code section from FLASH to HIGHRAM */
+"	la a0, _highcode_lma\n\
+	la a1, _highcode_vma_start\n\
+	la a2, _highcode_vma_end\n\
+	bgeu a1, a2, 2f\n\
+1:	lw t0, (a0)\n\
+	sw t0, (a1)\n\
+	addi a0, a0, 4\n\
+	addi a1, a1, 4\n\
+	bltu a1, a2, 1b\n\
+2:\n"
+#endif
 	// This loads DATA from FLASH to RAM.
 "	la a0, _data_lma\n\
 	la a1, _data_vma\n\
@@ -1579,34 +1592,39 @@ void SystemInit( void )
 #endif
 
 #if defined(CH59x) // has no HSI
-	// SYS_SAFE_ACCESS for writing RWA and WA registers
-	#define SYS_SAFE_ACCESS_ENABLE  { R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG1; R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG2; ADD_N_NOPS(2); }
-	#define SYS_SAFE_ACCESS_DISABLE { R8_SAFE_ACCESS_SIG = SAFE_ACCESS_SIG0; ADD_N_NOPS(2); }
 #ifndef CLK_SOURCE_CH59X
 	#define CLK_SOURCE_CH59X CLK_SOURCE_PLL_60MHz
 #endif
-	SYS_SAFE_ACCESS_ENABLE
-	R8_PLL_CONFIG &= ~(1 << 5);
+	SYS_SAFE_ACCESS(
+		R8_PLL_CONFIG &= ~(1 << 5);
+	);
 	SYS_CLKTypeDef sc = CLK_SOURCE_CH59X;
 	if(sc & 0x20)  // HSE div
 	{
-		R32_CLK_SYS_CFG = (0 << 6) | (sc & 0x1f) | RB_TX_32M_PWR_EN | RB_PLL_PWR_EN;
+		SYS_SAFE_ACCESS(
+			R32_CLK_SYS_CFG = (0 << 6) | (sc & 0x1f) | RB_TX_32M_PWR_EN | RB_PLL_PWR_EN;
+		);
 		ADD_N_NOPS(4);
 		R8_FLASH_CFG = 0X51;
 	}
 
 	else if(sc & 0x40) // PLL div
 	{
-		R32_CLK_SYS_CFG = (1 << 6) | (sc & 0x1f) | RB_TX_32M_PWR_EN | RB_PLL_PWR_EN;
+		SYS_SAFE_ACCESS(
+			R32_CLK_SYS_CFG = (1 << 6) | (sc & 0x1f) | RB_TX_32M_PWR_EN | RB_PLL_PWR_EN;
+		);
 		ADD_N_NOPS(4);
 		R8_FLASH_CFG = 0X52;
 	}
 	else
 	{
-		R32_CLK_SYS_CFG |= RB_CLK_SYS_MOD;
+		SYS_SAFE_ACCESS(
+			R32_CLK_SYS_CFG |= RB_CLK_SYS_MOD;
+		);
 	}
-	R8_PLL_CONFIG |= 1 << 7;
-	SYS_SAFE_ACCESS_DISABLE
+	SYS_SAFE_ACCESS(
+		R8_PLL_CONFIG |= 1 << 7;
+	);
 #elif defined(FUNCONF_USE_HSI) && FUNCONF_USE_HSI
 	#if defined(CH32V30x) || defined(CH32V20x) || defined(CH32V10x)
 		EXTEN->EXTEN_CTR |= EXTEN_PLL_HSI_PRE;
