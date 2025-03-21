@@ -3489,7 +3489,8 @@ typedef enum
 	GPIO_Speed_In = 0,
 	GPIO_Speed_10MHz,
 	GPIO_Speed_2MHz,
-	GPIO_Speed_50MHz
+	GPIO_Speed_50MHz = 3,
+	GPIO_Speed_30MHz = 3, // Alias 30MHz to 50MHz.
 } GPIOSpeed_TypeDef;
 
 #endif
