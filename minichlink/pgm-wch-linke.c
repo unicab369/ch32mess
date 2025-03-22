@@ -92,6 +92,7 @@ static int checkChip(enum RiscVChip chip) {
 		case CHIP_CH32V006:
 		case CHIP_CH32V005:
 		case CHIP_CH641:
+		case CHIP_CH643:
 			return 0; // Use direct mode
 		case CHIP_CH32V10x:
 		case CHIP_CH32V20x:
@@ -549,7 +550,7 @@ retry_ID:
 			chip = iss->target_chip_type = CHIP_CH32X03x;
 		}
 
-		if( iss->target_chip_type == CHIP_CH32X03x )
+		if( (iss->target_chip_type == CHIP_CH32X03x) || (iss->target_chip_type == CHIP_CH643) )
 		{
 			iss->sector_size = 256;
 		}

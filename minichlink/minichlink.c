@@ -1092,6 +1092,10 @@ int DefaultDetermineChipType( void * dev )
 					fprintf( stderr, "Autodetected a ch32v30x\n" );
 					iss->target_chip_type = CHIP_CH32V30x;
 					break;
+				case 0x643:
+					fprintf( stderr, "Autodetected a ch643\n" );
+					iss->target_chip_type = CHIP_CH643;
+					break;
 			}
 		}
 
@@ -1348,7 +1352,8 @@ static int DefaultWriteWord( void * dev, uint32_t address_to_write, uint32_t dat
 			// fc75 c.bnez x8, -4
 			// c.ebreak
 			MCF.WriteReg32( dev, DMPROGBUF3, 
-				(iss->target_chip_type == CHIP_CH32X03x || iss->target_chip_type == CHIP_CH32V003 || iss->target_chip_type == CHIP_CH641 || (iss->target_chip_type >= CHIP_CH32V002 && iss->target_chip_type <= CHIP_CH32V006 ) ) ? 
+				(iss->target_chip_type == CHIP_CH32V003 || (iss->target_chip_type >= CHIP_CH32V002 && iss->target_chip_type <= CHIP_CH32V006)
+				 || iss->target_chip_type == CHIP_CH32X03x || iss->target_chip_type == CHIP_CH641 || iss->target_chip_type == CHIP_CH643) ?
 				0x4200c254 : 0x42000001  );
 
 			MCF.WriteReg32( dev, DMPROGBUF4,
@@ -2141,6 +2146,7 @@ void PostSetupConfigureInterface( void * dev )
 		break;
 	case CHIP_CH32X03x:
 	case CHIP_CH32V10x:
+	case CHIP_CH643:
 		iss->sector_size = 256;  // ??? The X035 datasheet clearly says this is 128 bytes, but fast page erases do 256?
 		break;
 	case CHIP_CH57x:
@@ -2500,7 +2506,8 @@ int DefaultUnbrick( void * dev )
 	InternalUnlockFlash(dev, iss);
 
 	const uint8_t * option_data = 
-		( iss->target_chip_type == CHIP_CH32X03x || iss->target_chip_type == CHIP_CH32V003 || iss->target_chip_type == CHIP_CH641 || (iss->target_chip_type >= CHIP_CH32V002 && iss->target_chip_type <= CHIP_CH32V006 ) ) ?
+		(iss->target_chip_type == CHIP_CH32V003 || (iss->target_chip_type >= CHIP_CH32V002 && iss->target_chip_type <= CHIP_CH32V006)
+		 || iss->target_chip_type == CHIP_CH32X03x || iss->target_chip_type == CHIP_CH641 || iss->target_chip_type == CHIP_CH643) ?
 		option_data_003_x03x : option_data_20x_30x;
 
 	DefaultWriteBinaryBlob(dev, 0x1ffff800, 16, option_data );
