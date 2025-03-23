@@ -209,6 +209,19 @@ typedef struct
 	__IO uint32_t UNIID3;
 } ESIG_TypeDef;
 
+typedef struct
+{
+    union
+    {
+        __I uint32_t CHIPID;
+        struct
+        {
+            __I uint16_t REVID;
+          __I uint16_t DEVID;
+        };
+    };
+} INFO_TypeDef;
+
 /* General Purpose I/O */
 typedef enum
 {
@@ -2142,14 +2155,14 @@ typedef struct
 #define TIM_CC4OF                               ((uint16_t)0x1000) /* Capture/Compare 4 Overcapture Flag */
 
 /*******************  Bit definition for TIM_SWEVGR register  ********************/
-#define TIM_UG                                  ((uint8_t)0x01) /* Update Generation */
-#define TIM_CC1G                                ((uint8_t)0x02) /* Capture/Compare 1 Generation */
-#define TIM_CC2G                                ((uint8_t)0x04) /* Capture/Compare 2 Generation */
-#define TIM_CC3G                                ((uint8_t)0x08) /* Capture/Compare 3 Generation */
-#define TIM_CC4G                                ((uint8_t)0x10) /* Capture/Compare 4 Generation */
-#define TIM_COMG                                ((uint8_t)0x20) /* Capture/Compare Control Update Generation */
-#define TIM_TG                                  ((uint8_t)0x40) /* Trigger Generation */
-#define TIM_BG                                  ((uint8_t)0x80) /* Break Generation */
+#define TIM_UG                                  ((uint16_t)0x0001) /* Update Generation */
+#define TIM_CC1G                                ((uint16_t)0x0002) /* Capture/Compare 1 Generation */
+#define TIM_CC2G                                ((uint16_t)0x0004) /* Capture/Compare 2 Generation */
+#define TIM_CC3G                                ((uint16_t)0x0008) /* Capture/Compare 3 Generation */
+#define TIM_CC4G                                ((uint16_t)0x0010) /* Capture/Compare 4 Generation */
+#define TIM_COMG                                ((uint16_t)0x0020) /* Capture/Compare Control Update Generation */
+#define TIM_TG                                  ((uint16_t)0x0040) /* Trigger Generation */
+#define TIM_BG                                  ((uint16_t)0x0080) /* Break Generation */
 
 /******************  Bit definition for TIM_CHCTLR1 register  *******************/
 #define TIM_CC1S                                ((uint16_t)0x0003) /* CC1S[1:0] bits (Capture/Compare 1 Selection) */
@@ -2279,16 +2292,20 @@ typedef struct
 #define TIM_REP                                 ((uint8_t)0xFF) /* Repetition Counter Value */
 
 /*******************  Bit definition for TIM_CH1CVR register  *******************/
-#define TIM_CCR1                                ((uint16_t)0xFFFF) /* Capture/Compare 1 Value */
+#define TIM_CCR1                                ((uint32_t)0x0000FFFF) /* Capture/Compare 1 Value */
+#define TIM_CH1CVR_LEVEL1                       ((uint32_t)0x00010000) /* The level indication bit corresponding to the captured value */
 
 /*******************  Bit definition for TIM_CH2CVR register  *******************/
-#define TIM_CCR2                                ((uint16_t)0xFFFF) /* Capture/Compare 2 Value */
+#define TIM_CCR2                                ((uint32_t)0x0000FFFF) /* Capture/Compare 2 Value */
+#define TIM_CH2CVR_LEVEL2                       ((uint32_t)0x00010000) /* The level indication bit corresponding to the captured value */
 
 /*******************  Bit definition for TIM_CH3CVR register  *******************/
-#define TIM_CCR3                                ((uint16_t)0xFFFF) /* Capture/Compare 3 Value */
+#define TIM_CCR3                                ((uint32_t)0x0000FFFF) /* Capture/Compare 3 Value */
+#define TIM_CH3CVR_LEVEL3                       ((uint32_t)0x00010000) /* The level indication bit corresponding to the captured value */
 
 /*******************  Bit definition for TIM_CH4CVR register  *******************/
-#define TIM_CCR4                                ((uint16_t)0xFFFF) /* Capture/Compare 4 Value */
+#define TIM_CCR4                                ((uint32_t)0x0000FFFF) /* Capture/Compare 4 Value */
+#define TIM_CH4CVR_LEVEL4                       ((uint32_t)0x00010000) /* The level indication bit corresponding to the captured value */
 
 /*******************  Bit definition for TIM_BDTR register  *******************/
 #define TIM_DTG                                 ((uint16_t)0x00FF) /* DTG[0:7] bits (Dead-Time Generator set-up) */
