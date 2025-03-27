@@ -66,7 +66,7 @@ void * MiniCHLinkInitAsDLL( struct MiniChlinkFunctions ** MCFO, const init_hints
 		{
 			fprintf( stderr, "Found B003Fun Bootloader\n" );
 		}
-		else if ( init_hints->serial_port && (dev = TryInit_Ardulink(init_hints)))
+		else if ( init_hints->serial_port && strncmp( init_hints->serial_port, "0x", 2 ) && (dev = TryInit_Ardulink(init_hints)))
 		{
 			fprintf( stderr, "Found Ardulink Programmer\n" );
 		}
@@ -74,7 +74,13 @@ void * MiniCHLinkInitAsDLL( struct MiniChlinkFunctions ** MCFO, const init_hints
 
 	if( !dev )
 	{
-		fprintf( stderr, "Error: Could not initialize any supported programmers\n" );
+		if ( specpgm )
+		{
+			fprintf( stderr, "Error: Could not initialize %s programmer\n", specpgm );	
+		} else
+		{
+			fprintf( stderr, "Error: Could not initialize any supported programmers\n" );
+		}
 		return 0;
 	}
 
@@ -114,7 +120,13 @@ int main( int argc, char ** argv )
 		{
 			i++;
 			if( i < argc )
+			{
 				hints.serial_port = argv[i];
+				if( strncmp( hints.serial_port, "0x", 2 ) == 0 )
+				{
+					hints.specific_programmer = "b003boot";
+				}
+			}
 		}
 		else if( strncmp( v, "-C", 2 ) == 0 )
 		{
@@ -151,7 +163,7 @@ int main( int argc, char ** argv )
 	void * dev = MiniCHLinkInitAsDLL( 0, &hints );
 	if( !dev )
 	{
-		fprintf( stderr, "Error: Could not initialize any supported programmers\n" );
+		// fprintf( stderr, "Error: Could not initialize any supported programmers\n" );
 		return -32;
 	}
 
