@@ -93,6 +93,7 @@ static int checkChip(enum RiscVChip chip) {
 		case CHIP_CH32V005:
 		case CHIP_CH641:
 		case CHIP_CH643:
+		case CHIP_CH32L10x:
 			return 0; // Use direct mode
 		case CHIP_CH32V10x:
 		case CHIP_CH32V20x:
