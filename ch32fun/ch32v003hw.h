@@ -93,11 +93,11 @@ typedef enum IRQn
 /* memory mapped structure for SysTick */
 typedef struct
 {
-    __IO uint32_t CTLR;
-    __IO uint32_t SR;
-    __IO uint32_t CNT;
+    __IO uint32_t CTLR;     /* System Count Control Register          */
+    __IO uint32_t SR;       /* System Count Status Register           */
+    __IO uint32_t CNT;      /* System Counter Register                */
     uint32_t RESERVED0;
-    __IO uint32_t CMP;
+    __IO uint32_t CMP;      /* System Count Comparison Value Register */
     uint32_t RESERVED1;
 } SysTick_Type;
 
@@ -116,27 +116,27 @@ typedef struct
 /* Analog to Digital Converter */
 typedef struct
 {
-    __IO uint32_t STATR;
-    __IO uint32_t CTLR1;
-    __IO uint32_t CTLR2;
-    __IO uint32_t SAMPTR1;
-    __IO uint32_t SAMPTR2;
-    __IO uint32_t IOFR1;
-    __IO uint32_t IOFR2;
-    __IO uint32_t IOFR3;
-    __IO uint32_t IOFR4;
-    __IO uint32_t WDHTR;
-    __IO uint32_t WDLTR;
-    __IO uint32_t RSQR1;
-    __IO uint32_t RSQR2;
-    __IO uint32_t RSQR3;
-    __IO uint32_t ISQR;
-    __IO uint32_t IDATAR1;
-    __IO uint32_t IDATAR2;
-    __IO uint32_t IDATAR3;
-    __IO uint32_t IDATAR4;
-    __IO uint32_t RDATAR;
-    __IO uint32_t DLYR;
+    __IO uint32_t STATR;    /* ADC Status Register                         */
+    __IO uint32_t CTLR1;    /* ADC Control Register 1                      */
+    __IO uint32_t CTLR2;    /* ADC Control Register 2                      */
+    __IO uint32_t SAMPTR1;  /* ADC Sample Time Register 1                  */
+    __IO uint32_t SAMPTR2;  /* ADC Sample Time Register 2                  */
+    __IO uint32_t IOFR1;    /* ADC Injected Channel Data Offset Register 1 */
+    __IO uint32_t IOFR2;    /* ADC Injected Channel Data Offset Register 2 */
+    __IO uint32_t IOFR3;    /* ADC Injected Channel Data Offset Register 3 */
+    __IO uint32_t IOFR4;    /* ADC Injected Channel Data Offset Register 4 */
+    __IO uint32_t WDHTR;    /* ADC Watchdog High Threshold Register        */
+    __IO uint32_t WDLTR;    /* ADC Watchdog Low Threshold Register         */
+    __IO uint32_t RSQR1;    /* ADC Regular Sequence Register 1             */
+    __IO uint32_t RSQR2;    /* ADC Regular Sequence Register 2             */
+    __IO uint32_t RSQR3;    /* ADC Regular Sequence Register 3             */
+    __IO uint32_t ISQR;     /* ADC Injected Sequence Register              */
+    __IO uint32_t IDATAR1;  /* ADC Injected Data Register 1                */
+    __IO uint32_t IDATAR2;  /* ADC Injected Data Register 2                */
+    __IO uint32_t IDATAR3;  /* ADC Injected Data Register 3                */
+    __IO uint32_t IDATAR4;  /* ADC Injected Data Register 4                */
+    __IO uint32_t RDATAR;   /* ADC Regular Data Register                   */
+    __IO uint32_t DLYR;     /* ADC Delayed Data Register                   */
 } ADC_TypeDef;
 
 /* Debug MCU */
@@ -149,43 +149,43 @@ typedef struct
 /* DMA Controller */
 typedef struct
 {
-    __IO uint32_t CFGR;
-    __IO uint32_t CNTR;
-    __IO uint32_t PADDR;
-    __IO uint32_t MADDR;
+    __IO uint32_t CFGR;     /* DMA Configuration Register      */
+    __IO uint32_t CNTR;     /* DMA Number of Data Register     */
+    __IO uint32_t PADDR;    /* DMA Peripheral Address Register */
+    __IO uint32_t MADDR;    /* DMA Memory Address Register     */
 } DMA_Channel_TypeDef;
 
 typedef struct
 {
-    __IO uint32_t INTFR;
-    __IO uint32_t INTFCR;
+    __IO uint32_t INTFR;    /* DMA Interrupt Status Register     */
+    __IO uint32_t INTFCR;   /* DMA Interrupt Flag Clear Register */
 } DMA_TypeDef;
 
 /* External Interrupt/Event Controller */
 typedef struct
 {
-    __IO uint32_t INTENR;
-    __IO uint32_t EVENR;
-    __IO uint32_t RTENR;
-    __IO uint32_t FTENR;
-    __IO uint32_t SWIEVR;
-    __IO uint32_t INTFR;
+    __IO uint32_t INTENR;   /* Interrupt Enable Register            */
+    __IO uint32_t EVENR;    /* Event Capture Register               */
+    __IO uint32_t RTENR;    /* Rising Edge Trigger Enable Register  */
+    __IO uint32_t FTENR;    /* Falling Edge Trigger Enable Register */
+    __IO uint32_t SWIEVR;   /* Soft Interrupt Event Register        */
+    __IO uint32_t INTFR;    /* Interrupt Flag Register              */
 } EXTI_TypeDef;
 
 /* FLASH Registers */
 typedef struct
 {
-    __IO uint32_t ACTLR;
-    __IO uint32_t KEYR;
-    __IO uint32_t OBKEYR;
-    __IO uint32_t STATR;
-    __IO uint32_t CTLR;
-    __IO uint32_t ADDR;
+    __IO uint32_t ACTLR;            /* Control Register          */
+    __IO uint32_t KEYR;             /* FPEC Key Register         */
+    __IO uint32_t OBKEYR;           /* OBKEY Register            */
+    __IO uint32_t STATR;            /* Status Register           */
+    __IO uint32_t CTLR;             /* Configuration Register    */
+    __IO uint32_t ADDR;             /* Address Register          */
     __IO uint32_t RESERVED;
-    __IO uint32_t OBR;
-    __IO uint32_t WPR;
-    __IO uint32_t MODEKEYR;
-    __IO uint32_t BOOT_MODEKEYR;
+    __IO uint32_t OBR;              /* Select Word Register      */
+    __IO uint32_t WPR;              /* Write Protection Register */
+    __IO uint32_t MODEKEYR;         /* Extended Key Register     */
+    __IO uint32_t BOOT_MODEKEYR;    /* Unlock BOOT Key Register  */
 } FLASH_TypeDef;
 
 /* Option Bytes Registers */
@@ -212,12 +212,12 @@ typedef struct
 typedef struct
 {
     union
-    {
+    {   
         __I uint32_t CHIPID;
-        struct
+        struct 
         {
             __I uint16_t REVID;
-          __I uint16_t DEVID;
+	        __I uint16_t DEVID;
         };
     };
 } INFO_TypeDef;
@@ -341,13 +341,13 @@ typedef union {
 } GPIO_LCKR_t;
 typedef struct
 {
-	__IO uint32_t CFGLR;
-	__IO uint32_t CFGHR;
-	__I  uint32_t INDR;
-	__IO uint32_t OUTDR;
-	__IO uint32_t BSHR;
-	__IO uint32_t BCR;
-	__IO uint32_t LCKR;
+	__IO uint32_t CFGLR;    /* Port Configuration Register Low  */
+	__IO uint32_t CFGHR;    /* Port Configuration Register High */
+	__I  uint32_t INDR;     /* Port Input Data Register         */
+	__IO uint32_t OUTDR;    /* Port Output Data Register        */
+	__IO uint32_t BSHR;     /* Port Set/Reset Register          */
+	__IO uint32_t BCR;      /* Port Reset Register              */
+	__IO uint32_t LCKR;     /* Port Configuration Lock Register */
 } GPIO_TypeDef;
 
 #define DYN_GPIO_READ(gpio, field) ((GPIO_##field##_t) { .__FULL = gpio->field })
@@ -358,157 +358,155 @@ typedef struct
 typedef struct
 {
     uint32_t RESERVED0;
-    __IO uint32_t PCFR1;
-    __IO uint32_t EXTICR;
+    __IO uint32_t PCFR1;    /* Remap Register 1 */
+    __IO uint32_t EXTICR;   /* External Interrupt Configuration Register 1*/
 } AFIO_TypeDef;
 
 /* Inter Integrated Circuit Interface */
 typedef struct
 {
-    __IO uint16_t CTLR1;
+    __IO uint16_t CTLR1;        /* I2C Control Register 1 */
     uint16_t      RESERVED0;
-    __IO uint16_t CTLR2;
+    __IO uint16_t CTLR2;        /* I2C Control Register 2 */
     uint16_t      RESERVED1;
-    __IO uint16_t OADDR1;
+    __IO uint16_t OADDR1;       /* I2C Address Register 1 */
     uint16_t      RESERVED2;
-    __IO uint16_t OADDR2;
+    __IO uint16_t OADDR2;       /* I2C Address Register 1 */
     uint16_t      RESERVED3;
-    __IO uint16_t DATAR;
+    __IO uint16_t DATAR;        /* I2C Data Register      */
     uint16_t      RESERVED4;
-    __IO uint16_t STAR1;
+    __IO uint16_t STAR1;        /* I2C Status Register 1  */
     uint16_t      RESERVED5;
-    __IO uint16_t STAR2;
+    __IO uint16_t STAR2;        /* I2C Status Register 2  */
     uint16_t      RESERVED6;
-    __IO uint16_t CKCFGR;
+    __IO uint16_t CKCFGR;       /* I2C Clock Register     */
     uint16_t      RESERVED7;
 } I2C_TypeDef;
 
 /* Independent WatchDog */
 typedef struct
 {
-    __IO uint32_t CTLR;
-    __IO uint32_t PSCR;
-    __IO uint32_t RLDR;
-    __IO uint32_t STATR;
+    __IO uint32_t CTLR;     /* Control Register   */
+    __IO uint32_t PSCR;     /* Prescaler Register */
+    __IO uint32_t RLDR;     /* Reload Register    */
+    __IO uint32_t STATR;    /* Status Register    */
 } IWDG_TypeDef;
 
 /* Power Control */
 typedef struct
 {
-    __IO uint32_t CTLR;
-    __IO uint32_t CSR;
-    __IO uint32_t AWUCSR;
-    __IO uint32_t AWUWR;
-    __IO uint32_t AWUPSC;
+    __IO uint32_t CTLR;     /* Power Control Register                       */
+    __IO uint32_t CSR;      /* Power Control/Status Register                */
+    __IO uint32_t AWUCSR;   /* Auto-wakeup Control/Status Register          */
+    __IO uint32_t AWUWR;    /* Auto-wakeup Window Comparison Value Register */
+    __IO uint32_t AWUPSC;   /* Auto-wakeup Crossover Factor Register        */
 } PWR_TypeDef;
 
 /* Reset and Clock Control */
 typedef struct
 {
-    __IO uint32_t CTLR;
-    __IO uint32_t CFGR0;
-    __IO uint32_t INTR;
-    __IO uint32_t APB2PRSTR;
-    __IO uint32_t APB1PRSTR;
-    __IO uint32_t AHBPCENR;
-    __IO uint32_t APB2PCENR;
-    __IO uint32_t APB1PCENR;
-    __IO uint32_t RESERVED0;
-	__IO uint32_t RSTSCKR;
+    __IO uint32_t CTLR;         /* Clock Control Register                */
+    __IO uint32_t CFGR0;        /* Clock Configuration Register 0        */
+    __IO uint32_t INTR;         /* Clock Interrupt Register              */
+    __IO uint32_t APB2PRSTR;    /* APB2 Peripheral Reset Register        */
+    __IO uint32_t APB1PRSTR;    /* APB1 Peripheral Reset Register        */
+    __IO uint32_t AHBPCENR;     /* AHB Peripheral Clock Enable Register  */
+    __IO uint32_t APB2PCENR;    /* APB2 Peripheral Clock Enable Register */
+    __IO uint32_t APB1PCENR;    /* APB1 Peripheral Clock Enable Register */
+    __IO uint32_t RESERVED0;    
+	__IO uint32_t RSTSCKR;      /* Control/Status Register               */
 } RCC_TypeDef;
-
-
 
 /* Serial Peripheral Interface */
 typedef struct
 {
-    __IO uint16_t CTLR1;
+    __IO uint16_t CTLR1;        /* SPI Control Register 1          */
     uint16_t      RESERVED0;
-    __IO uint16_t CTLR2;
+    __IO uint16_t CTLR2;        /* SPI Control Register 1          */
     uint16_t      RESERVED1;
-    __IO uint16_t STATR;
+    __IO uint16_t STATR;        /* SPI Status Register             */
     uint16_t      RESERVED2;
-    __IO uint16_t DATAR;
+    __IO uint16_t DATAR;        /* SPI Data Register               */
     uint16_t      RESERVED3;
-    __IO uint16_t CRCR;
+    __IO uint16_t CRCR;         /* SPI Polynomial Register         */
     uint16_t      RESERVED4;
-    __IO uint16_t RCRCR;
+    __IO uint16_t RCRCR;        /* SPI Receive CRC Register        */
     uint16_t      RESERVED5;
-    __IO uint16_t TCRCR;
+    __IO uint16_t TCRCR;        /* SPI Transmit CRC Register       */
     uint16_t      RESERVED6;
     uint32_t      RESERVED7;
 	uint32_t      RESERVED8;
-    __IO uint16_t HSCR;
+    __IO uint16_t HSCR;         /* SPI High-speed control register */
     uint16_t      RESERVED9;
 } SPI_TypeDef;
 
 /* TIM */
 typedef struct
 {
-    __IO uint16_t CTLR1;
+    __IO uint16_t CTLR1;        /* Control Register 1                       */
     uint16_t      RESERVED0;
-    __IO uint16_t CTLR2;
+    __IO uint16_t CTLR2;        /* Control Register 2                       */
     uint16_t      RESERVED1;
-    __IO uint16_t SMCFGR;
+    __IO uint16_t SMCFGR;       /* Slave Mode Control Register              */
     uint16_t      RESERVED2;
-    __IO uint16_t DMAINTENR;
+    __IO uint16_t DMAINTENR;    /* DMA/Interrupt Enable Register            */
     uint16_t      RESERVED3;
-    __IO uint16_t INTFR;
+    __IO uint16_t INTFR;        /* Interrupt Status Register                */
     uint16_t      RESERVED4;
-    __IO uint16_t SWEVGR;
+    __IO uint16_t SWEVGR;       /* Event Generation Register                */
     uint16_t      RESERVED5;
-    __IO uint16_t CHCTLR1;
+    __IO uint16_t CHCTLR1;      /* Compare/Capture Control Register 1       */
     uint16_t      RESERVED6;
-    __IO uint16_t CHCTLR2;
+    __IO uint16_t CHCTLR2;      /* Compare/Capture Control Register 2       */
     uint16_t      RESERVED7;
-    __IO uint16_t CCER;
+    __IO uint16_t CCER;         /* Compare/Capture Enable Register          */
     uint16_t      RESERVED8;
-    __IO uint16_t CNT;
+    __IO uint16_t CNT;          /* Counters                                 */
     uint16_t      RESERVED9;
-    __IO uint16_t PSC;
+    __IO uint16_t PSC;          /* Counting Clock Prescaler                 */
     uint16_t      RESERVED10;
-    __IO uint16_t ATRLR;
+    __IO uint16_t ATRLR;        /* Auto-reload value register               */
     uint16_t      RESERVED11;
-    __IO uint16_t RPTCR;
+    __IO uint16_t RPTCR;        /* Recurring Count Value Register           */
     uint16_t      RESERVED12;
-    __IO uint32_t CH1CVR;
-    __IO uint32_t CH2CVR;
-    __IO uint32_t CH3CVR;
-    __IO uint32_t CH4CVR;
-    __IO uint16_t BDTR;
+    __IO uint32_t CH1CVR;       /* Compare/Capture Register 1               */
+    __IO uint32_t CH2CVR;       /* Compare/Capture Register 2               */
+    __IO uint32_t CH3CVR;       /* Compare/Capture Register 3               */
+    __IO uint32_t CH4CVR;       /* Compare/Capture Register 4               */
+    __IO uint16_t BDTR;         /* Brake and Deadband Registers             */
     uint16_t      RESERVED13;
-    __IO uint16_t DMACFGR;
+    __IO uint16_t DMACFGR;      /* DMA Control Register                     */
     uint16_t      RESERVED14;
-    __IO uint16_t DMAADR;
+    __IO uint16_t DMAADR;       /* DMA Address Register For Continuous Mode */
     uint16_t      RESERVED15;
 } TIM_TypeDef;
 
 /* Universal Synchronous Asynchronous Receiver Transmitter */
 typedef struct
 {
-    __IO uint32_t STATR;
-    __IO uint32_t DATAR;
-    __IO uint32_t BRR;
-    __IO uint32_t CTLR1;
-    __IO uint32_t CTLR2;
-    __IO uint32_t CTLR3;
-    __IO uint32_t GPR;
+    __IO uint32_t STATR;        /* USART Status Register                        */
+    __IO uint32_t DATAR;        /* USART Data Register                          */
+    __IO uint32_t BRR;          /* USART Baud Rate Register                     */
+    __IO uint32_t CTLR1;        /* USART Control Register 1                     */
+    __IO uint32_t CTLR2;        /* USART Control Register 2                     */
+    __IO uint32_t CTLR3;        /* USART Control Register 3                     */
+    __IO uint32_t GPR;          /* USART Protection Time and Prescaler Register */
 } USART_TypeDef;
 
 /* Window WatchDog */
 typedef struct
 {
-    __IO uint16_t CTLR;
+    __IO uint16_t CTLR;     /* Control Register       */
     uint16_t      RESERVED1;
-    __IO uint16_t CFGR;
+    __IO uint16_t CFGR;     /* Configuration Register */
     uint16_t      RESERVED2;
-    __IO uint16_t STATR;
+    __IO uint16_t STATR;    /* Status Register        */
 } WWDG_TypeDef;
 
 /* Enhanced Registers */
 typedef struct
 {
-    __IO uint32_t EXTEN_CTR;
+    __IO uint32_t EXTEN_CTR;    /* Configure Extended Control Registers */
 } EXTEN_TypeDef;
 
 #endif
@@ -3674,29 +3672,29 @@ typedef struct
 
 /* memory mapped structure for Program Fast Interrupt Controller (PFIC) */
 typedef struct{
-    __I  uint32_t ISR[8];
-    __I  uint32_t IPR[8];
-    __IO uint32_t ITHRESDR;
+    __I  uint32_t ISR[8];       /* Interrupt Enable Status Register x                  */
+    __I  uint32_t IPR[8];       /* Interrupt Pending Status Register x                 */
+    __IO uint32_t ITHRESDR;     /* Interrupt Priority Threshold Configuration Register */
     __IO uint32_t RESERVED;
-    __IO uint32_t CFGR;
-    __I  uint32_t GISR;
-    __IO uint8_t VTFIDR[4];
+    __IO uint32_t CFGR;         /* Interrupt Configuration Register                    */
+    __I  uint32_t GISR;         /* Interrupt Global Status Register                    */
+    __IO uint8_t VTFIDR[4];     /* VTF ID Configuration Regsite                        */
     uint8_t RESERVED0[12];
-    __IO uint32_t VTFADDR[4];
+    __IO uint32_t VTFADDR[4];   /* VTF x Offset register                               */
     uint8_t RESERVED1[0x90];
-    __O  uint32_t IENR[8];
+    __O  uint32_t IENR[8];      /* Interrupt Enable Setting Register x                 */
     uint8_t RESERVED2[0x60];
-    __O  uint32_t IRER[8];
+    __O  uint32_t IRER[8];      /* Interrupt Enable Clear Register x                   */
     uint8_t RESERVED3[0x60];
-    __O  uint32_t IPSR[8];
+    __O  uint32_t IPSR[8];      /* Interrupt Pending Status Register x                 */
     uint8_t RESERVED4[0x60];
-    __O  uint32_t IPRR[8];
+    __O  uint32_t IPRR[8];      /* Interrupt Pending Clear Register x                  */
     uint8_t RESERVED5[0x60];
-    __IO uint32_t IACTR[8];
+    __IO uint32_t IACTR[8];     /* Interrupt Activation Status Register x              */
     uint8_t RESERVED6[0xE0];
-    __IO uint8_t IPRIOR[256];
+    __IO uint8_t IPRIOR[256];   /* Interrupt Priority Configuration Register           */
     uint8_t RESERVED7[0x810];
-    __IO uint32_t SCTLR;
+    __IO uint32_t SCTLR;        /* System Control Register                             */
 }PFIC_Type;
 
 #endif
