@@ -140,7 +140,7 @@ void turnOffGPIOs(uint8_t* arr, uint8_t len) {
 #include "1_Foundation/i2c_slave.h"
 #include "1_Foundation/modPWM.h"
 #include "1_Foundation/modEncoder.h"
-#include "1_Foundation/modADC.h"
+#include "1_Foundation/modJoystick.h"
 #include "Display/modST77xx.h"
 
 #include "2_Device/i2c_main.h"
@@ -148,7 +148,7 @@ void turnOffGPIOs(uint8_t* arr, uint8_t len) {
 
 void button_onSingleClick() {
 	printf("I'M USELESS.\n\r");
-	digitalWrite(0xC0, !digitalRead(0xC0));
+	digitalWrite(0xC0, !digitalRead(0xD0));
 }
 
 void button_onDoubleClick() {
@@ -164,7 +164,7 @@ void onWrite(uint8_t reg, uint8_t length) {
 
 void onRead(uint8_t reg) {
 	printf("IM HERE.\n\r");
-	digitalWrite(0xC0, !digitalRead(0xC0));
+	digitalWrite(0xC0, !digitalRead(0xD0));
 }
 
 
@@ -176,9 +176,6 @@ int main() {
 	uint32_t sec_time = 0;
 	uint32_t time_ref = 0;
 
-	// led_setup();
-	// uart_setup();
-	// dma_uart_setup();
 
 	// # SSD1306
 	if(!ssd1306_i2c_init()) {
@@ -186,37 +183,41 @@ int main() {
 		printf("done.\n\r");
 	}
 
-	// mod_pwm_setup();
 
-	pinMode(0xC0, OUTPUT);
-	modEncoder_setup();
-	// modADC_setup();
-	ws2812_setup();
-	button_setup(0xC3);
+	pinMode(0xD0, OUTPUT);
+	button_setup(0xC3);	
+	// modEncoder_setup();			// TIM2 Ch1, Ch2
+	modPWM_setup();				// TIM2 Ch3
+	modJoystick_setup();		// ADC Ch0, Ch1 | DMA1 Ch1
+	ws2812_setup();				// DMA1 Ch3
 
+	// led_setup();
+	uart_setup();				// PD5
+	dma_uart_setup();			// DMA1 Ch4
+	
 	for(;;) {			
 		uint32_t now = millis();
 
 		uint32_t time_diff = millis() - now;
 		// i2c_test();
 
-		// mod_pwm_task();
 		button_run();
-		modEncoder_task(now);
+		// modEncoder_task(now);
 
-		if (now - sec_time > 1000) {
+		if (now - sec_time > 200) {
 			sec_time = now;
-			// modADC_task();
-
-			// dma_uart_tx(message, sizeof(message) - 1);
+			// modJoystick_task();
+			dma_uart_tx(message, sizeof(message) - 1);
 			// printf("time: %ld\n\r", time_diff);
 		}
 
-		// ws2812_task();
 
-		if (now - ledc_time > 1) {
+		if (now - ledc_time > 8) {
 			ledc_time = now;
-
+			modPWM_task();
+			ws2812_task();
+		} else {
+			
 		}
 	}
 }

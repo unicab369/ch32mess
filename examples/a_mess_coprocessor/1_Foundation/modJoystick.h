@@ -5,7 +5,7 @@
 #define ADC_NUMCHLS 2
 volatile uint16_t adc_buffer[ADC_NUMCHLS];
 
-void modADC_setup() {
+void modJoystick_setup() {
 	// ADCCLK = 24 MHz => RCC_ADCPRE = 0: divide by 2
 	RCC->CFGR0 &= ~(0x1F<<11);
 	
@@ -13,9 +13,13 @@ void modADC_setup() {
 	RCC->APB2PCENR |= RCC_APB2Periph_GPIOA | RCC_APB2Periph_ADC1;
 	
 	// GPIOD->CFGLR &= ~(0xf<<(4*4));	// PD4 Analog input Chan7
+	// GPIOD->CFGLR &= ~(0xf<<(4*6));	// PD5 Analog input Chan6
+	// GPIOD->CFGLR &= ~(0xf<<(4*5));	// PD6 Analog input Chan5
 	// GPIOD->CFGLR &= ~(0xf<<(4*3));	// PD3 Analog input Chan4
 	// GPIOD->CFGLR &= ~(0xf<<(4*2));	// PD2 Analog input Chan3
 	// GPIOC->CFGLR &= ~(0xf<<(4*4));	// PC4 Analog input Chan2
+	// GPIOA->CFGLR &= ~(0xf<<(4*0));	// PA1 Analog input Chan1
+	// GPIOA->CFGLR &= ~(0xf<<(4*1));	// PA2 Analog input Chan0
 
     int chanA = 0;
     int chanB = 1;
@@ -71,6 +75,6 @@ void modADC_setup() {
 uint16_t last_x = 0;
 uint16_t last_y = 0;
 
-int modADC_task() {
+int modJoystick_task() {
     printf("%4d %4d\n\r", adc_buffer[0], adc_buffer[1]);
 }

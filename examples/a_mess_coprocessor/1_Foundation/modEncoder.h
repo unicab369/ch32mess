@@ -65,12 +65,12 @@ void modEncoder_setup() {
 	//! TIM2 remap mode
 	AFIO->PCFR1 |= AFIO_PCFR1_TIM2_REMAP_NOREMAP;
 
-	// PC2 is T2CH1_, Input w/ Pullup/down
+	// PD3 is T2CH1_, Input w/ Pullup/down
 	GPIOD->CFGLR &= ~(0xf<<(4*3)); 					//clear old values
 	GPIOD->CFGLR |= (GPIO_CNF_IN_PUPD)<<(4*3); 		//set new ones
 	GPIOD->OUTDR |= 1<<2;							//1 = pull-up, 0 = pull-down
 
-	// PC5 is T2CH2_, Input w/ Pullup/down
+	// PD4 is T2CH2_, Input w/ Pullup/down
 	GPIOD->CFGLR &= ~(0xf<<(4*4)); 					//clear values
 	GPIOD->CFGLR |= (GPIO_CNF_IN_PUPD)<<(4*4); 		//set new ones
 	GPIOD->OUTDR |= 1<<4;							//1 = pull-up, 0 = pull-down
