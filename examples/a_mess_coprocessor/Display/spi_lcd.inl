@@ -19,6 +19,7 @@
 //
 
 #include "spi_lcd.h"
+#include "ch32v_hal.h"
 
 static uint8_t u8CS, u8DC, u8BL;
 static uint8_t u8MADCTL; // original value
@@ -50,7 +51,7 @@ const uint8_t ucILI9341InitList[] = {
         2, 0x26, 0x01, // Gamma curve selected
         16, 0xe0, 0x0F, 0x31, 0x2B, 0x0C, 0x0E, 0x08,
             0x4E, 0xF1, 0x37, 0x07, 0x10, 0x03, 0x0E, 0x09, 0x00, // Set Gamma
-	    16, 0xe1, 0x00, 0x0E, 0x14, 0x03, 0x11, 0x07,
+        16, 0xe1, 0x00, 0x0E, 0x14, 0x03, 0x11, 0x07,
             0x31, 0xC1, 0x48, 0x08, 0x0F, 0x0C, 0x31, 0x36, 0x0F, // Set Gamma
         3, 0xb1, 0x00, 0x10, // FrameRate Control 119Hz
         0
@@ -119,84 +120,84 @@ const uint8_t uc80InitList[] = {
 };
 
 const uint8_t uc160InitList[] = {
-        2, 0x3a, 0x05,  // pixel format RGB565
-        2, 0x36, 0x60, // MADCTL
-        17, 0xe0, 0x09, 0x16, 0x09,0x20,
-                0x21,0x1b,0x13,0x19,
-                0x17,0x15,0x1e,0x2b,
-                0x04,0x05,0x02,0x0e, // gamma sequence
-        17, 0xe1, 0x0b,0x14,0x08,0x1e,
-                0x22,0x1d,0x18,0x1e,
-                0x1b,0x1a,0x24,0x2b,
-                0x06,0x06,0x02,0x0f,
-			    1, 0x20,    // display inversion off
-				1, 0x29, // display on
-        0
+    2, 0x3a, 0x05,  // pixel format RGB565
+    2, 0x36, 0x60, // MADCTL
+    17, 0xe0, 0x09, 0x16, 0x09,0x20,
+            0x21,0x1b,0x13,0x19,
+            0x17,0x15,0x1e,0x2b,
+            0x04,0x05,0x02,0x0e, // gamma sequence
+    17, 0xe1, 0x0b,0x14,0x08,0x1e,
+            0x22,0x1d,0x18,0x1e,
+            0x1b,0x1a,0x24,0x2b,
+            0x06,0x06,0x02,0x0f,
+            1, 0x20,    // display inversion off
+            1, 0x29, // display on
+    0
 };
 const uint8_t uc128InitList[] = {
-        2, 0x3a, 0x05,  // pixel format RGB565
-        2, 0x36, 0x68, // MADCTL
-        17, 0xe0, 0x09, 0x16, 0x09,0x20,
-                0x21,0x1b,0x13,0x19,
-                0x17,0x15,0x1e,0x2b,
-                0x04,0x05,0x02,0x0e, // gamma sequence
-        17, 0xe1, 0x0b,0x14,0x08,0x1e,
-                0x22,0x1d,0x18,0x1e,
-                0x1b,0x1a,0x24,0x2b,
-                0x06,0x06,0x02,0x0f,
-			    1, 0x20,    // display inversion off
-				1, 0x29, // display on
-        0
+    2, 0x3a, 0x05,  // pixel format RGB565
+    2, 0x36, 0x68, // MADCTL
+    17, 0xe0, 0x09, 0x16, 0x09,0x20,
+            0x21,0x1b,0x13,0x19,
+            0x17,0x15,0x1e,0x2b,
+            0x04,0x05,0x02,0x0e, // gamma sequence
+    17, 0xe1, 0x0b,0x14,0x08,0x1e,
+            0x22,0x1d,0x18,0x1e,
+            0x1b,0x1a,0x24,0x2b,
+            0x06,0x06,0x02,0x0f,
+            1, 0x20,    // display inversion off
+            1, 0x29, // display on
+    0
 };
 const uint8_t ucFont[]PROGMEM = {
-  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x06,0x5f,0x5f,0x06,0x00,
-  0x00,0x07,0x07,0x00,0x07,0x07,0x00,0x14,0x7f,0x7f,0x14,0x7f,0x7f,0x14,
-  0x24,0x2e,0x2a,0x6b,0x6b,0x3a,0x12,0x46,0x66,0x30,0x18,0x0c,0x66,0x62,
-  0x30,0x7a,0x4f,0x5d,0x37,0x7a,0x48,0x00,0x04,0x07,0x03,0x00,0x00,0x00,
-  0x00,0x1c,0x3e,0x63,0x41,0x00,0x00,0x00,0x41,0x63,0x3e,0x1c,0x00,0x00,
-  0x08,0x2a,0x3e,0x1c,0x3e,0x2a,0x08,0x00,0x08,0x08,0x3e,0x3e,0x08,0x08,
-  0x00,0x00,0x80,0xe0,0x60,0x00,0x00,0x00,0x08,0x08,0x08,0x08,0x08,0x08,
-  0x00,0x00,0x00,0x60,0x60,0x00,0x00,0x60,0x30,0x18,0x0c,0x06,0x03,0x01,
-  0x3e,0x7f,0x59,0x4d,0x47,0x7f,0x3e,0x40,0x42,0x7f,0x7f,0x40,0x40,0x00,
-  0x62,0x73,0x59,0x49,0x6f,0x66,0x00,0x22,0x63,0x49,0x49,0x7f,0x36,0x00,
-  0x18,0x1c,0x16,0x53,0x7f,0x7f,0x50,0x27,0x67,0x45,0x45,0x7d,0x39,0x00,
-  0x3c,0x7e,0x4b,0x49,0x79,0x30,0x00,0x03,0x03,0x71,0x79,0x0f,0x07,0x00,
-  0x36,0x7f,0x49,0x49,0x7f,0x36,0x00,0x06,0x4f,0x49,0x69,0x3f,0x1e,0x00,
-  0x00,0x00,0x00,0x66,0x66,0x00,0x00,0x00,0x00,0x80,0xe6,0x66,0x00,0x00,
-  0x08,0x1c,0x36,0x63,0x41,0x00,0x00,0x00,0x14,0x14,0x14,0x14,0x14,0x14,
-  0x00,0x41,0x63,0x36,0x1c,0x08,0x00,0x00,0x02,0x03,0x59,0x5d,0x07,0x02,
-  0x3e,0x7f,0x41,0x5d,0x5d,0x5f,0x0e,0x7c,0x7e,0x13,0x13,0x7e,0x7c,0x00,
-  0x41,0x7f,0x7f,0x49,0x49,0x7f,0x36,0x1c,0x3e,0x63,0x41,0x41,0x63,0x22,
-  0x41,0x7f,0x7f,0x41,0x63,0x3e,0x1c,0x41,0x7f,0x7f,0x49,0x5d,0x41,0x63,
-  0x41,0x7f,0x7f,0x49,0x1d,0x01,0x03,0x1c,0x3e,0x63,0x41,0x51,0x33,0x72,
-  0x7f,0x7f,0x08,0x08,0x7f,0x7f,0x00,0x00,0x41,0x7f,0x7f,0x41,0x00,0x00,
-  0x30,0x70,0x40,0x41,0x7f,0x3f,0x01,0x41,0x7f,0x7f,0x08,0x1c,0x77,0x63,
-  0x41,0x7f,0x7f,0x41,0x40,0x60,0x70,0x7f,0x7f,0x0e,0x1c,0x0e,0x7f,0x7f,
-  0x7f,0x7f,0x06,0x0c,0x18,0x7f,0x7f,0x1c,0x3e,0x63,0x41,0x63,0x3e,0x1c,
-  0x41,0x7f,0x7f,0x49,0x09,0x0f,0x06,0x1e,0x3f,0x21,0x31,0x61,0x7f,0x5e,
-  0x41,0x7f,0x7f,0x09,0x19,0x7f,0x66,0x26,0x6f,0x4d,0x49,0x59,0x73,0x32,
-  0x03,0x41,0x7f,0x7f,0x41,0x03,0x00,0x7f,0x7f,0x40,0x40,0x7f,0x7f,0x00,
-  0x1f,0x3f,0x60,0x60,0x3f,0x1f,0x00,0x3f,0x7f,0x60,0x30,0x60,0x7f,0x3f,
-  0x63,0x77,0x1c,0x08,0x1c,0x77,0x63,0x07,0x4f,0x78,0x78,0x4f,0x07,0x00,
-  0x47,0x63,0x71,0x59,0x4d,0x67,0x73,0x00,0x7f,0x7f,0x41,0x41,0x00,0x00,
-  0x01,0x03,0x06,0x0c,0x18,0x30,0x60,0x00,0x41,0x41,0x7f,0x7f,0x00,0x00,
-  0x08,0x0c,0x06,0x03,0x06,0x0c,0x08,0x80,0x80,0x80,0x80,0x80,0x80,0x80,
-  0x00,0x00,0x03,0x07,0x04,0x00,0x00,0x20,0x74,0x54,0x54,0x3c,0x78,0x40,
-  0x41,0x7f,0x3f,0x48,0x48,0x78,0x30,0x38,0x7c,0x44,0x44,0x6c,0x28,0x00,
-  0x30,0x78,0x48,0x49,0x3f,0x7f,0x40,0x38,0x7c,0x54,0x54,0x5c,0x18,0x00,
-  0x48,0x7e,0x7f,0x49,0x03,0x06,0x00,0x98,0xbc,0xa4,0xa4,0xf8,0x7c,0x04,
-  0x41,0x7f,0x7f,0x08,0x04,0x7c,0x78,0x00,0x44,0x7d,0x7d,0x40,0x00,0x00,
-  0x60,0xe0,0x80,0x84,0xfd,0x7d,0x00,0x41,0x7f,0x7f,0x10,0x38,0x6c,0x44,
-  0x00,0x41,0x7f,0x7f,0x40,0x00,0x00,0x7c,0x7c,0x18,0x78,0x1c,0x7c,0x78,
-  0x7c,0x78,0x04,0x04,0x7c,0x78,0x00,0x38,0x7c,0x44,0x44,0x7c,0x38,0x00,
-  0x84,0xfc,0xf8,0xa4,0x24,0x3c,0x18,0x18,0x3c,0x24,0xa4,0xf8,0xfc,0x84,
-  0x44,0x7c,0x78,0x4c,0x04,0x0c,0x18,0x48,0x5c,0x54,0x74,0x64,0x24,0x00,
-  0x04,0x04,0x3e,0x7f,0x44,0x24,0x00,0x3c,0x7c,0x40,0x40,0x3c,0x7c,0x40,
-  0x1c,0x3c,0x60,0x60,0x3c,0x1c,0x00,0x3c,0x7c,0x60,0x30,0x60,0x7c,0x3c,
-  0x44,0x6c,0x38,0x10,0x38,0x6c,0x44,0x9c,0xbc,0xa0,0xa0,0xfc,0x7c,0x00,
-  0x4c,0x64,0x74,0x5c,0x4c,0x64,0x00,0x08,0x08,0x3e,0x77,0x41,0x41,0x00,
-  0x00,0x00,0x00,0x77,0x77,0x00,0x00,0x41,0x41,0x77,0x3e,0x08,0x08,0x00,
-  0x02,0x03,0x01,0x03,0x02,0x03,0x01,0x70,0x78,0x4c,0x46,0x4c,0x78,0x70};
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x06,0x5f,0x5f,0x06,0x00,
+    0x00,0x07,0x07,0x00,0x07,0x07,0x00,0x14,0x7f,0x7f,0x14,0x7f,0x7f,0x14,
+    0x24,0x2e,0x2a,0x6b,0x6b,0x3a,0x12,0x46,0x66,0x30,0x18,0x0c,0x66,0x62,
+    0x30,0x7a,0x4f,0x5d,0x37,0x7a,0x48,0x00,0x04,0x07,0x03,0x00,0x00,0x00,
+    0x00,0x1c,0x3e,0x63,0x41,0x00,0x00,0x00,0x41,0x63,0x3e,0x1c,0x00,0x00,
+    0x08,0x2a,0x3e,0x1c,0x3e,0x2a,0x08,0x00,0x08,0x08,0x3e,0x3e,0x08,0x08,
+    0x00,0x00,0x80,0xe0,0x60,0x00,0x00,0x00,0x08,0x08,0x08,0x08,0x08,0x08,
+    0x00,0x00,0x00,0x60,0x60,0x00,0x00,0x60,0x30,0x18,0x0c,0x06,0x03,0x01,
+    0x3e,0x7f,0x59,0x4d,0x47,0x7f,0x3e,0x40,0x42,0x7f,0x7f,0x40,0x40,0x00,
+    0x62,0x73,0x59,0x49,0x6f,0x66,0x00,0x22,0x63,0x49,0x49,0x7f,0x36,0x00,
+    0x18,0x1c,0x16,0x53,0x7f,0x7f,0x50,0x27,0x67,0x45,0x45,0x7d,0x39,0x00,
+    0x3c,0x7e,0x4b,0x49,0x79,0x30,0x00,0x03,0x03,0x71,0x79,0x0f,0x07,0x00,
+    0x36,0x7f,0x49,0x49,0x7f,0x36,0x00,0x06,0x4f,0x49,0x69,0x3f,0x1e,0x00,
+    0x00,0x00,0x00,0x66,0x66,0x00,0x00,0x00,0x00,0x80,0xe6,0x66,0x00,0x00,
+    0x08,0x1c,0x36,0x63,0x41,0x00,0x00,0x00,0x14,0x14,0x14,0x14,0x14,0x14,
+    0x00,0x41,0x63,0x36,0x1c,0x08,0x00,0x00,0x02,0x03,0x59,0x5d,0x07,0x02,
+    0x3e,0x7f,0x41,0x5d,0x5d,0x5f,0x0e,0x7c,0x7e,0x13,0x13,0x7e,0x7c,0x00,
+    0x41,0x7f,0x7f,0x49,0x49,0x7f,0x36,0x1c,0x3e,0x63,0x41,0x41,0x63,0x22,
+    0x41,0x7f,0x7f,0x41,0x63,0x3e,0x1c,0x41,0x7f,0x7f,0x49,0x5d,0x41,0x63,
+    0x41,0x7f,0x7f,0x49,0x1d,0x01,0x03,0x1c,0x3e,0x63,0x41,0x51,0x33,0x72,
+    0x7f,0x7f,0x08,0x08,0x7f,0x7f,0x00,0x00,0x41,0x7f,0x7f,0x41,0x00,0x00,
+    0x30,0x70,0x40,0x41,0x7f,0x3f,0x01,0x41,0x7f,0x7f,0x08,0x1c,0x77,0x63,
+    0x41,0x7f,0x7f,0x41,0x40,0x60,0x70,0x7f,0x7f,0x0e,0x1c,0x0e,0x7f,0x7f,
+    0x7f,0x7f,0x06,0x0c,0x18,0x7f,0x7f,0x1c,0x3e,0x63,0x41,0x63,0x3e,0x1c,
+    0x41,0x7f,0x7f,0x49,0x09,0x0f,0x06,0x1e,0x3f,0x21,0x31,0x61,0x7f,0x5e,
+    0x41,0x7f,0x7f,0x09,0x19,0x7f,0x66,0x26,0x6f,0x4d,0x49,0x59,0x73,0x32,
+    0x03,0x41,0x7f,0x7f,0x41,0x03,0x00,0x7f,0x7f,0x40,0x40,0x7f,0x7f,0x00,
+    0x1f,0x3f,0x60,0x60,0x3f,0x1f,0x00,0x3f,0x7f,0x60,0x30,0x60,0x7f,0x3f,
+    0x63,0x77,0x1c,0x08,0x1c,0x77,0x63,0x07,0x4f,0x78,0x78,0x4f,0x07,0x00,
+    0x47,0x63,0x71,0x59,0x4d,0x67,0x73,0x00,0x7f,0x7f,0x41,0x41,0x00,0x00,
+    0x01,0x03,0x06,0x0c,0x18,0x30,0x60,0x00,0x41,0x41,0x7f,0x7f,0x00,0x00,
+    0x08,0x0c,0x06,0x03,0x06,0x0c,0x08,0x80,0x80,0x80,0x80,0x80,0x80,0x80,
+    0x00,0x00,0x03,0x07,0x04,0x00,0x00,0x20,0x74,0x54,0x54,0x3c,0x78,0x40,
+    0x41,0x7f,0x3f,0x48,0x48,0x78,0x30,0x38,0x7c,0x44,0x44,0x6c,0x28,0x00,
+    0x30,0x78,0x48,0x49,0x3f,0x7f,0x40,0x38,0x7c,0x54,0x54,0x5c,0x18,0x00,
+    0x48,0x7e,0x7f,0x49,0x03,0x06,0x00,0x98,0xbc,0xa4,0xa4,0xf8,0x7c,0x04,
+    0x41,0x7f,0x7f,0x08,0x04,0x7c,0x78,0x00,0x44,0x7d,0x7d,0x40,0x00,0x00,
+    0x60,0xe0,0x80,0x84,0xfd,0x7d,0x00,0x41,0x7f,0x7f,0x10,0x38,0x6c,0x44,
+    0x00,0x41,0x7f,0x7f,0x40,0x00,0x00,0x7c,0x7c,0x18,0x78,0x1c,0x7c,0x78,
+    0x7c,0x78,0x04,0x04,0x7c,0x78,0x00,0x38,0x7c,0x44,0x44,0x7c,0x38,0x00,
+    0x84,0xfc,0xf8,0xa4,0x24,0x3c,0x18,0x18,0x3c,0x24,0xa4,0xf8,0xfc,0x84,
+    0x44,0x7c,0x78,0x4c,0x04,0x0c,0x18,0x48,0x5c,0x54,0x74,0x64,0x24,0x00,
+    0x04,0x04,0x3e,0x7f,0x44,0x24,0x00,0x3c,0x7c,0x40,0x40,0x3c,0x7c,0x40,
+    0x1c,0x3c,0x60,0x60,0x3c,0x1c,0x00,0x3c,0x7c,0x60,0x30,0x60,0x7c,0x3c,
+    0x44,0x6c,0x38,0x10,0x38,0x6c,0x44,0x9c,0xbc,0xa0,0xa0,0xfc,0x7c,0x00,
+    0x4c,0x64,0x74,0x5c,0x4c,0x64,0x00,0x08,0x08,0x3e,0x77,0x41,0x41,0x00,
+    0x00,0x00,0x00,0x77,0x77,0x00,0x00,0x41,0x41,0x77,0x3e,0x08,0x08,0x00,
+    0x02,0x03,0x01,0x03,0x02,0x03,0x01,0x70,0x78,0x4c,0x46,0x4c,0x78,0x70};
   // 5x7 font (in 6x8 cell)
 const uint8_t ucSmallFont[] PROGMEM = {
 0x00,0x00,0x00,0x00,0x00,
@@ -296,26 +297,26 @@ const uint8_t ucSmallFont[] PROGMEM = {
 0x02,0x01,0x02,0x01,0x00,
 0x3c,0x26,0x23,0x26,0x3c};
 
-void DMA1_Channel3_IRQHandler(void) __attribute__((interrupt));
+// void DMA1_Channel3_IRQHandler(void) __attribute__((interrupt));
 
-//
-// This function gets called when the current DMA transaction completes
-// We use this to disable the chip select (CS) signal on the LCD
-// and clear our volatile flag (DMA busy)
-//
-void DMA1_Channel3_IRQHandler(void)
-{
-	        // why is this needed? Can't just direct compare the reg in tests below
-        volatile uint16_t intfr = DMA1->INTFR;
+// //
+// // This function gets called when the current DMA transaction completes
+// // We use this to disable the chip select (CS) signal on the LCD
+// // and clear our volatile flag (DMA busy)
+// //
+// void DMA1_Channel3_IRQHandler(void)
+// {
+// 	        // why is this needed? Can't just direct compare the reg in tests below
+//         volatile uint16_t intfr = DMA1->INTFR;
 
-	if (intfr & DMA1_IT_TC3) {
-		DMA1->INTFCR = DMA1_IT_TC3;
-		DMA1_Channel3->CFGR &= ~DMA_CFGR1_EN;
-		if (u8CS != 0xff)
-			digitalWrite(u8CS, 1); // de-activate CS
-		bDMA = 0; // no longer active DMA transaction
-	}
-} /* DMA1_Channel3_IRQHandler() */
+// 	if (intfr & DMA1_IT_TC3) {
+// 		DMA1->INTFCR = DMA1_IT_TC3;
+// 		DMA1_Channel3->CFGR &= ~DMA_CFGR1_EN;
+// 		if (u8CS != 0xff)
+// 			digitalWrite(u8CS, 1); // de-activate CS
+// 		bDMA = 0; // no longer active DMA transaction
+// 	}
+// } /* DMA1_Channel3_IRQHandler() */
 
 //
 // Initialize the DMA channel for SPI transmit (3)
@@ -497,9 +498,11 @@ void lcdInit(int iLCDType, uint32_t u32Speed, uint8_t u8CSPin, uint8_t u8DCPin, 
 	SPI_begin(u32Speed, 0);
 	u8DC = u8DCPin;
 	pinMode(u8DCPin, OUTPUT);
+
 	// u8BL = u8BLPin;
 	// pinMode(u8BL, OUTPUT);
 	// digitalWrite(u8BL, 1); // turn on backlight
+
 //    if (pLCD->iLCDFlags & FLAGS_SWAP_RB)
 //        iBGR = 8;
 	lcdWriteCMD(0x01); // SW reset
@@ -507,17 +510,17 @@ void lcdInit(int iLCDType, uint32_t u32Speed, uint8_t u8CSPin, uint8_t u8DCPin, 
 	lcdWriteCMD(0x11); // sleep out
 	Delay_Ms(100);
     iCount = 1;
-     while (s && iCount)
-     {
-		 iCount = *s++;
-		 if (iCount != 0)
-		 {
-			 lcdWriteCMD(s[0]);
-			 lcdWriteDATA(&s[1], iCount-1);
-			 s += iCount;
-		 } // if count
-     }// while
-     DMA_Tx_Init(DMA1_Channel3, (u32)&SPI1->DATAR, (u32)pCache0, 0);
+    while (s && iCount)
+    {
+        iCount = *s++;
+        if (iCount != 0)
+        {
+            lcdWriteCMD(s[0]);
+            lcdWriteDATA(&s[1], iCount-1);
+            s += iCount;
+        } // if count
+    }// while
+    DMA_Tx_Init(DMA1_Channel3, (u32)&SPI1->DATAR, (u32)pCache0, 0);
 
 } /* lcdInit() */
 
@@ -575,25 +578,25 @@ void lcdOrientation(int iOrientation)
 //
 void lcdSetPosition(int x, int y, int w, int h)
 {
-uint8_t ucBuf[8];
+    uint8_t ucBuf[8];
 
-     x += iLCDXOff;
-     y += iLCDYOff;
-     ucBuf[0] = (unsigned char)(x >> 8);
-     ucBuf[1] = (unsigned char)x;
-     x = x + w - 1;
-     ucBuf[2] = (unsigned char)(x >> 8);
-     ucBuf[3] = (unsigned char)x;
-     lcdWriteCMD(0x2a); // column address cmd
-     lcdWriteDATA(ucBuf, 4);
-     ucBuf[0] = (unsigned char)(y >> 8);
-     ucBuf[1] = (unsigned char)y;
-     y = y + h - 1;
-     ucBuf[2] = (unsigned char)(y >> 8);
-     ucBuf[3] = (unsigned char)y;
-     lcdWriteCMD(0x2b); // row address cmd
-     lcdWriteDATA(ucBuf, 4);
-     lcdWriteCMD(0x2c); // RAMWR - start writing
+    x += iLCDXOff;
+    y += iLCDYOff;
+    ucBuf[0] = (unsigned char)(x >> 8);
+    ucBuf[1] = (unsigned char)x;
+    x = x + w - 1;
+    ucBuf[2] = (unsigned char)(x >> 8);
+    ucBuf[3] = (unsigned char)x;
+    lcdWriteCMD(0x2a); // column address cmd
+    lcdWriteDATA(ucBuf, 4);
+    ucBuf[0] = (unsigned char)(y >> 8);
+    ucBuf[1] = (unsigned char)y;
+    y = y + h - 1;
+    ucBuf[2] = (unsigned char)(y >> 8);
+    ucBuf[3] = (unsigned char)y;
+    lcdWriteCMD(0x2b); // row address cmd
+    lcdWriteDATA(ucBuf, 4);
+    lcdWriteCMD(0x2c); // RAMWR - start writing
 } /* lcdSetPosition() */
 
 //
@@ -771,12 +774,12 @@ void lcdFill(uint16_t usData)
     lcdSetPosition(0,0, iLCDWidth, iLCDHeight);
     // fit within our temp buffer
     for (cy = 0; cy < iLCDHeight; cy++) {
-    	if (cy < 2) { // both buffers need a copy
-    		d = (uint16_t *)pCache0; // pointer swapped after each write
-    		for (cx = 0; cx < iLCDWidth; cx++) {
-    			d[cx] = usData;
-    		}
-    	}
+        if (cy < 2) { // both buffers need a copy
+            d = (uint16_t *)pCache0; // pointer swapped after each write
+            for (cx = 0; cx < iLCDWidth; cx++) {
+                d[cx] = usData;
+            }
+        }
         lcdWriteDATA(pCache0, iLCDWidth*2); // fill with data words
    } // for y
 
@@ -795,34 +798,34 @@ void spilcdDrawPattern(uint8_t *pPattern, int iSrcPitch, int iDestX, int iDestY,
     uint8_t *s, uc, ucMask;
     uint16_t *d, u16Clr;
 
-     if (iDestX+iCX > iLCDWidth) // trim to fit on display
-         iCX = (iLCDWidth - iDestX);
-     if (iDestY+iCY > iLCDHeight)
-         iCY = (iLCDHeight - iDestY);
-     if (pPattern == NULL || iDestX < 0 || iDestY < 0 || iCX <=0 || iCY <= 0)
-         return;
-       u16Clr = (usColor >> 8) | (usColor << 8); // swap low/high bytes
-       lcdSetPosition(iDestX, iDestY, iCX, iCY);
-       for (y=0; y<iCY; y++)
-       {
-         s = &pPattern[y * iSrcPitch];
-         ucMask = uc = 0;
-         d = (uint16_t *)pCache0;
-         for (x=0; x<iCX; x++)
-         {
-             ucMask >>= 1;
-             if (ucMask == 0)
-             {
-                 ucMask = 0x80;
-                 uc = *s++;
-             }
-             if (uc & ucMask) // active pixel
-                *d++ = u16Clr;
-             else
-                *d++ = 0;
-         } // for x
-         lcdWriteDATA(pCache0, iCX*2);
-       } // for y
+    if (iDestX+iCX > iLCDWidth) // trim to fit on display
+        iCX = (iLCDWidth - iDestX);
+    if (iDestY+iCY > iLCDHeight)
+        iCY = (iLCDHeight - iDestY);
+    if (pPattern == NULL || iDestX < 0 || iDestY < 0 || iCX <=0 || iCY <= 0)
+        return;
+    u16Clr = (usColor >> 8) | (usColor << 8); // swap low/high bytes
+    lcdSetPosition(iDestX, iDestY, iCX, iCY);
+    for (y=0; y<iCY; y++)
+    {
+        s = &pPattern[y * iSrcPitch];
+        ucMask = uc = 0;
+        d = (uint16_t *)pCache0;
+        for (x=0; x<iCX; x++)
+        {
+            ucMask >>= 1;
+            if (ucMask == 0)
+            {
+                ucMask = 0x80;
+                uc = *s++;
+            }
+            if (uc & ucMask) // active pixel
+            *d++ = u16Clr;
+            else
+            *d++ = 0;
+        } // for x
+        lcdWriteDATA(pCache0, iCX*2);
+    } // for y
 } /* spilcdDrawPattern() */
 
 //
@@ -891,28 +894,28 @@ unsigned short usBG = (usBGColor >> 8) | (usBGColor << 8);
             lcdSetPosition(x+(i*12), y, 12, 16);
             uint8_t ucMask = 1;
             for (k=0; k<12*16; k++)
-               usD[k] = usBG;
+                usD[k] = usBG;
             for (k=0; k<8; k++) // for each scanline
             {
-				uint8_t c0, c1;
-				for (j=0; j<5; j++)
-				{
-					c0 = s[j];
-					if (c0 & ucMask)
-					   usD[0] = usD[1] = usD[12] = usD[13] = usFG;
-					// test for smoothing diagonals
-					if (k < 7 && j < 5) {
-					   uint8_t ucMask2 = ucMask << 1;
-					   c1 = s[j+1];
-					   if ((c0 & ucMask) && (~c1 & ucMask) && (~c0 & ucMask2) && (c1 & ucMask2)) // first diagonal condition
-						   usD[14] = usD[25] = usFG;
-					   else if ((~c0 & ucMask) && (c1 & ucMask) && (c0 & ucMask2) && (~c1 & ucMask2))
-						   usD[13] = usD[26] = usFG;
-					} // if not on last row and last col
-					usD+=2;
-				} // for j
-				usD[0] = usD[1] = usD[12] = usD[13] = usBG; // last column is blank
-				usD += 2;
+                uint8_t c0, c1;
+                for (j=0; j<5; j++)
+                {
+                    c0 = s[j];
+                    if (c0 & ucMask)
+                        usD[0] = usD[1] = usD[12] = usD[13] = usFG;
+                    // test for smoothing diagonals
+                    if (k < 7 && j < 5) {
+                        uint8_t ucMask2 = ucMask << 1;
+                        c1 = s[j+1];
+                        if ((c0 & ucMask) && (~c1 & ucMask) && (~c0 & ucMask2) && (c1 & ucMask2)) // first diagonal condition
+                            usD[14] = usD[25] = usFG;
+                        else if ((~c0 & ucMask) && (c1 & ucMask) && (c0 & ucMask2) && (~c1 & ucMask2))
+                            usD[13] = usD[26] = usFG;
+                    } // if not on last row and last col
+                    usD+=2;
+                } // for j
+                usD[0] = usD[1] = usD[12] = usD[13] = usBG; // last column is blank
+                usD += 2;
                 usD += 12; // skip the extra line
                 ucMask <<= 1;
             } // for k
@@ -956,36 +959,36 @@ uint8_t *pFont;
         for (i=0; i<iStride*16; i++)
            usD[i] = usBG; // set to background color first
         for (k = 0; k<8; k++) { // create a pair of scanlines from each original
-           uint8_t ucMask = (1 << k);
-           usD = (unsigned short *)&pCache0[k*iStride*4];
-           for (i=0; i<iLen; i++)
-           {
-               uint8_t c0, c1;
-               s = (uint8_t *)&ucSmallFont[((unsigned char)szMsg[i]-32) * 5];
-               for (j=1; j<6; j++)
-               {
-                   uint8_t ucMask1 = ucMask << 1;
-                   uint8_t ucMask2 = ucMask >> 1;
-                   c0 = s[j-1];
-                   if (c0 & ucMask)
-                      usD[0] = usD[1] = usD[iStride] = usD[iStride+1] = usFG;
-                   // test for smoothing diagonals
-                   if (j < 5) {
-                      c1 = s[j];
-                      if ((c0 & ucMask) && (~c1 & ucMask) && (~c0 & ucMask1) && (c1 & ucMask1)) { // first diagonal condition
-                          usD[iStride+2] = usFG;
-                      } else if ((~c0 & ucMask) && (c1 & ucMask) && (c0 & ucMask1) && (~c1 & ucMask1)) { // second condition
-                          usD[iStride+1] = usFG;
-                      }
-                      if ((c0 & ucMask2) && (~c1 & ucMask2) && (~c0 & ucMask) && (c1 & ucMask)) { // repeat for previous line
-                          usD[1] = usFG;
-                      } else if ((~c0 & ucMask2) && (c1 & ucMask2) && (c0 & ucMask) && (~c1 & ucMask)) {
-                          usD[2] = usFG;
-                      }
-                   }
-                   usD+=2;
-               } // for j
-               usD += 2; // leave "6th" column blank
+            uint8_t ucMask = (1 << k);
+            usD = (unsigned short *)&pCache0[k*iStride*4];
+            for (i=0; i<iLen; i++)
+            {
+                uint8_t c0, c1;
+                s = (uint8_t *)&ucSmallFont[((unsigned char)szMsg[i]-32) * 5];
+                for (j=1; j<6; j++)
+                {
+                    uint8_t ucMask1 = ucMask << 1;
+                    uint8_t ucMask2 = ucMask >> 1;
+                    c0 = s[j-1];
+                    if (c0 & ucMask)
+                        usD[0] = usD[1] = usD[iStride] = usD[iStride+1] = usFG;
+                    // test for smoothing diagonals
+                    if (j < 5) {
+                        c1 = s[j];
+                        if ((c0 & ucMask) && (~c1 & ucMask) && (~c0 & ucMask1) && (c1 & ucMask1)) { // first diagonal condition
+                            usD[iStride+2] = usFG;
+                        } else if ((~c0 & ucMask) && (c1 & ucMask) && (c0 & ucMask1) && (~c1 & ucMask1)) { // second condition
+                            usD[iStride+1] = usFG;
+                        }
+                        if ((c0 & ucMask2) && (~c1 & ucMask2) && (~c0 & ucMask) && (c1 & ucMask)) { // repeat for previous line
+                            usD[1] = usFG;
+                        } else if ((~c0 & ucMask2) && (c1 & ucMask2) && (c0 & ucMask) && (~c1 & ucMask)) {
+                            usD[2] = usFG;
+                        }
+                    }
+                    usD+=2;
+                } // for j
+                usD += 2; // leave "6th" column blank
             } // for each character
         } // for each scanline
         lcdWriteDATA(pCache0, iStride*32);
@@ -1027,123 +1030,123 @@ uint8_t *pFont;
 //
 int lcdWriteStringCustom(GFXfont *pFont, int x, int y, char *szMsg, uint16_t usFGColor, uint16_t usBGColor, int bBlank)
 {
-int i, /*j, iLen, */ k, dx, dy, cx, cy, c, iBitOff;
-int tx, ty;
-uint8_t *s, bits, uc;
-GFXfont font;
-GFXglyph glyph, *pGlyph;
-#define TEMP_BUF_SIZE 64
-#define TEMP_HIGHWATER (TEMP_BUF_SIZE-8)
-uint16_t *d;
+    int i, /*j, iLen, */ k, dx, dy, cx, cy, c, iBitOff;
+    int tx, ty;
+    uint8_t *s, bits, uc;
+    GFXfont font;
+    GFXglyph glyph, *pGlyph;
+    #define TEMP_BUF_SIZE 64
+    #define TEMP_HIGHWATER (TEMP_BUF_SIZE-8)
+    uint16_t *d;
 
-   if (pFont == NULL)
-      return -1;
+    if (pFont == NULL)
+        return -1;
     if (x == -1)
         x = iCursorX;
     if (y == -1)
         y = iCursorY;
     if (x < 0)
         return -1;
-   // in case of running on AVR, get copy of data from FLASH
-   memcpy(&font, pFont, sizeof(font));
-   pGlyph = &glyph;
-   usFGColor = (usFGColor >> 8) | (usFGColor << 8); // swap h/l bytes
-   usBGColor = (usBGColor >> 8) | (usBGColor << 8);
+    // in case of running on AVR, get copy of data from FLASH
+    memcpy(&font, pFont, sizeof(font));
+    pGlyph = &glyph;
+    usFGColor = (usFGColor >> 8) | (usFGColor << 8); // swap h/l bytes
+    usBGColor = (usBGColor >> 8) | (usBGColor << 8);
 
-   i = 0;
-   while (szMsg[i] && x < iLCDWidth)
-   {
-      c = szMsg[i++];
-      if (c < font.first || c > font.last) // undefined character
-         continue; // skip it
-      c -= font.first; // first char of font defined
-      memcpy_P(&glyph, &font.glyph[c], sizeof(glyph));
-      // set up the destination window (rectangle) on the display
-      dx = x + pGlyph->xOffset; // offset from character UL to start drawing
-      dy = y + pGlyph->yOffset;
-      cx = pGlyph->width;
-      cy = pGlyph->height;
-      iBitOff = 0; // bitmap offset (in bits)
-      if (dy + cy > iLCDHeight)
-         cy = iLCDHeight - dy; // clip bottom edge
-      else if (dy < 0) {
-         cy += dy;
-         iBitOff += (pGlyph->width * (-dy));
-         dy = 0;
-      }
-      if (dx + cx > iLCDWidth)
-         cx = iLCDWidth - dx; // clip right edge
-      s = font.bitmap + pGlyph->bitmapOffset; // start of bitmap data
-      // Bitmap drawing loop. Image is MSB first and each pixel is packed next
-      // to the next (continuing on to the next character line)
-      bits = uc = 0; // bits left in this font byte
+    i = 0;
+    while (szMsg[i] && x < iLCDWidth)
+    {
+        c = szMsg[i++];
+        if (c < font.first || c > font.last) // undefined character
+            continue; // skip it
+        c -= font.first; // first char of font defined
+        memcpy_P(&glyph, &font.glyph[c], sizeof(glyph));
+        // set up the destination window (rectangle) on the display
+        dx = x + pGlyph->xOffset; // offset from character UL to start drawing
+        dy = y + pGlyph->yOffset;
+        cx = pGlyph->width;
+        cy = pGlyph->height;
+        iBitOff = 0; // bitmap offset (in bits)
+        if (dy + cy > iLCDHeight)
+            cy = iLCDHeight - dy; // clip bottom edge
+        else if (dy < 0) {
+            cy += dy;
+            iBitOff += (pGlyph->width * (-dy));
+            dy = 0;
+        }
+        if (dx + cx > iLCDWidth)
+            cx = iLCDWidth - dx; // clip right edge
+        s = font.bitmap + pGlyph->bitmapOffset; // start of bitmap data
+        // Bitmap drawing loop. Image is MSB first and each pixel is packed next
+        // to the next (continuing on to the next character line)
+        bits = uc = 0; // bits left in this font byte
 
-      if (bBlank) { // erase the areas around the char to not leave old bits
-         int miny, maxy;
-         c = '0' - font.first;
-         miny = y + pGlyph->yOffset;
-         c = 'y' - font.first;
-         maxy = miny + pGlyph->height;
-         if (maxy > iLCDHeight)
+        if (bBlank) { // erase the areas around the char to not leave old bits
+            int miny, maxy;
+            c = '0' - font.first;
+            miny = y + pGlyph->yOffset;
+            c = 'y' - font.first;
+            maxy = miny + pGlyph->height;
+            if (maxy > iLCDHeight)
             maxy = iLCDHeight;
-         cx = pGlyph->xAdvance;
-         if (cx + x > iLCDWidth) {
+            cx = pGlyph->xAdvance;
+            if (cx + x > iLCDWidth) {
             cx = iLCDWidth - x;
-         }
-         lcdSetPosition(x, miny, cx, maxy-miny);
+            }
+            lcdSetPosition(x, miny, cx, maxy-miny);
             // blank out area above character
-//            cy = font.yAdvance - pGlyph->height;
-//            for (ty=miny; ty<miny+cy && ty < maxy; ty++) {
-//               for (tx=0; tx<cx; tx++)
-//                  u16Temp[tx] = usBGColor;
-//               myspiWrite(pLCD, (uint8_t *)u16Temp, cx*sizeof(uint16_t), MODE_DATA, iFlags);
-//            } // for ty
+    //            cy = font.yAdvance - pGlyph->height;
+    //            for (ty=miny; ty<miny+cy && ty < maxy; ty++) {
+    //               for (tx=0; tx<cx; tx++)
+    //                  u16Temp[tx] = usBGColor;
+    //               myspiWrite(pLCD, (uint8_t *)u16Temp, cx*sizeof(uint16_t), MODE_DATA, iFlags);
+    //            } // for ty
             // character area (with possible padding on L+R)
             for (ty=0; ty<pGlyph->height && ty+miny < maxy; ty++) {
-               d = (uint16_t *)pCache0;
-               for (tx=0; tx<pGlyph->xOffset && tx < cx; tx++) { // left padding
-                  *d++ = usBGColor;
-               }
+                d = (uint16_t *)pCache0;
+                for (tx=0; tx<pGlyph->xOffset && tx < cx; tx++) { // left padding
+                    *d++ = usBGColor;
+                }
             // character bitmap (center area)
-               for (tx=0; tx<pGlyph->width; tx++) {
-                  if (bits == 0) { // need more data
-                     uc = s[iBitOff>>3];
-                     bits = 8;
-                     iBitOff += bits;
-                  }
-                  if (tx + pGlyph->xOffset < cx) {
-                     *d++ = (uc & 0x80) ? usFGColor : usBGColor;
-                  }
-                  bits--;
-                  uc <<= 1;
-               } // for tx
-               // right padding
-               k = pGlyph->xAdvance - (int)(d - (uint16_t*)pCache0); // remaining amount
-               for (tx=0; tx<k && (tx+pGlyph->xOffset+pGlyph->width) < cx; tx++)
-                  *d++ = usBGColor;
-               lcdWriteDATA(pCache0, cx*sizeof(uint16_t));
+                for (tx=0; tx<pGlyph->width; tx++) {
+                    if (bits == 0) { // need more data
+                        uc = s[iBitOff>>3];
+                        bits = 8;
+                        iBitOff += bits;
+                    }
+                    if (tx + pGlyph->xOffset < cx) {
+                        *d++ = (uc & 0x80) ? usFGColor : usBGColor;
+                    }
+                    bits--;
+                    uc <<= 1;
+                } // for tx
+                // right padding
+                k = pGlyph->xAdvance - (int)(d - (uint16_t*)pCache0); // remaining amount
+                for (tx=0; tx<k && (tx+pGlyph->xOffset+pGlyph->width) < cx; tx++)
+                    *d++ = usBGColor;
+                lcdWriteDATA(pCache0, cx*sizeof(uint16_t));
             } // for ty
             // padding below the current character
             ty = y + pGlyph->yOffset + pGlyph->height;
             for (; ty < maxy; ty++) {
-            	d = (uint16_t *)pCache0;
-               for (tx=0; tx<cx; tx++)
-                  d[tx] = usBGColor;
-               lcdWriteDATA(pCache0, cx*sizeof(uint16_t));
+                d = (uint16_t *)pCache0;
+                for (tx=0; tx<cx; tx++)
+                    d[tx] = usBGColor;
+                lcdWriteDATA(pCache0, cx*sizeof(uint16_t));
             } // for ty
-      } else if (usFGColor == usBGColor) { // transparent
-          int iCount; // opaque pixel count
-          d = (uint16_t*)pCache0;
-          for (iCount=0; iCount < cx; iCount++)
-              d[iCount] = usFGColor; // set up a line of solid color
-          iCount = 0; // number of sequential opaque pixels
-             for (ty=0; ty<cy; ty++) {
-             for (tx=0; tx<pGlyph->width; tx++) {
+        } else if (usFGColor == usBGColor) { // transparent
+            int iCount; // opaque pixel count
+            d = (uint16_t*)pCache0;
+            for (iCount=0; iCount < cx; iCount++)
+                d[iCount] = usFGColor; // set up a line of solid color
+            iCount = 0; // number of sequential opaque pixels
+                for (ty=0; ty<cy; ty++) {
+                for (tx=0; tx<pGlyph->width; tx++) {
                 if (bits == 0) { // need to read more font data
-                   uc = s[iBitOff>>3]; // get more font bitmap data
-                   bits = 8 - (iBitOff & 7); // we might not be on a byte boundary
-                   iBitOff += bits; // because of a clipped line
-                   uc <<= (8-bits);
+                    uc = s[iBitOff>>3]; // get more font bitmap data
+                    bits = 8 - (iBitOff & 7); // we might not be on a byte boundary
+                    iBitOff += bits; // because of a clipped line
+                    uc <<= (8-bits);
                 } // if we ran out of bits
                 if (tx < cx) {
                     if (uc & 0x80) {
@@ -1151,48 +1154,48 @@ uint16_t *d;
                     } else { // any opaque pixels to write?
                         if (iCount) {
                             lcdSetPosition(dx+tx-iCount, dy+ty, iCount, 1);
-                       d = (uint16_t *)pCache0; // point to start of output buffer
-                          lcdWriteDATA(pCache0, iCount*sizeof(uint16_t));
+                        d = (uint16_t *)pCache0; // point to start of output buffer
+                            lcdWriteDATA(pCache0, iCount*sizeof(uint16_t));
                             iCount = 0;
                         } // if opaque pixels to write
                     } // if transparent pixel hit
                 }
                 bits--; // next bit
                 uc <<= 1;
-             } // for tx
-             } // for ty
-       // quicker drawing
-      } else { // just draw the current character box fast
-         lcdSetPosition(dx, dy, cx, cy);
+                } // for tx
+                } // for ty
+        // quicker drawing
+        } else { // just draw the current character box fast
+            lcdSetPosition(dx, dy, cx, cy);
             d = (uint16_t *)pCache0; // point to start of output buffer
             for (ty=0; ty<cy; ty++) {
             for (tx=0; tx<pGlyph->width; tx++) {
-               if (bits == 0) { // need to read more font data
-                  uc = s[iBitOff>>3]; // get more font bitmap data
-                  bits = 8 - (iBitOff & 7); // we might not be on a byte boundary
-                  iBitOff += bits; // because of a clipped line
-                  uc <<= (8-bits);
-                  k = (int)(d-(uint16_t*)pCache0); // number of words in output buffer
-                  if (k >= TEMP_HIGHWATER) { // time to write it
-                     lcdWriteDATA(pCache0, k*sizeof(uint16_t));
-                     d = (uint16_t*)pCache0;
-                  }
-               } // if we ran out of bits
-               if (tx < cx) {
-                  *d++ = (uc & 0x80) ? usFGColor : usBGColor;
-               }
-               bits--; // next bit
-               uc <<= 1;
+                if (bits == 0) { // need to read more font data
+                    uc = s[iBitOff>>3]; // get more font bitmap data
+                    bits = 8 - (iBitOff & 7); // we might not be on a byte boundary
+                    iBitOff += bits; // because of a clipped line
+                    uc <<= (8-bits);
+                    k = (int)(d-(uint16_t*)pCache0); // number of words in output buffer
+                    if (k >= TEMP_HIGHWATER) { // time to write it
+                        lcdWriteDATA(pCache0, k*sizeof(uint16_t));
+                        d = (uint16_t*)pCache0;
+                    }
+                } // if we ran out of bits
+                if (tx < cx) {
+                    *d++ = (uc & 0x80) ? usFGColor : usBGColor;
+                }
+                bits--; // next bit
+                uc <<= 1;
             } // for tx
             } // for ty
             k = (int)(d-(uint16_t*)pCache0);
             if (k) // write any remaining data
-               lcdWriteDATA(pCache0, k*sizeof(uint16_t));
-      } // quicker drawing
-      x += pGlyph->xAdvance; // width of this character
-   } // while drawing characters
+                lcdWriteDATA(pCache0, k*sizeof(uint16_t));
+        } // quicker drawing
+        x += pGlyph->xAdvance; // width of this character
+    } // while drawing characters
     iCursorX = x;
     iCursorY = y;
-   return 0;
+    return 0;
 } /* lcdWriteStringCustom() */
 // end of spi_lcd.inl

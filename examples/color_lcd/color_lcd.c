@@ -27,7 +27,7 @@
 #define RST_PIN 0xd4
 
 static uint16_t usPal[8] = {COLOR_BLACK, COLOR_WHITE, COLOR_RED, COLOR_GREEN,
-						    COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, COLOR_YELLOW};
+						COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, COLOR_YELLOW};
 
 /* White Noise Generator State */
 #define NOISE_BITS 8
@@ -58,23 +58,24 @@ uint8_t rand8(void)
         return lfsr&NOISE_MASK;
 }
 
-int main(void)
-{
-int i, dx, iColor;
+int main(void) {
+	int i, dx, iColor;
+	SystemInit();
 
-    SystemInit();
+	printf("IM HERE!\n\r");
+	lcdInit(LCD_ST7735_80x160_B, 24000000, CS_PIN, DC_PIN, RST_PIN, BL_PIN);
+	lcdFill(COLOR_GREEN);
+	i = 1; dx = 1;
 
-    lcdInit(LCD_ST7735_80x160, 24000000, CS_PIN, DC_PIN, RST_PIN, BL_PIN);
-    lcdFill(COLOR_GREEN);
-    i = 1; dx = 1;
-    while (1) {
-    	lcdRectangle(rand8() & 127, rand8() & 63, rand8() & 63, rand8() & 31, usPal[(iColor+1)&7], 1);
-    	lcdEllipse(rand8() & 127, rand8() & 63, rand8() & 63, rand8() & 31, usPal[iColor & 7], 1);
-    	iColor++;
-    	lcdWriteString(0,i,"CH32V003 is fast", COLOR_BLUE, COLOR_GREEN, FONT_8x8);
-    	lcdWriteString(0,i+8,"enough for me!", COLOR_RED, COLOR_GREEN, FONT_8x8);
-    	lcdWriteString(0,i+16,"Large Font!", COLOR_WHITE, COLOR_MAGENTA, FONT_12x16);
-    	i += dx;
-    	if (i >= 39 || i == 1) dx = -dx;
-    }
+	while (1) {
+		printf("IM HERE!\n\r");
+		lcdRectangle(rand8() & 127, rand8() & 63, rand8() & 63, rand8() & 31, usPal[(iColor+1)&7], 1);
+		lcdEllipse(rand8() & 127, rand8() & 63, rand8() & 63, rand8() & 31, usPal[iColor & 7], 1);
+		iColor++;
+		lcdWriteString(0,i,"CH32V003 is fast", COLOR_BLUE, COLOR_GREEN, FONT_8x8);
+		lcdWriteString(0,i+8,"enough for me!", COLOR_RED, COLOR_GREEN, FONT_8x8);
+		lcdWriteString(0,i+16,"Large Font!", COLOR_WHITE, COLOR_MAGENTA, FONT_12x16);
+		i += dx;
+		if (i >= 39 || i == 1) dx = -dx;
+	}
 }
