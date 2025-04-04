@@ -1089,8 +1089,18 @@ int DefaultDetermineChipType( void * dev )
 			switch( chip_type )
 			{
 				case 0x103:
-					fprintf( stderr, "Autodetected a ch32v10x\n" );
-					iss->target_chip_type = CHIP_CH32V10x;
+					// V103 Special chip ID location: 0x1ffff884
+					// CH32V103C8T6-0x25004102
+					// CH32V103R8T6-0x2500410F
+					// L103 Special chip ID location: 0x1ffff704
+					// CH32L103C8T6-0x103107x0
+					// CH32L103F8P6-0x103A07x0
+					// CH32L103G8R6-0x103B07x0
+					// CH32L103K8U6-0x103207x0
+					// CH32L103F8U6-0x103D07x0
+					// can be find in DBGMCU_GetCHIPID in \EVT\EXAM\SRC\Peripheral\src\chxxx_dbgmcu.c
+					fprintf( stderr, "Autodetected a ch32l10x\n" );
+					iss->target_chip_type = CHIP_CH32L10x;
 					break;
 				case 0x035: case 0x033:
 					fprintf( stderr, "Autodetected a ch32x03x\n" );
@@ -1365,7 +1375,8 @@ static int DefaultWriteWord( void * dev, uint32_t address_to_write, uint32_t dat
 			// c.ebreak
 			MCF.WriteReg32( dev, DMPROGBUF3, 
 				(iss->target_chip_type == CHIP_CH32V003 || (iss->target_chip_type >= CHIP_CH32V002 && iss->target_chip_type <= CHIP_CH32V006)
-				 || iss->target_chip_type == CHIP_CH32X03x || iss->target_chip_type == CHIP_CH641 || iss->target_chip_type == CHIP_CH643) ?
+				 || iss->target_chip_type == CHIP_CH32X03x || iss->target_chip_type == CHIP_CH32L10x
+				 || iss->target_chip_type == CHIP_CH641 || iss->target_chip_type == CHIP_CH643) ?
 				0x4200c254 : 0x42000001  );
 
 			MCF.WriteReg32( dev, DMPROGBUF4,
@@ -2157,7 +2168,7 @@ void PostSetupConfigureInterface( void * dev )
 		iss->sector_size = 256;
 		break;
 	case CHIP_CH32X03x:
-	case CHIP_CH32V10x:
+	case CHIP_CH32L10x:
 	case CHIP_CH643:
 		iss->sector_size = 256;  // ??? The X035 datasheet clearly says this is 128 bytes, but fast page erases do 256?
 		break;
@@ -2519,7 +2530,8 @@ int DefaultUnbrick( void * dev )
 
 	const uint8_t * option_data = 
 		(iss->target_chip_type == CHIP_CH32V003 || (iss->target_chip_type >= CHIP_CH32V002 && iss->target_chip_type <= CHIP_CH32V006)
-		 || iss->target_chip_type == CHIP_CH32X03x || iss->target_chip_type == CHIP_CH641 || iss->target_chip_type == CHIP_CH643) ?
+		 || iss->target_chip_type == CHIP_CH32X03x || iss->target_chip_type == CHIP_CH32L10x
+		 || iss->target_chip_type == CHIP_CH641 || iss->target_chip_type == CHIP_CH643) ?
 		option_data_003_x03x : option_data_20x_30x;
 
 	DefaultWriteBinaryBlob(dev, 0x1ffff800, 16, option_data );

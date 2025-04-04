@@ -33,7 +33,7 @@
 |USBPD         |N/A |N/A |N/A |N/A |N/A |1.4        | ×  | ×  |1.2 |
 |WWWDG         | √  | ×  | √  | ×  | ×  | √         | ×  | ×  | √  |
 |**chxxxhw.h** | √  | ×  | √  | √  | √  | √         | ×  | ×  | √  |
-|**minichlink**| √  | ×  | √  | √  | √  | √  ( √   )| ×  | ×  | √  |
+|**minichlink**| √  | ×  | +  | √  | √  | √  ( √   )| √  | ×  | √  |
 
 * n.m:  Last commit message of the header file in ch32xxx/EVT/EXAM/SRC/Peripheral/inc
 * √:    Merged in , version unspecified
