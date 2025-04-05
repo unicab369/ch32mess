@@ -350,15 +350,19 @@ void compute_line(Point p0, Point p1, uint8_t thickness) {
 				M_Page_Mask mask = page_masks[y];
 				uint8_t *row = fb_base + (mask.page * SSD1306_W) + x_start;
 				
-				// Unroll small widths (1-4 pixels common)
-				switch(width) {
-					case 4: row[3] |= mask.bitmask; // fallthrough
-					case 3: row[2] |= mask.bitmask; // fallthrough
-					case 2: row[1] |= mask.bitmask; // fallthrough
-					case 1: row[0] |= mask.bitmask; break;
-					default: 
-						for (uint8_t i = 0; i < width; i++) 
-							row[i] |= mask.bitmask;
+				// Optimized filling based on width
+				if (width <= 4) {
+					// Fully unrolled for common cases
+					if (width > 0) row[0] |= mask.bitmask;
+					if (width > 1) row[1] |= mask.bitmask;
+					if (width > 2) row[2] |= mask.bitmask;
+					if (width > 3) row[3] |= mask.bitmask;
+				} else {
+					// For larger widths, use memset-style optimization
+					uint8_t pattern = mask.bitmask;
+					for (uint8_t i = 0; i < width; i++) {
+						row[i] |= pattern;
+					}
 				}
 			}
 		}
@@ -522,7 +526,7 @@ void compute_pie(Point center, uint8_t radius, int16_t start_angle, int16_t end_
     // Draw radial lines
     int16_t angle = start_angle;
 	int16_t x, y;
-	
+
     while (1) {
         // Calculate edge point
         get_circle_point(center, radius, angle, &x, &y);
@@ -554,7 +558,7 @@ void compute_ring(
     // Precompute display bounds and thickness
     uint8_t inner_r = (thickness >= radius) ? 1 : (radius - thickness);
     uint8_t* const frame_base = &frame_buffer[0][0];
-		
+
     // Draw concentric circles (outer to inner)
     for (uint8_t r = radius; r >= inner_r; r--) {
         int16_t x = -r;
@@ -700,9 +704,8 @@ void modI2C_task() {
 	// 	y += 4;
 	// }
 
-
-	Point piePoint = { x: 30, y: 30 };
-	compute_pie(piePoint, 30, 0, 125);
+	// Point piePoint = { x: 30, y: 30 };
+	// compute_pie(piePoint, 30, 0, 125);
 
 	// for (int8_t i = 0; i<7; i++) {
 	// 	uint8_t should_fill = i > 3 ? 1 : 0;
@@ -717,17 +720,17 @@ void modI2C_task() {
 	// 	y += 5;
 	// }
 
-	// for(uint8_t x=0;x<SSD1306_W;x+=16) {
-	// 	Point point_a0 = { x: x, y: 0 };
-	// 	Point point_a1 = { x: SSD1306_W, y: y };
-	// 	Point point_b0 = { x: SSD1306_W-x, y: SSD1306_H };
-	// 	Point point_b1 = { x: 0, y: SSD1306_H-y };
+	for(uint8_t x=0;x<SSD1306_W;x+=16) {
+		Point point_a0 = { x: x, y: 0 };
+		Point point_a1 = { x: SSD1306_W, y: y };
+		Point point_b0 = { x: SSD1306_W-x, y: SSD1306_H };
+		Point point_b1 = { x: 0, y: SSD1306_H-y };
 		
-	// 	compute_line(point_a0, point_a1, 1);
-	// 	compute_line(point_b0, point_b1, 1);
+		compute_line(point_a0, point_a1, 1);
+		compute_line(point_b0, point_b1, 1);
 
-	// 	y+= SSD1306_H/8;
-	// }
+		y+= SSD1306_H/8;
+	}
 
 	uint8_t curve_points[] = {10,10, 40,30, 70,10};
 	// compute_curve(curve_points, 3, 2, 0); // 2px thick, no mirror
