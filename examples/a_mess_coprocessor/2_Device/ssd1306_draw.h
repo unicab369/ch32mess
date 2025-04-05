@@ -162,6 +162,143 @@ void compute_line(Point p0, Point p1, uint8_t thickness) {
 	}
 }
 
+//! compute lines
+void compute_lines(Point *pts, uint8_t num_pts, uint8_t thickness) {
+    // Early exit if not enough points (need at least 2 points for a line)
+    if (num_pts < 2) return;
+    
+    // Draw connected lines between all points
+    for (uint8_t i = 0; i < num_pts - 1; i++) {
+        compute_line(pts[i], pts[i+1], thickness);
+    }
+}
+
+//! compute poligon
+void compute_poligon(Point *pts, uint8_t num_pts, uint8_t thickness) {
+    if (num_pts < 3) return;  // Need at least 3 points for a polygon
+    compute_lines(pts, num_pts, thickness);
+    compute_line(pts[num_pts-1], pts[0], thickness);
+}
+
+//! compute filled polygon
+void compute_fill_polygon2(Point *pts, uint8_t num_pts) {
+    if (num_pts < 3) return;  // Need at least 3 points for a polygon
+
+    // Find min/max Y bounds
+    uint8_t y_min = SSD1306_H, y_max = 0;
+    for (uint8_t i = 0; i < num_pts; i++) {
+        if (pts[i].y < y_min) y_min = pts[i].y;
+        if (pts[i].y > y_max) y_max = pts[i].y;
+    }
+
+    // Iterate through each scanline (Y-axis)
+    for (uint8_t y = y_min; y <= y_max; y++) {
+        // Find intersections with polygon edges
+        uint8_t x_intersect[10];  // Adjust size based on max expected intersections
+        uint8_t intersect_count = 0;
+
+        for (uint8_t i = 0; i < num_pts; i++) {
+            uint8_t j = (i + 1) % num_pts;
+            uint8_t y0 = pts[i].y, y1 = pts[j].y;
+
+            // Check if edge crosses this scanline
+            if ((y0 <= y && y1 > y) || (y1 <= y && y0 > y)) {
+                // Linear interpolation to find X intersection
+                int16_t x = pts[i].x + ((int32_t)(y - y0) * (pts[j].x - pts[i].x)) / (y1 - y0);
+                x_intersect[intersect_count++] = x;
+            }
+        }
+
+        // Sort intersections (bubble sort for small arrays)
+        for (uint8_t i = 0; i < intersect_count - 1; i++) {
+            for (uint8_t j = i + 1; j < intersect_count; j++) {
+                if (x_intersect[i] > x_intersect[j]) {
+                    uint8_t tmp = x_intersect[i];
+                    x_intersect[i] = x_intersect[j];
+                    x_intersect[j] = tmp;
+                }
+            }
+        }
+
+        // Fill between pairs of intersections
+        for (uint8_t i = 0; i < intersect_count; i += 2) {
+            if (i + 1 >= intersect_count) break;
+            compute_line((Point){x_intersect[i], y}, (Point){x_intersect[i+1], y}, 1);
+        }
+    }
+}
+
+void compute_fill_polygon(Point *pts, uint8_t num_pts) {
+    if (num_pts < 3) return;
+
+    // Find min/max Y bounds (unrolled first iteration)
+    uint8_t y_min = pts[0].y, y_max = pts[0].y;
+    for (uint8_t i = 1; i < num_pts; i++) {
+        uint8_t py = pts[i].y;
+        y_min = py < y_min ? py : y_min;
+        y_max = py > y_max ? py : y_max;
+    }
+
+    // Precompute edge data
+    struct Edge {
+        uint8_t y0, y1;
+        int16_t x, dx;
+        int16_t denominator;
+    } edges[num_pts];
+    
+    for (uint8_t i = 0; i < num_pts; i++) {
+        uint8_t j = (i + 1) % num_pts;
+        edges[i].y0 = pts[i].y;
+        edges[i].y1 = pts[j].y;
+        edges[i].dx = pts[j].x - pts[i].x;
+        edges[i].denominator = pts[j].y - pts[i].y;
+        edges[i].x = pts[i].x;
+    }
+
+    // Scanline processing
+    for (uint8_t y = y_min; y <= y_max; y++) {
+        uint8_t x_intersect[6];  // Reduced for typical convex shapes
+        uint8_t intersect_count = 0;
+
+        // Find intersections
+        for (uint8_t i = 0; i < num_pts; i++) {
+            if ((y >= edges[i].y0 && y < edges[i].y1) || 
+                (y >= edges[i].y1 && y < edges[i].y0)) {
+                // Avoid division by precomputing denominator
+                int16_t x = edges[i].x;
+                if (edges[i].denominator != 0) {
+                    x += ((int32_t)(y - edges[i].y0) * edges[i].dx) / edges[i].denominator;
+                }
+                x_intersect[intersect_count++] = (uint8_t)x;
+            }
+        }
+
+        // Optimized sorting for 2-4 intersections (common case)
+        if (intersect_count == 2) {
+            if (x_intersect[0] > x_intersect[1]) {
+                uint8_t tmp = x_intersect[0];
+                x_intersect[0] = x_intersect[1];
+                x_intersect[1] = tmp;
+            }
+        } else if (intersect_count > 2) {
+            // Small bubble sort (max 3 passes for 6 elements)
+            for (uint8_t i = 0; i < intersect_count - 1; i++) {
+                for (uint8_t j = i + 1; j < intersect_count; j++) {
+                    if (x_intersect[i] > x_intersect[j]) {
+                        uint8_t tmp = x_intersect[i];
+                        x_intersect[i] = x_intersect[j];
+                        x_intersect[j] = tmp;
+                    }
+                }
+            }
+        }
+
+        // Fill using fast horizontal lines
+        for (uint8_t i = 0; i + 1 < intersect_count; i += 2) {
+            compute_fastHorLine(y, x_intersect[i], x_intersect[i+1]);
+        }
+    }
+}
 
 //! compute rectangle
 void compute_rectangle(
@@ -200,12 +337,7 @@ void compute_rectangle(
     }
 }
 
-//! compute pixel
-void compute_pixel(uint8_t x, uint8_t y) {
-    if (x >= SSD1306_W || y >= SSD1306_H) return; // Skip if out of bounds
-    M_Page_Mask mask = page_masks[y];
-    frame_buffer[mask.page][x] |= mask.bitmask;
-}
+
 
 //! compute_fastHorLine
 void compute_fastHorLine(uint8_t y, uint8_t x0, uint8_t x1) {
@@ -393,71 +525,6 @@ void compute_ring(
     }
 }
 
-//! compute curve
-void compute_curve(uint8_t* points, uint8_t num_points, uint8_t thickness, uint8_t mirror) {
-    // Validate input
-    if (num_points < 2 || thickness == 0) return;
-
-    // Precompute constants
-    const uint8_t* fb_base = &frame_buffer[0][0];
-    const uint16_t page_stride = SSD1306_W;
-    const uint8_t radius = thickness >> 1;
-
-    // Draw curve segments
-    for (uint8_t i = 0; i < num_points - 1; i++) {
-        uint8_t x0 = points[i*2];
-        uint8_t y0 = points[i*2+1];
-        uint8_t x1 = points[(i+1)*2];
-        uint8_t y1 = points[(i+1)*2+1];
-
-        // Mirror if needed
-        if (mirror) {
-            x0 = SSD1306_W_LIMIT - x0;
-            y0 = SSD1306_H_LIMIT - y0;
-            x1 = SSD1306_W_LIMIT - x1;
-            y1 = SSD1306_H_LIMIT - y1;
-        }
-
-        // Bresenham's line algorithm with thickness
-        int16_t dx = abs(x1 - x0);
-        int16_t dy = -abs(y1 - y0);
-        int8_t sx = x0 < x1 ? 1 : -1;
-        int8_t sy = y0 < y1 ? 1 : -1;
-        int16_t err = dx + dy;
-        int16_t e2;
-
-        while (1) {
-            // Draw thick pixel
-            uint8_t x_start = x0 > radius ? x0 - radius : 0;
-            uint8_t x_end = (x0 + radius) < SSD1306_W_LIMIT ? (x0 + radius) : SSD1306_W_LIMIT;
-            uint8_t y_start = y0 > radius ? y0 - radius : 0;
-            uint8_t y_end = (y0 + radius) < SSD1306_H_LIMIT ? (y0 + radius) : SSD1306_H_LIMIT;
-
-            for (uint8_t y = y_start; y <= y_end; y++) {
-                M_Page_Mask mask = page_masks[y];
-                uint8_t* row = fb_base + (mask.page * page_stride) + x_start;
-                uint8_t pixel_width = x_end - x_start + 1;
-
-                // Optimized fill patterns
-                switch (pixel_width) {
-                    case 4: row[3] |= mask.bitmask; // fallthrough
-                    case 3: row[2] |= mask.bitmask; // fallthrough
-                    case 2: row[1] |= mask.bitmask; // fallthrough
-                    case 1: row[0] |= mask.bitmask; break;
-                    default:
-                        for (uint8_t x = 0; x < pixel_width; x++) {
-                            row[x] |= mask.bitmask;
-                        }
-                }
-            }
-
-            if (x0 == x1 && y0 == y1) break;
-            e2 = err << 1; // e2 = 2*err via bit shift
-            if (e2 >= dy) { err += dy; x0 += sx; }
-            if (e2 <= dx) { err += dx; y0 += sy; }
-        }
-    }
-}
 
 // #include "lib_rand.h"
 
@@ -468,6 +535,7 @@ void modI2C_task() {
 	
 	int y = 0;
 	
+    //! hor-ver lines
 	// for(int8_t i = 0; i<sizeof(myvalues); i++) {
 	// 	// uint8_t rand_byte_low = rand() & 0xFF;
 	// 	Limit limit = { l0: 0, l1: myvalues[i] };
@@ -478,6 +546,32 @@ void modI2C_task() {
 	// 	y += 4;
 	// }
 
+    //! line
+    // for(uint8_t x=0;x<SSD1306_W;x+=16) {
+	// 	Point point_a0 = { x: x, y: 0 };
+	// 	Point point_a1 = { x: SSD1306_W, y: y };
+	// 	Point point_b0 = { x: SSD1306_W-x, y: SSD1306_H };
+	// 	Point point_b1 = { x: 0, y: SSD1306_H-y };
+		
+	// 	compute_line(point_a0, point_a1, 1);
+	// 	compute_line(point_b0, point_b1, 1);
+
+	// 	y+= SSD1306_H/8;
+	// }
+
+    //! lines
+    Point points[] = {
+        (Point) { 30, 30 },
+        (Point) { 50, 50 },
+        (Point) { 100, 20 },
+        (Point) { 80, 10 },
+        (Point) { 80, 50 }
+    };
+
+    // compute_poligon(points, 4, 3);
+    compute_fill_polygon(points, 5);
+
+    //! pie, circle, ring
 	// Point piePoint = { x: 30, y: 30 };
 	// compute_pie(piePoint, 30, 0, 125);
 
@@ -494,20 +588,6 @@ void modI2C_task() {
 	// 	y += 5;
 	// }
 
-	for(uint8_t x=0;x<SSD1306_W;x+=16) {
-		Point point_a0 = { x: x, y: 0 };
-		Point point_a1 = { x: SSD1306_W, y: y };
-		Point point_b0 = { x: SSD1306_W-x, y: SSD1306_H };
-		Point point_b1 = { x: 0, y: SSD1306_H-y };
-		
-		compute_line(point_a0, point_a1, 1);
-		compute_line(point_b0, point_b1, 1);
-
-		y+= SSD1306_H/8;
-	}
-
-	uint8_t curve_points[] = {10,10, 40,30, 70,10};
-	// compute_curve(curve_points, 3, 2, 0); // 2px thick, no mirror
 
 
 	ssd1306_renderFrame();

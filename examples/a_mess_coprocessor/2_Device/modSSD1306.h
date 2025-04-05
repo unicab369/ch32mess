@@ -91,6 +91,12 @@ void ssd1306_renderFrame() {
 	ssd1306_renderArea(0, 7, 0, SSD1306_W);
 }
 
+//! compute pixel
+void compute_pixel(uint8_t x, uint8_t y) {
+    if (x >= SSD1306_W || y >= SSD1306_H) return; // Skip if out of bounds
+    M_Page_Mask mask = page_masks[y];
+    frame_buffer[mask.page][x] |= mask.bitmask;
+}
 
 void modI2C_setup() {
 	precompute_page_masks();
