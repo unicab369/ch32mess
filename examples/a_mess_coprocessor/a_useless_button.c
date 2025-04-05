@@ -142,9 +142,8 @@ void turnOffGPIOs(uint8_t* arr, uint8_t len) {
 #include "1_Foundation/modEncoder.h"
 #include "1_Foundation/modJoystick.h"
 #include "Display/modST77xx.h"
-
-#include "2_Device/modI2C.h"
 #include "2_Device/fun_ws2812.h"
+#include "2_Device/ssd1306_draw.h"
 
 void button_onSingleClick() {
 	printf("I'M USELESS.\n\r");
