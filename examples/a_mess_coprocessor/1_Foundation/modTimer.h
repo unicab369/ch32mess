@@ -71,3 +71,10 @@ void SysTick_Handler(void)
 	// Increment the milliseconds count
 	systick_millis++;
 }
+
+void print_runtime(const char *tag, void *handler(void)) {
+	uint32_t now = millis();
+	handler();
+	uint32_t time_diff = millis() - now;
+	printf("%s runtime: %lu ms\n\r", tag, time_diff);
+}

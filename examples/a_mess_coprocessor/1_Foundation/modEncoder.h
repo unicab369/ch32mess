@@ -62,6 +62,9 @@ void modEncoder_setup() {
 	RCC->APB2PCENR |= RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOD;
 	RCC->APB1PCENR |= RCC_APB1Periph_TIM2;
 
+	//# added
+	RCC->APB2PCENR |= RCC_APB2Periph_GPIOC;
+
 	//! TIM2 remap mode
 	AFIO->PCFR1 |= AFIO_PCFR1_TIM2_REMAP_NOREMAP;
 
@@ -75,27 +78,41 @@ void modEncoder_setup() {
 	GPIOD->CFGLR |= (GPIO_CNF_IN_PUPD)<<(4*4); 		//set new ones
 	GPIOD->OUTDR |= 1<<4;							//1 = pull-up, 0 = pull-down
 	
+
+	//# added
+	GPIOC->CFGLR &= ~(0xf<<(4*0));
+	GPIOC->CFGLR |= (GPIO_Speed_10MHz | GPIO_CNF_OUT_PP_AF)<<(4*0);
+
 	//! Reset TIM2 to init all regs
 	RCC->APB1PRSTR |= RCC_APB1Periph_TIM2;
 	RCC->APB1PRSTR &= ~RCC_APB1Periph_TIM2;
 	
 	// set TIM2 clock prescaler If you want to reduce the resolution of the encoder
-	//TIM2->PSC = 0x0000;
+	TIM2->PSC = 0x0000;
 
 	// set a automatic reload if you want the counter to wrap earlier than 0xffff
 	//TIM2->ATRLR = 0xffff;
 
-	// SMCFGR: set encoder mode SMS=011b
-	TIM2->SMCFGR |= TIM_EncoderMode_TI12;
+	//# added
+	TIM2->ATRLR = 255;			// set PWM total cycle width
 
-	// initialize timer
-	TIM2->SWEVGR |= TIM_UG;
+	//# added
+	#define TIM2_DEFAULT 0xff
+	TIM2->CHCTLR2 |= TIM_OC3M_2 | TIM_OC3M_1 | TIM_OC3PE;	// CH3
+
+	// SMCFGR: set encoder mode SMS=011b
+	// TIM2->SMCFGR |= TIM_EncoderMode_TI12;
 
 	// set count to about mid-scale to avoid wrap-around
 	TIM2->CNT = 0x8fff;
+	
 
-	// Enable TIM2
-	TIM2->CTLR1 |= TIM_CEN;
+	//# added
+	TIM2->CTLR1 |= TIM_ARPE;								// enable auto-reload of preload
+	TIM2->CCER |= TIM_CC3E | (TIM_CC3P & TIM2_DEFAULT);		// CH3
+
+	TIM2->SWEVGR |= TIM_UG;			// initialize timer
+	TIM2->CTLR1 |= TIM_CEN;			// TIM2 Counter Enable
 
 	initial_count = TIM2->CNT;
 	last_count = TIM2->CNT;

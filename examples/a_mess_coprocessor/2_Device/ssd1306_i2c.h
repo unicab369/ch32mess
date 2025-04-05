@@ -103,14 +103,10 @@ char *errstr[] =
 /*
 * error handler
 */
-uint8_t ssd1306_i2c_error(uint8_t err)
-{
+uint8_t ssd1306_i2c_error(uint8_t err) {
 	// report error
 	printf("ssd1306_i2c_error - timeout waiting for %s\n\r", errstr[err]);
-	
-	// reset & initialize I2C
-	ssd1306_i2c_setup();
-
+	ssd1306_i2c_setup();	// reset & initialize I2C
 	return 1;
 }
 
@@ -122,8 +118,7 @@ uint8_t ssd1306_i2c_error(uint8_t err)
 /*
 * check for 32-bit event codes
 */
-uint8_t ssd1306_i2c_chk_evt(uint32_t event_mask)
-{
+uint8_t ssd1306_i2c_chk_evt(uint32_t event_mask) {
 	/* read order matters here! STAR1 before STAR2!! */
 	uint32_t status = I2C1->STAR1 | (I2C1->STAR2<<16);
 	return (status & event_mask) == event_mask;
@@ -242,15 +237,13 @@ void I2C1_EV_IRQHandler(void)
 /*
 * low-level packet send for blocking polled operation via i2c
 */
-uint8_t ssd1306_i2c_send(uint8_t addr, const uint8_t *data, int sz)
-{
+uint8_t ssd1306_i2c_send(uint8_t addr, const uint8_t *data, int sz) {
 	int32_t timeout;
 	
 	// wait for not busy
 	timeout = TIMEOUT_MAX;
 	while((I2C1->STAR2 & I2C_STAR2_BUSY) && (timeout--));
-	if(timeout==-1)
-		return ssd1306_i2c_error(0);
+	if(timeout==-1) return ssd1306_i2c_error(0);
 
 	// Set START condition
 	I2C1->CTLR1 |= I2C_CTLR1_START;
@@ -258,8 +251,7 @@ uint8_t ssd1306_i2c_send(uint8_t addr, const uint8_t *data, int sz)
 	// wait for master mode select
 	timeout = TIMEOUT_MAX;
 	while((!ssd1306_i2c_chk_evt(SSD1306_I2C_EVENT_MASTER_MODE_SELECT)) && (timeout--));
-	if(timeout==-1)
-		return ssd1306_i2c_error(1);
+	if(timeout==-1) return ssd1306_i2c_error(1);
 	
 	// send 7-bit address + write flag
 	I2C1->DATAR = addr<<1;
@@ -267,12 +259,10 @@ uint8_t ssd1306_i2c_send(uint8_t addr, const uint8_t *data, int sz)
 	// wait for transmit condition
 	timeout = TIMEOUT_MAX;
 	while((!ssd1306_i2c_chk_evt(SSD1306_I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED)) && (timeout--));
-	if(timeout==-1)
-		return ssd1306_i2c_error(2);
+	if(timeout==-1) return ssd1306_i2c_error(2);
 
 	// send data one byte at a time
-	while(sz--)
-	{
+	while(sz--) {
 		// wait for TX Empty
 		timeout = TIMEOUT_MAX;
 		while(!(I2C1->STAR1 & I2C_STAR1_TXE) && (timeout--));
@@ -286,13 +276,10 @@ uint8_t ssd1306_i2c_send(uint8_t addr, const uint8_t *data, int sz)
 	// wait for tx complete
 	timeout = TIMEOUT_MAX;
 	while((!ssd1306_i2c_chk_evt(SSD1306_I2C_EVENT_MASTER_BYTE_TRANSMITTED)) && (timeout--));
-	if(timeout==-1)
-		return ssd1306_i2c_error(4);
+	if(timeout==-1) return ssd1306_i2c_error(4);
 
 	// set STOP condition
 	I2C1->CTLR1 |= I2C_CTLR1_STOP;
-	
-	// we're happy
 	return 0;
 }
 #endif
@@ -300,18 +287,15 @@ uint8_t ssd1306_i2c_send(uint8_t addr, const uint8_t *data, int sz)
 /*
 * high-level packet send for I2C
 */
-uint8_t ssd1306_pkt_send(const uint8_t *data, int sz, uint8_t cmd)
-{
+uint8_t ssd1306_pkt_send(const uint8_t *data, int sz, uint8_t cmd) {
 	uint8_t pkt[33];
 	
 	/* build command or data packets */
-	if(cmd)
-	{
+	if(cmd) {
 		pkt[0] = 0;
 		pkt[1] = *data;
 	}
-	else
-	{
+	else{
 		pkt[0] = 0x40;
 		memcpy(&pkt[1], data, sz);
 	}

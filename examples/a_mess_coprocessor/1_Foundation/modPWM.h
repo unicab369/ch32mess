@@ -57,7 +57,7 @@ void modPWM_setup() {
 	
 	// for channel 1 and 2, let CCxS stay 00 (output), set OCxM to 110 (PWM I)
 	// enabling preload causes the new pulse width in compare capture register only to come into effect when UG bit in SWEVGR is set (= initiate update) (auto-clears)
-	TIM2->CHCTLR1 |= TIM_OC1M_2 | TIM_OC1M_1 | TIM_OC1PE | TIM_OC2M_2 | TIM_OC2M_1 | TIM_OC2PE;
+	// TIM2->CHCTLR1 |= TIM_OC1M_2 | TIM_OC1M_1 | TIM_OC1PE | TIM_OC2M_2 | TIM_OC2M_1 | TIM_OC2PE;
 	TIM2->CHCTLR2 |= TIM_OC3M_2 | TIM_OC3M_1 | TIM_OC3PE;		// CH3
 
 	#ifdef TIM2_EN_CH4
@@ -68,8 +68,8 @@ void modPWM_setup() {
 	TIM2->CTLR1 |= TIM_ARPE;
 
 	// Enable Channel outputs, set default state (based on TIM2_DEFAULT)
-	TIM2->CCER |= TIM_CC1E | (TIM_CC1P & TIM2_DEFAULT);
-	TIM2->CCER |= TIM_CC2E | (TIM_CC2P & TIM2_DEFAULT);
+	// TIM2->CCER |= TIM_CC1E | (TIM_CC1P & TIM2_DEFAULT);
+	// TIM2->CCER |= TIM_CC2E | (TIM_CC2P & TIM2_DEFAULT);
 	TIM2->CCER |= TIM_CC3E | (TIM_CC3P & TIM2_DEFAULT);		// CH3
 	
 	#ifdef TIM2_EN_CH4

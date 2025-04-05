@@ -143,7 +143,7 @@ void turnOffGPIOs(uint8_t* arr, uint8_t len) {
 #include "1_Foundation/modJoystick.h"
 #include "Display/modST77xx.h"
 
-#include "2_Device/i2c_main.h"
+#include "2_Device/modI2C.h"
 #include "2_Device/fun_ws2812.h"
 
 void button_onSingleClick() {
@@ -177,19 +177,15 @@ int main() {
 	uint32_t time_ref = 0;
 
 
-	// # SSD1306
-	if(!ssd1306_i2c_init()) {
-		ssd1306_init();
-		printf("done.\n\r");
-	}
-
+	modI2C_setup();
 
 	pinMode(0xD0, OUTPUT);
 	button_setup(0xC3);	
-	// modEncoder_setup();			// TIM2 Ch1, Ch2
-	modPWM_setup();				// TIM2 Ch3
 	modJoystick_setup();		// ADC Ch0, Ch1 | DMA1 Ch1
 	ws2812_setup();				// DMA1 Ch3
+
+	modEncoder_setup();			// TIM2 Ch1, Ch2
+	// modPWM_setup();				// TIM2 Ch3
 
 	// led_setup();
 	uart_setup();				// PD5
@@ -198,26 +194,21 @@ int main() {
 	for(;;) {			
 		uint32_t now = millis();
 
-		uint32_t time_diff = millis() - now;
-		// i2c_test();
-
 		button_run();
 		// modEncoder_task(now);
 
-		if (now - sec_time > 200) {
+		if (now - sec_time > 400) {
 			sec_time = now;
+
 			// modJoystick_task();
 			dma_uart_tx(message, sizeof(message) - 1);
-			// printf("time: %ld\n\r", time_diff);
+
+			print_runtime("I2C", modI2C_task);
 		}
-
-
-		if (now - ledc_time > 8) {
+		if (now - ledc_time > 12) {
 			ledc_time = now;
 			modPWM_task();
 			ws2812_task();
-		} else {
-			
 		}
 	}
 }
