@@ -194,8 +194,13 @@ void ssd1306_renderFrame(uint8_t start_page, uint8_t end_page) {
     }
 }
 
-//! Construct horizontal line
-void construct_horLine(uint8_t y, uint8_t x1, uint8_t x2, uint8_t thickness, uint8_t mirror) {
+
+
+//! Compute horizontal line
+void compute_horLine(
+	uint8_t y, uint8_t x1, uint8_t x2, 
+	uint8_t thickness, uint8_t mirror
+) {
     // Validate coordinates
     if (y >= SSD1306_H) return;
 
@@ -209,7 +214,7 @@ void construct_horLine(uint8_t y, uint8_t x1, uint8_t x2, uint8_t thickness, uin
 		x2 = SSD1306_W - 1 - x2;
 	}
 
-	// Ensure x1 <= x2
+	// Ensure x1 <= x2 (swap if needed)
 	if (x1 > x2) {
 		uint8_t temp = x1;
 		x1 = x2;
@@ -217,21 +222,26 @@ void construct_horLine(uint8_t y, uint8_t x1, uint8_t x2, uint8_t thickness, uin
 	}
 
     // Handle thickness
-    uint8_t y_bottom = y + thickness - 1;
-    if (y_bottom >= SSD1306_H) y_bottom = SSD1306_H - 1;
+    uint8_t y_end  = y + thickness - 1;
+    if (y_end >= SSD1306_H) y_end = SSD1306_H - 1;
+	if (y_end < y) return;  // Skip if thickness is 0 or overflowed
 
     // Draw thick line
-    for (uint8_t y_ref = y; y_ref <= y_bottom; y_ref++) {
-        M_Page_Mask mask = page_masks[y_ref];
+    for (uint8_t y_pos = y; y_pos <= y_end ; y_pos++) {
+        M_Page_Mask mask = page_masks[y_pos];
 
-        for (uint8_t x = x1; x <= x2; x++) {
-            frame_buffer[mask.page][x] |= mask.bitmask;
+        for (uint8_t x_pos = x1; x_pos <= x2; x_pos++) {
+            frame_buffer[mask.page][x_pos] |= mask.bitmask;
         }
     }
 }
 
-//! Construct vertical line
-void construct_verLine(uint8_t x, uint8_t y1, uint8_t y2, uint8_t thickness, uint8_t mirror) {
+
+//! Compute vertical line
+void compute_verLine(
+	uint8_t x, uint8_t y1, uint8_t y2,
+	uint8_t thickness, uint8_t mirror
+) {
     // Validate coordinates
     if (x >= SSD1306_W) return;
 
@@ -243,38 +253,86 @@ void construct_verLine(uint8_t x, uint8_t y1, uint8_t y2, uint8_t thickness, uin
 	if (mirror) {
 		y1 = SSD1306_H - 1 - y1;
 		y2 = SSD1306_H - 1 - y2;
+	}
 
-		// Swap x1 and x2 if needed to maintain proper order
-		if (y1 > y2) {
-			uint8_t temp = y1;
-			y1 = y2;
-			y2 = temp;
-		}
+	// Ensure y1 <= y2 (swap if needed)
+	if (y1 > y2) {
+		uint8_t temp = y1;
+		y1 = y2;
+		y2 = temp;
 	}
 
     // Handle thickness
-    uint8_t x_right = x + thickness - 1;
-    if (x_right >= SSD1306_W) x_right = SSD1306_W - 1;
+    uint8_t x_end = x + thickness - 1;
+    if (x_end >= SSD1306_W) x_end = SSD1306_W - 1;
+	if (x_end < x) return;  // Skip if thickness causes overflow
 
-    // Draw vertical line with thickness
-    for (uint8_t y = y1; y <= y2; y++) {
-        M_Page_Mask mask = page_masks[y];
+    // // Draw vertical line with thickness
+    // for (uint8_t y_pos = y1; y_pos <= y2; y_pos++) {
+    //     M_Page_Mask mask = page_masks[y_pos];
 		
-        for (uint8_t x_pos = x; x_pos <= x_right; x_pos++) {
-            frame_buffer[mask.page][x_pos] |= mask.bitmask;
+    //     for (uint8_t x_pos = x; x_pos <= x_end; x_pos++) {
+    //         frame_buffer[mask.page][x_pos] |= mask.bitmask;
+    //     }
+    // }
+
+	//# Optimized: save 500-700 us
+	uint8_t x_len = x_end - x + 1;  // Precompute length
+
+	for (uint8_t y_pos = y1; y_pos <= y2; y_pos++) {
+		M_Page_Mask mask = page_masks[y_pos];
+		uint8_t* row_start = &frame_buffer[mask.page][x];  	// Get row pointer
+
+		for (uint8_t i = 0; i < x_len; i++) {
+			row_start[i] |= mask.bitmask;  					// Sequential access
+		}
+	}
+}
+
+//! Compute rectangle
+void compute_rectangle(
+	uint8_t x, uint8_t y, uint8_t w, uint8_t h,
+	uint8_t fill
+) {
+	// Validate coordinates
+	if (x >= SSD1306_W || y >= SSD1306_H) return;
+
+	// Clamp to display bounds
+	uint16_t x_end = x + w;
+	uint16_t y_end = y + h;
+	if (x_end >= SSD1306_W) w = SSD1306_W - x - 1;
+	if (y_end >= SSD1306_H) h = SSD1306_H - y - 1;
+
+	// // Handle mirroring
+	// if (mirror) {
+	// 	x = SSD1306_W - 1 - x;
+	// 	w = SSD1306_W - 1 - w;
+	// }
+
+	// Draw rectangle with optional fill
+    if (fill) {
+        // Filled rectangle - draw vertical lines
+        for (uint8_t x_pos = x; x_pos <= x_end; x_pos++) {
+            compute_verLine(x_pos, y, y_end, 1, 0);
         }
+    } else {
+        // Outline only
+        compute_horLine(y, x, x_end, 1, 0);         		// Top edge
+        compute_horLine(y_end, x, x_end, 1, 0);     		// Bottom edge
+        compute_verLine(x, y + 1, y_end - 1, 1, 0); 		// Left edge
+        compute_verLine(x_end, y + 1, y_end - 1, 1, 0); 	// Right edge
     }
 }
 
-//! Construct pixel
-void construct_pixel(uint8_t x, uint8_t y) {
+//! Compute pixel
+void compute_pixel(uint8_t x, uint8_t y) {
     if (x >= SSD1306_W || y >= SSD1306_H) return; // Skip if out of bounds
     M_Page_Mask mask = page_masks[y];
     frame_buffer[mask.page][x] |= mask.bitmask;
 }
 
-//! Construct_fastHorLine
-void construct_fastHorLine(uint8_t x0, uint8_t x1, uint8_t y) {
+//! Compute_fastHorLine
+void compute_fastHorLine(uint8_t x0, uint8_t x1, uint8_t y) {
     if (y >= SSD1306_H) return;
     
 	// Clamp x-coordinates
@@ -294,8 +352,8 @@ void construct_fastHorLine(uint8_t x0, uint8_t x1, uint8_t y) {
     }
 }
 
-//! Construct circle
-void construct_circle(uint8_t x0, uint8_t y0, uint8_t radius, uint8_t fill) {
+//! Compute circle (Bresenham's algorithm)
+void compute_circle(uint8_t x0, uint8_t y0, uint8_t radius, uint8_t fill) {
 	// Validate center coordinates
 	if (x0 >= SSD1306_W || y0 >= SSD1306_H) return;
 
@@ -312,8 +370,8 @@ void construct_circle(uint8_t x0, uint8_t y0, uint8_t radius, uint8_t fill) {
 
 		if (fill) {
             // Draw filled horizontal lines (top and bottom halves)
-            construct_fastHorLine(x_start, x_end, y_top);     // Top half
-            construct_fastHorLine(x_start, x_end, y_bottom);  // Bottom half
+            compute_fastHorLine(x_start, x_end, y_top);     // Top half
+            compute_fastHorLine(x_start, x_end, y_bottom);  // Bottom half
 		} else {
 			uint8_t xy_start 	= x0 + y;
 			uint8_t xy_end   	= x0 - y;
@@ -321,14 +379,14 @@ void construct_circle(uint8_t x0, uint8_t y0, uint8_t radius, uint8_t fill) {
 			uint8_t yx_end   	= y0 - x;
 
 			// Draw all 8 symmetric points (using precomputed page_masks)
-			construct_pixel(x_end		, y_bottom); 	// Octant 1
-			construct_pixel(x_start		, y_bottom); 	// Octant 2
-			construct_pixel(x_start		, y_top); 		// Octant 3
-			construct_pixel(x_end		, y_top); 	// Octant 4
-			construct_pixel(xy_end		, yx_start); 	// Octant 5
-			construct_pixel(xy_start	, yx_start); 	// Octant 6
-			construct_pixel(xy_start	, yx_end); 	// Octant 7
-			construct_pixel(xy_end		, yx_end); 	// Octant 8
+			compute_pixel(x_end		, y_bottom); 	// Octant 1
+			compute_pixel(x_start	, y_bottom); 	// Octant 2
+			compute_pixel(x_start	, y_top); 		// Octant 3
+			compute_pixel(x_end		, y_top); 	// Octant 4
+			compute_pixel(xy_end	, yx_start); 	// Octant 5
+			compute_pixel(xy_start	, yx_start); 	// Octant 6
+			compute_pixel(xy_start	, yx_end); 	// Octant 7
+			compute_pixel(xy_end	, yx_end); 	// Octant 8
 		}
 
         // Update Bresenham error
@@ -341,6 +399,79 @@ void construct_circle(uint8_t x0, uint8_t y0, uint8_t radius, uint8_t fill) {
     } while (x <= 0);
 }
 
+//! Compute line (Bresenham's algorithm)
+void compute_line(
+    uint8_t x0, uint8_t y0, 
+    uint8_t x1, uint8_t y1,
+    uint8_t thickness
+) {
+    // Clamp coordinates to display bounds
+    x0 = (x0 < SSD1306_W) ? x0 : SSD1306_W - 1;
+    y0 = (y0 < SSD1306_H) ? y0 : SSD1306_H - 1;
+    x1 = (x1 < SSD1306_W) ? x1 : SSD1306_W - 1;
+    y1 = (y1 < SSD1306_H) ? y1 : SSD1306_H - 1;
+
+    // Bresenham's line algorithm
+    int16_t dx = abs(x1 - x0);
+    int16_t dy = -abs(y1 - y0);
+    int16_t sx = x0 < x1 ? 1 : -1;
+    int16_t sy = y0 < y1 ? 1 : -1;
+    int16_t err = dx + dy;
+    int16_t e2;
+
+	thickness = 4;
+
+	// Precompute these before the loop:
+	uint8_t *fb_base = &frame_buffer[0][0];
+	uint8_t radius = thickness >> 1; 		// thickness/2 via bit shift
+
+	while (1) {
+		// Draw the pixel(s)
+		if (thickness == 1) {
+			// Fast path for single-pixel
+			if (x0 < SSD1306_W && y0 < SSD1306_H) {
+                M_Page_Mask mask = page_masks[y0];
+                frame_buffer[mask.page][x0] |= mask.bitmask;
+			}
+		} else {
+			uint8_t width_index = SSD1306_W-1;
+			uint8_t height_index = SSD1306_H-1;
+			uint8_t x_end = x0 + radius;
+			uint8_t y_end = y0 + radius;
+
+			// Calculate bounds (branchless min/max)
+			uint8_t x_start = x0 > radius ? x0 - radius : 0;
+			uint8_t y_start = y0 > radius ? y0 - radius : 0;
+
+			if (x_end > width_index) x_end = width_index;
+			if (y_end > height_index) y_end = height_index;
+			uint8_t width = x_end - x_start + 1;
+
+			// Optimized row filling
+			for (uint8_t y = y_start; y <= y_end; y++) {
+				M_Page_Mask mask = page_masks[y];
+				uint8_t *row = fb_base + (mask.page * SSD1306_W) + x_start;
+				
+				// Unroll small widths (1-4 pixels common)
+				switch(width) {
+					case 4: row[3] |= mask.bitmask; // fallthrough
+					case 3: row[2] |= mask.bitmask; // fallthrough
+					case 2: row[1] |= mask.bitmask; // fallthrough
+					case 1: row[0] |= mask.bitmask; break;
+					default: 
+						for (uint8_t i = 0; i < width; i++) 
+							row[i] |= mask.bitmask;
+				}
+			}
+		}
+
+		// Bresenham Advance
+		if (x0 == x1 && y0 == y1) break;
+		int16_t e2 = err << 1; // e2 = 2*err via bit shift
+		if (e2 >= dy) { err += dy; x0 += sx; }
+		if (e2 <= dx) { err += dx; y0 += sy; }
+	}
+}
 
 // #include "lib_rand.h"
 
@@ -371,18 +502,31 @@ void modI2C_task() {
 	
 	int y = 0;
 	
-	// for(int8_t i = 0; i<15; i++) {
+	// for(int8_t i = 0; i<20; i++) {
 	// 	// uint8_t rand_byte_low = rand() & 0xFF;
-	// 	// construct_horLine(y, 0, myvalues[i], 4, 1);
-	// 	construct_verLine(y, 0, myvalues[i], 4, 1);
+	// 	// compute_horLine(y, 0, myvalues[i], 3, 0);
+	// 	// compute_verLine(y, 0, myvalues[i], 3, 1);
+	// 	y += 4;
+	// }
+
+	// compute_rectangle(0, 0, 20, 10, 1);
+	// compute_rectangle(20, 25, 20, 10, 0);
+	// compute_rectangle(30, 45, 20, 10, 0);
+	// compute_rectangle(10, 30, 40, 30, 0);
+
+	// for (int8_t i = 0; i<7; i++) {
+	// 	uint8_t should_fill = i > 3 ? 1 : 0;
+	// 	// compute_circle(i*20, 30, 5, should_fill);
+	// 	// compute_rectangle(i*20, 30, 20, 10, should_fill);
 	// 	y += 5;
 	// }
 
-	for (int8_t i = 0; i<7; i++) {
-		uint8_t should_fill = i > 3 ? 1 : 0;
-		construct_circle(i*20, 30, 5, should_fill);
-		y += 5;
+	for(uint8_t x=0;x<SSD1306_W;x+=16) {
+		compute_line(x, 0, SSD1306_W, y, 2);
+		compute_line(SSD1306_W-x, SSD1306_H, 0, SSD1306_H-y, 2);
+		y+= SSD1306_H/8;
 	}
+
 
 	ssd1306_renderFrame(0, 7);
 
@@ -417,21 +561,21 @@ int i2c_test() {
 		//       printf("pixel plots\n\r");
 				// for(int i=0;i<SSD1306_W;i++)
 				// {
-				//    ssd1306_drawPixel(i, i/(SSD1306_W/SSD1306_H), 1);
-				//    ssd1306_drawPixel(i, SSD1306_H-1-(i/(SSD1306_W/SSD1306_H)), 1);
+				// 	ssd1306_drawPixel(i, i/(SSD1306_W/SSD1306_H), 1);
+				// 	ssd1306_drawPixel(i, SSD1306_H-1-(i/(SSD1306_W/SSD1306_H)), 1);
 				// }
 		//       break;
 			
 		//    case 2:
 		//       {
 		//          printf("Line plots\n\r");
-		//          uint8_t y= 0;
-		//          for(uint8_t x=0;x<SSD1306_W;x+=16)
-		//          {
-		//             ssd1306_drawLine(x, 0, SSD1306_W, y, 1);
-		//             ssd1306_drawLine(SSD1306_W-x, SSD1306_H, 0, SSD1306_H-y, 1);
-		//             y+= SSD1306_H/8;
-		//          }
+				// uint8_t y= 0;
+				// for(uint8_t x=0;x<SSD1306_W;x+=16)
+				// {
+				// 	ssd1306_drawLine(x, 0, SSD1306_W, y, 1);
+				// 	ssd1306_drawLine(SSD1306_W-x, SSD1306_H, 0, SSD1306_H-y, 1);
+				// 	y+= SSD1306_H/8;
+				// }
 		//       }
 		//       break;
 				
@@ -449,17 +593,17 @@ int i2c_test() {
 		//       break;
 		//    case 5:
 		//       printf("Unscaled Text\n\r");
-				// ssd1306_drawstr(0,0, "This is a test", 1);
-				// ssd1306_drawstr(0,8, "of the emergency", 1);
-				// ssd1306_drawstr(0,16,"broadcasting", 1);
-				// ssd1306_drawstr(0,24,"system.",1);
-				// if(SSD1306_H>32) {
-				//    ssd1306_drawstr(0,32, "Lorem ipsum", 1);
-				//    ssd1306_drawstr(0,40, "dolor sit amet,", 1);
-				//    ssd1306_drawstr(0,48,"consectetur", 1);
-				//    ssd1306_drawstr(0,56,"adipiscing",1);
-				// }
-				// ssd1306_xorrect(SSD1306_W/2, 0, SSD1306_W/2, SSD1306_W);
+				ssd1306_drawstr(0,0, "This is a test", 1);
+				ssd1306_drawstr(0,8, "of the emergency", 1);
+				ssd1306_drawstr(0,16,"broadcasting", 1);
+				ssd1306_drawstr(0,24,"system.",1);
+				if(SSD1306_H>32) {
+					ssd1306_drawstr(0,32, "Lorem ipsum", 1);
+					ssd1306_drawstr(0,40, "dolor sit amet,", 1);
+					ssd1306_drawstr(0,48,"consectetur", 1);
+					ssd1306_drawstr(0,56,"adipiscing",1);
+				}
+				ssd1306_xorrect(SSD1306_W/2, 0, SSD1306_W/2, SSD1306_W);
 		//       break;
 				
 		//    case 6:
