@@ -305,64 +305,6 @@ void compute_verLine(
 	}
 }
 
-//! compute rectangle
-void compute_rectangle(
-	Point p0, Area area, uint8_t fill, uint8_t mirror
-) {
-	// Validate coordinates
-	if (p0.x >= SSD1306_W || p0.y >= SSD1306_H) return;
-
-	// Clamp to display bounds
-	uint16_t x_end = p0.x + area.w;
-	uint16_t y_end = p0.y + area.h;
-	if (x_end >= SSD1306_W) area.w = SSD1306_W_LIMIT - p0.x;
-	if (y_end >= SSD1306_H) area.h = SSD1306_H_LIMIT - p0.y;
-
-	// Handle mirroring
-	if (mirror) {
-		p0.x = SSD1306_W_LIMIT - p0.x;
-		area.w = SSD1306_W_LIMIT - area.w;
-	}
-
-	// Draw rectangle with optional fill
-	Limit hLimit = { l0: p0.x, l1: x_end };
-    if (fill) {
-		// Filled rectangle using horizontal lines (faster for row-major displays)
-		for (uint8_t y_pos = p0.y; y_pos <= y_end; y_pos++) {
-			compute_horLine(y_pos, hLimit, 1, 0);
-		}
-    } else {
-		Limit vLimit = { l0: p0.y + 1, l1: y_end - 1 };
-
-        // Outline only
-        compute_horLine(p0.y, hLimit, 1, 0);     	// Top edge
-        compute_horLine(y_end, hLimit, 1, 0);    	// Bottom edge
-        compute_verLine(p0.x, vLimit, 1, 0); 		// Left edge
-        compute_verLine(x_end, vLimit, 1, 0); 		// Right edge
-    }
-}
-
-//! compute pixel
-void compute_pixel(uint8_t x, uint8_t y) {
-    if (x >= SSD1306_W || y >= SSD1306_H) return; // Skip if out of bounds
-    M_Page_Mask mask = page_masks[y];
-    frame_buffer[mask.page][x] |= mask.bitmask;
-}
-
-//! compute_fastHorLine
-void compute_fastHorLine(uint8_t y, uint8_t x0, uint8_t x1) {
-    if (y >= SSD1306_H) return;
-    
-	// Clamp x-coordinates
-	if (x0 >= SSD1306_W) x0 = SSD1306_W_LIMIT;
-	if (x1 >= SSD1306_W) x1 = SSD1306_W_LIMIT;
-
-    M_Page_Mask mask = page_masks[y];
-    for (uint8_t x = x0; x <= x1; x++) {
-        frame_buffer[mask.page][x] |= mask.bitmask;
-    }
-}
-
 //! compute line (Bresenham's algorithm)
 void compute_line(Point p0, Point p1, uint8_t thickness) {
     // Clamp coordinates to display bounds
@@ -429,8 +371,69 @@ void compute_line(Point p0, Point p1, uint8_t thickness) {
 	}
 }
 
+
+//! compute rectangle
+void compute_rectangle(
+	Point p0, Area area, uint8_t fill, uint8_t mirror
+) {
+	// Validate coordinates
+	if (p0.x >= SSD1306_W || p0.y >= SSD1306_H) return;
+
+	// Clamp to display bounds
+	uint16_t x_end = p0.x + area.w;
+	uint16_t y_end = p0.y + area.h;
+	if (x_end >= SSD1306_W) area.w = SSD1306_W_LIMIT - p0.x;
+	if (y_end >= SSD1306_H) area.h = SSD1306_H_LIMIT - p0.y;
+
+	// Handle mirroring
+	if (mirror) {
+		p0.x = SSD1306_W_LIMIT - p0.x;
+		area.w = SSD1306_W_LIMIT - area.w;
+	}
+
+	// Draw rectangle with optional fill
+	Limit hLimit = { l0: p0.x, l1: x_end };
+    if (fill) {
+		// Filled rectangle using horizontal lines (faster for row-major displays)
+		for (uint8_t y_pos = p0.y; y_pos <= y_end; y_pos++) {
+			compute_horLine(y_pos, hLimit, 1, 0);
+		}
+    } else {
+		Limit vLimit = { l0: p0.y + 1, l1: y_end - 1 };
+
+        // Outline only
+        compute_horLine(p0.y, hLimit, 1, 0);     	// Top edge
+        compute_horLine(y_end, hLimit, 1, 0);    	// Bottom edge
+        compute_verLine(p0.x, vLimit, 1, 0); 		// Left edge
+        compute_verLine(x_end, vLimit, 1, 0); 		// Right edge
+    }
+}
+
+//! compute pixel
+void compute_pixel(uint8_t x, uint8_t y) {
+    if (x >= SSD1306_W || y >= SSD1306_H) return; // Skip if out of bounds
+    M_Page_Mask mask = page_masks[y];
+    frame_buffer[mask.page][x] |= mask.bitmask;
+}
+
+//! compute_fastHorLine
+void compute_fastHorLine(uint8_t y, uint8_t x0, uint8_t x1) {
+    if (y >= SSD1306_H) return;
+    
+	// Clamp x-coordinates
+	if (x0 >= SSD1306_W) x0 = SSD1306_W_LIMIT;
+	if (x1 >= SSD1306_W) x1 = SSD1306_W_LIMIT;
+
+    M_Page_Mask mask = page_masks[y];
+    for (uint8_t x = x0; x <= x1; x++) {
+        frame_buffer[mask.page][x] |= mask.bitmask;
+    }
+}
+
 //! compute circle (Bresenham's algorithm)
-void compute_circle(Point p0, uint8_t radius, uint8_t fill) {
+void compute_circle(
+	Point p0, uint8_t radius, uint8_t fill
+) {
 	// Validate center coordinates
 	if (p0.x >= SSD1306_W || p0.y >= SSD1306_H) return;
 
@@ -477,33 +480,81 @@ void compute_circle(Point p0, uint8_t radius, uint8_t fill) {
     } while (x <= 0);
 }
 
-// Fast integer atan2 approximation (returns 0-16384 representing 0-90°)
-uint16_t fast_atan2(int16_t y, int16_t x) {
-    if (x == 0) return 8192;  // 45°
-    
-    uint16_t ratio = (y << 14) / x;  // Q14 fixed point
 
-    // Use small lookup table for approximation
-    static const uint16_t atan_table[17] = {
-        0, 1024, 2048, 3072, 4096, 5120, 6144, 7168,
-        8192, 9216, 10240, 11264, 12288, 13312, 14336, 15360, 16384
-    };
-    uint8_t index = ratio >> 10;  // 0-16
-    return atan_table[index];
+
+// Helper function to get circle point using SIN_LUT
+static void get_circle_point(Point center, uint8_t radius, int16_t angle, int16_t *x, int16_t *y) {
+    uint8_t quadrant = angle / 90;
+    uint8_t reduced_angle = angle % 90;
+    uint8_t sin_val = SIN_LUT[reduced_angle];
+    uint8_t cos_val = SIN_LUT[90 - reduced_angle];
+    
+    switch (quadrant) {
+        case 0: *x = center.x + (radius * cos_val) / 255;
+                *y = center.y - (radius * sin_val) / 255;
+                break;
+        case 1: *x = center.x - (radius * sin_val) / 255;
+                *y = center.y - (radius * cos_val) / 255;
+                break;
+        case 2: *x = center.x - (radius * cos_val) / 255;
+                *y = center.y + (radius * sin_val) / 255;
+                break;
+        case 3: *x = center.x + (radius * sin_val) / 255;
+                *y = center.y + (radius * cos_val) / 255;
+                break;
+    }
 }
+
+//! compute pie
+void compute_pie(Point center, uint8_t radius, int16_t start_angle, int16_t end_angle) {    
+    // Draw center point
+    compute_pixel(center.x, center.y);
+    
+    // Special case: full circle
+    if (start_angle == end_angle) {
+        compute_circle(center, radius, 1); // Fill entire circle
+        return;
+    }
+    
+    // Angle stepping (adaptive based on radius)
+    uint8_t step = (radius > 40) ? 2 : 1;
+    
+    // Draw radial lines
+    int16_t angle = start_angle;
+	int16_t x, y;
+	
+    while (1) {
+        // Calculate edge point
+        get_circle_point(center, radius, angle, &x, &y);
+        
+        // Draw line from center to edge
+		Point p0 = { x: center.x, y: center.y };
+		Point p1 = { x: x, y: y };
+		compute_line(p0, p1, 1);
+        
+        // Break conditions
+        if (angle == end_angle) break;
+        
+        // Move to next angle
+        angle = (angle + step) % 360;
+        
+        // Handle wrap-around
+        if (start_angle > end_angle && angle < start_angle && angle > end_angle) break;
+    }
+}
+
 
 //! compute ring (Bresenham's algorithm)
 void compute_ring(
 	Point p0, uint8_t radius, uint8_t thickness,
-	float start_angle, float end_angle
+	int16_t start_angle, int16_t end_angle
 ) {
     // Early exit if center is off-screen or radius is 0
     if ((p0.x >= SSD1306_W) | (p0.y >= SSD1306_H) | (radius == 0)) return;
-
     // Precompute display bounds and thickness
     uint8_t inner_r = (thickness >= radius) ? 1 : (radius - thickness);
     uint8_t* const frame_base = &frame_buffer[0][0];
-
+		
     // Draw concentric circles (outer to inner)
     for (uint8_t r = radius; r >= inner_r; r--) {
         int16_t x = -r;
@@ -517,7 +568,6 @@ void compute_ring(
             int16_t y_top    = p0.y - y;
             int16_t y_bottom = p0.y + y;
 
-			
 			// //! Fill out 2 extra pixels besides x to make ensure no missing
 			// //! pixel when drawing the circles
 			int16_t x_left  = x_start - 1;
@@ -650,18 +700,22 @@ void modI2C_task() {
 	// 	y += 4;
 	// }
 
-	for (int8_t i = 0; i<7; i++) {
-		uint8_t should_fill = i > 3 ? 1 : 0;
-		Point point = { x: i*20, y: 10 };
-		// compute_circle(point, 20, should_fill);
 
-		compute_ring(point, 20, 3, 0, 360);
+	Point piePoint = { x: 30, y: 30 };
+	compute_pie(piePoint, 30, 0, 125);
 
-		// Point rect_point = { x: i*20, y: y };
-		// Area area = { w: 20, h: 10 };
-		// compute_rectangle(rect_point, area, should_fill, 0);
-		y += 5;
-	}
+	// for (int8_t i = 0; i<7; i++) {
+	// 	uint8_t should_fill = i > 3 ? 1 : 0;
+	// 	Point point = { x: i*20, y: 30 };
+	// 	// compute_circle(point, 20, should_fill);
+	// 	// compute_ring(point, 20, 3, 0, 180);
+	// 	compute_pie(point, 20, 0, 100);
+
+	// 	// Point rect_point = { x: i*20, y: y };
+	// 	// Area area = { w: 20, h: 10 };
+	// 	// compute_rectangle(rect_point, area, should_fill, 0);
+	// 	y += 5;
+	// }
 
 	// for(uint8_t x=0;x<SSD1306_W;x+=16) {
 	// 	Point point_a0 = { x: x, y: 0 };
