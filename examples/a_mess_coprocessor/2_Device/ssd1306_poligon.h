@@ -7,81 +7,8 @@ void compute_polygon(Point *pts, uint8_t num_pts, uint8_t thickness) {
     compute_line(pts[num_pts-1], pts[0], thickness);
 }
 
-//! compute filled polygon
-void compute_fill_polygonOpt(Point *pts, uint8_t num_pts) {
-    if (num_pts < 3) return;
-
-    // Find min/max Y bounds (unrolled first iteration)
-    uint8_t y_min = pts[0].y, y_max = pts[0].y;
-    for (uint8_t i = 1; i < num_pts; i++) {
-        uint8_t py = pts[i].y;
-        y_min = py < y_min ? py : y_min;
-        y_max = py > y_max ? py : y_max;
-    }
-
-    // Precompute edge data
-    struct Edge {
-        uint8_t y0, y1;
-        int16_t x, dx;
-        int16_t denominator;
-    } edges[num_pts];
-    
-    for (uint8_t i = 0; i < num_pts; i++) {
-        uint8_t j = (i + 1) % num_pts;
-        edges[i].y0 = pts[i].y;
-        edges[i].y1 = pts[j].y;
-        edges[i].dx = pts[j].x - pts[i].x;
-        edges[i].denominator = pts[j].y - pts[i].y;
-        edges[i].x = pts[i].x;
-    }
-
-    // Scanline processing
-    for (uint8_t y = y_min; y <= y_max; y++) {
-        uint8_t x_intersect[6];  // Reduced for typical convex shapes
-        uint8_t intersect_count = 0;
-
-        // Find intersections
-        for (uint8_t i = 0; i < num_pts; i++) {
-            if ((y >= edges[i].y0 && y < edges[i].y1) || 
-                (y >= edges[i].y1 && y < edges[i].y0)) {
-                // Avoid division by precomputing denominator
-                int16_t x = edges[i].x;
-                if (edges[i].denominator != 0) {
-                    x += ((int32_t)(y - edges[i].y0) * edges[i].dx) / edges[i].denominator;
-                }
-                x_intersect[intersect_count++] = (uint8_t)x;
-            }
-        }
-
-        // Optimized sorting for 2-4 intersections (common case)
-        if (intersect_count == 2) {
-            if (x_intersect[0] > x_intersect[1]) {
-                uint8_t tmp = x_intersect[0];
-                x_intersect[0] = x_intersect[1];
-                x_intersect[1] = tmp;
-            }
-        } else if (intersect_count > 2) {
-            // Small bubble sort (max 3 passes for 6 elements)
-            for (uint8_t i = 0; i < intersect_count - 1; i++) {
-                for (uint8_t j = i + 1; j < intersect_count; j++) {
-                    if (x_intersect[i] > x_intersect[j]) {
-                        uint8_t tmp = x_intersect[i];
-                        x_intersect[i] = x_intersect[j];
-                        x_intersect[j] = tmp;
-                    }
-                }
-            }
-        }
-
-        // Fill using fast horizontal lines
-        for (uint8_t i = 0; i + 1 < intersect_count; i += 2) {
-            compute_fastHorLine(y, x_intersect[i], x_intersect[i+1]);
-        }
-    }
-}
-
 //! optimized: compute filled polygon
-void compute_fill_polygonOpt2(Point *pts, uint8_t num_pts) {
+void compute_fill_polygon(Point *pts, uint8_t num_pts) {
     // ===== [1] EDGE EXTRACTION =====
     struct Edge {
         uint8_t y_start, y_end;

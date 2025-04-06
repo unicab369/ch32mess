@@ -237,7 +237,7 @@ void modI2C_task() {
     };
 
     // compute_poligon(points, 4, 3);
-    compute_fill_polygonOpt(points, 5);
+    compute_fill_polygon(points, 5);
 
     //! pie, circle, ring
 	// Point piePoint = { x: 30, y: 30 };
