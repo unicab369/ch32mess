@@ -1,6 +1,7 @@
-#include "ch32fun.h"
+#ifndef _MODSSD1306_H
+#define _MODSSD1306_H
 
-// #include "modUtility.h"
+#include "ch32fun.h"
 #include "modI2C.h"
 
 #define CHUNK_SIZE 32  		// Define your desired chunk size
@@ -110,3 +111,5 @@ void modI2C_setup() {
 	memset(frame_buffer, 0, sizeof(frame_buffer)); // Clear the frame buffer
 	ssd1306_renderFrame();
 }
+
+#endif
