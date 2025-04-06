@@ -1,14 +1,14 @@
 #include "ssd1306_line.h"
 
 //! compute poligon
-void compute_poligon(Point *pts, uint8_t num_pts, uint8_t thickness) {
+void compute_polygon(Point *pts, uint8_t num_pts, uint8_t thickness) {
     if (num_pts < 3) return;  // Need at least 3 points for a polygon
     compute_lines(pts, num_pts, thickness);
     compute_line(pts[num_pts-1], pts[0], thickness);
 }
 
 //! compute filled polygon
-void compute_fill_polygon(Point *pts, uint8_t num_pts) {
+void compute_fill_polygonOpt(Point *pts, uint8_t num_pts) {
     if (num_pts < 3) return;
 
     // Find min/max Y bounds (unrolled first iteration)
@@ -81,85 +81,74 @@ void compute_fill_polygon(Point *pts, uint8_t num_pts) {
 }
 
 //! optimized: compute filled polygon
-void compute_fill_polygonOpt(Point *pts, uint8_t num_pts) {
-    // Fast reject degenerate cases
-    if (num_pts < 3) return;
-
-    // 1. Find Y bounds
-    uint8_t y_min = 255, y_max = 0;
-    for (uint8_t i = 0; i < num_pts; i++) {
-        if (pts[i].y < y_min) y_min = pts[i].y;
-        if (pts[i].y > y_max) y_max = pts[i].y;
-    }
-
-    // 2. Precompute active edges
+void compute_fill_polygonOpt2(Point *pts, uint8_t num_pts) {
+    // ===== [1] EDGE EXTRACTION =====
     struct Edge {
         uint8_t y_start, y_end;
-        int16_t current_x;
-        int16_t dx;
-        int16_t dy;
-        int16_t step;
+        int16_t x_start, dx_dy;
     } edges[num_pts];
-    
-    uint8_t active_edges = 0;
-    for (uint8_t i = 0; i < num_pts; i++) {
-        uint8_t j = (i + 1) % num_pts;
-        uint8_t y0 = pts[i].y;
-        uint8_t y1 = pts[j].y;
 
-        // Only consider non-horizontal edges
-        if (y0 != y1) {
-            edges[active_edges].y_start = y0 < y1 ? y0 : y1;
-            edges[active_edges].y_end = y0 < y1 ? y1 : y0;
-            edges[active_edges].dy = y1 - y0;
-            edges[active_edges].dx = pts[j].x - pts[i].x;
-            edges[active_edges].current_x = y0 < y1 ? (pts[i].x << 8) : (pts[j].x << 8);
-            edges[active_edges].step = (edges[active_edges].dx << 8) / edges[active_edges].dy;
-            active_edges++;
+    uint8_t edge_count = 0;
+    uint8_t y_min = 255, y_max = 0;
+
+    // Build edge table and find Y bounds
+    for (uint8_t i = 0, j = num_pts-1; i < num_pts; j = i++) {
+        // Skip horizontal edges (don't affect filling)
+        if (pts[i].y == pts[j].y) continue;
+
+        // Determine edge direction
+        uint8_t y0, y1;
+        int16_t x0;
+        if (pts[i].y < pts[j].y) {
+            y0 = pts[i].y; y1 = pts[j].y;
+            x0 = pts[i].x;
+        } else {
+            y0 = pts[j].y; y1 = pts[i].y;
+            x0 = pts[j].x;
         }
+
+        // Update global Y bounds
+        y_min = y0 < y_min ? y0 : y_min;
+        y_max = y1 > y_max ? y1 : y_max;
+
+        // Store edge (dx/dy as fixed-point 8.8)
+        edges[edge_count++] = (struct Edge){
+            .y_start = y0,
+            .y_end = y1,
+            .x_start = x0 << 8,
+            .dx_dy = ((pts[j].x - pts[i].x) << 8) / (pts[j].y - pts[i].y)
+        };
     }
 
-    // 3. Scanline processing
-    uint8_t *fb = &frame_buffer[0][0];
+    // ===== [2] SCANLINE PROCESSING =====
     for (uint8_t y = y_min; y <= y_max; y++) {
-        uint8_t intersections[10]; // Supports up to 5 edges crossing
-        uint8_t count = 0;
+        uint8_t x_list[8];  // Supports 4 edge crossings (99% of cases)
+        uint8_t x_count = 0;
 
-        // Find all intersections
-        for (uint8_t i = 0; i < active_edges; i++) {
-            if (y >= edges[i].y_start && y < edges[i].y_end) {
-                intersections[count++] = edges[i].current_x >> 8;
-                edges[i].current_x += edges[i].step;
+        // Collect active edges
+        for (uint8_t e = 0; e < edge_count; e++) {
+            if (y >= edges[e].y_start && y < edges[e].y_end) {
+                x_list[x_count++] = edges[e].x_start >> 8;
+                edges[e].x_start += edges[e].dx_dy;  // Step X
             }
         }
 
-        // Sort intersections (simple bubble sort)
-        for (uint8_t i = 0; i < count; i++) {
-            for (uint8_t j = i+1; j < count; j++) {
-                if (intersections[i] > intersections[j]) {
-                    uint8_t tmp = intersections[i];
-                    intersections[i] = intersections[j];
-                    intersections[j] = tmp;
-                }
+        // Insertion sort (optimal for small N)
+        for (uint8_t i = 1; i < x_count; i++) {
+            uint8_t val = x_list[i];
+            int8_t j = i-1;
+            while (j >= 0 && x_list[j] > val) {
+                x_list[j+1] = x_list[j];
+                j--;
             }
+            x_list[j+1] = val;
         }
 
-        // Fill between pairs
-        M_Page_Mask mask = page_masks[y];
-        uint8_t *row = fb + (mask.page * SSD1306_W);
-        for (uint8_t i = 0; i < count; i += 2) {
-            if (i+1 >= count) break;
-            uint8_t x1 = intersections[i];
-            uint8_t x2 = intersections[i+1];
-            
-            // Clamp to screen bounds
-            if (x2 >= SSD1306_W) x2 = SSD1306_W - 1;
-            if (x1 >= SSD1306_W) continue;
-            
-            // Fast horizontal fill
-            for (uint8_t x = x1; x <= x2; x++) {
-                row[x] |= mask.bitmask;
-            }
+        // Fill between pairs (with bounds checking)
+        for (uint8_t i = 0; i+1 < x_count; i += 2) {
+            uint8_t x1 = x_list[i] < SSD1306_W ? x_list[i] : SSD1306_W-1;
+            uint8_t x2 = x_list[i+1] < SSD1306_W ? x_list[i+1] : SSD1306_W-1;
+            if (x1 < x2) compute_fastHorLine(y, x1, x2);
         }
     }
 }
