@@ -15,7 +15,7 @@ uint8_t frame_buffer[SSD1306_PAGES][SSD1306_W] = { 0 };
 typedef struct {
 	uint8_t x;
 	uint8_t y;
-} Point;
+} M_Point;
 
 typedef struct {
 	uint8_t w;
@@ -93,7 +93,7 @@ void ssd1306_renderFrame() {
 }
 
 //! compute pixel
-void compute_pixel(uint8_t x, uint8_t y) {
+void prefill_pixel(uint8_t x, uint8_t y) {
     if (x >= SSD1306_W || y >= SSD1306_H) return; // Skip if out of bounds
     M_Page_Mask mask = page_masks[y];
     frame_buffer[mask.page][x] |= mask.bitmask;

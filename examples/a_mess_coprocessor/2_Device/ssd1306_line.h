@@ -1,7 +1,8 @@
 #include "modSSD1306.h"
+#include "ch32fun.h"
 
 //! compute_fastHorLine
-void compute_fastHorLine(uint8_t y, uint8_t x0, uint8_t x1) {
+void prefill_fastHorLine(uint8_t y, uint8_t x0, uint8_t x1) {
     if (y >= SSD1306_H) return;
     
 	// Clamp x-coordinates
@@ -15,7 +16,7 @@ void compute_fastHorLine(uint8_t y, uint8_t x0, uint8_t x1) {
 }
 
 //! compute horizontal line
-void compute_horLine(
+void prefill_horLine(
 	uint8_t y, Limit x_limit, uint8_t thickness, uint8_t mirror
 ) {
     // Validate coordinates
@@ -53,9 +54,8 @@ void compute_horLine(
     }
 }
 
-
 //! compute vertical line
-void compute_verLine(
+void prefill_verLine(
 	uint8_t x, Limit y_limit, uint8_t thickness, uint8_t mirror
 ) {
     // Validate coordinates
@@ -106,7 +106,7 @@ void compute_verLine(
 }
 
 //! compute line (Bresenham's algorithm)
-void compute_line(Point p0, Point p1, uint8_t thickness) {
+void prefill_line(M_Point p0, M_Point p1, uint8_t thickness) {
     // Clamp coordinates to display bounds
     p0.x = (p0.x < SSD1306_W) ? p0.x : SSD1306_W_LIMIT;
     p0.y = (p0.y < SSD1306_H) ? p0.y : SSD1306_H_LIMIT;
@@ -176,12 +176,46 @@ void compute_line(Point p0, Point p1, uint8_t thickness) {
 }
 
 //! compute lines
-void compute_lines(Point *pts, uint8_t num_pts, uint8_t thickness) {
+void prefill_lines(M_Point *pts, uint8_t num_pts, uint8_t thickness) {
     // Early exit if not enough points (need at least 2 points for a line)
     if (num_pts < 2) return;
     
     // Draw connected lines between all points
     for (uint8_t i = 0; i < num_pts - 1; i++) {
-        compute_line(pts[i], pts[i+1], thickness);
+        prefill_line(pts[i], pts[i+1], thickness);
     }
+}
+
+// #include "lib_rand.h"
+
+uint8_t myvalues[16] = { 30, 50, 60, 40, 20, 50, 30, 10, 35, 10, 20, 30, 40, 50, 60, 20 };
+
+
+void test_lines() {
+	// seed(0x12345678);
+	int y = 0;
+	
+    //! hor-ver lines
+	for(int8_t i = 0; i<sizeof(myvalues); i++) {
+		// uint8_t rand_byte_low = rand() & 0xFF;
+		Limit limit = { l0: 0, l1: myvalues[i] };
+		// prefill_horLine(y, limit, 3, 0);
+		// prefill_horLine(y, 0, myvalues[i], 3, 1);
+		prefill_verLine(y, limit, 3, 0);
+		// prefill_verLine(y, 0, myvalues[i], 3, 1);
+		y += 4;
+	}
+
+    //! line
+    for(uint8_t x=0;x<SSD1306_W;x+=16) {
+		M_Point point_a0 = { x: x, y: 0 };
+		M_Point point_a1 = { x: SSD1306_W, y: y };
+		M_Point point_b0 = { x: SSD1306_W-x, y: SSD1306_H };
+		M_Point point_b1 = { x: 0, y: SSD1306_H-y };
+		
+		prefill_line(point_a0, point_a1, 1);
+		prefill_line(point_b0, point_b1, 1);
+
+		y+= SSD1306_H/8;
+	}
 }

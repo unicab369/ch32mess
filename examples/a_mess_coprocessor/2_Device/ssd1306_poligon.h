@@ -1,14 +1,14 @@
 #include "ssd1306_line.h"
 
 //! compute poligon
-void compute_polygon(Point *pts, uint8_t num_pts, uint8_t thickness) {
+void prefill_poly(M_Point *pts, uint8_t num_pts, uint8_t thickness) {
     if (num_pts < 3) return;  // Need at least 3 points for a polygon
-    compute_lines(pts, num_pts, thickness);
-    compute_line(pts[num_pts-1], pts[0], thickness);
+    prefill_lines(pts, num_pts, thickness);
+    prefill_line(pts[num_pts-1], pts[0], thickness);
 }
 
 //! optimized: compute filled polygon
-void compute_fill_polygon(Point *pts, uint8_t num_pts) {
+void prefill_solid_poly(M_Point *pts, uint8_t num_pts) {
     // ===== [1] EDGE EXTRACTION =====
     struct Edge {
         uint8_t y_start, y_end;
@@ -75,14 +75,14 @@ void compute_fill_polygon(Point *pts, uint8_t num_pts) {
         for (uint8_t i = 0; i+1 < x_count; i += 2) {
             uint8_t x1 = x_list[i] < SSD1306_W ? x_list[i] : SSD1306_W-1;
             uint8_t x2 = x_list[i+1] < SSD1306_W ? x_list[i+1] : SSD1306_W-1;
-            if (x1 < x2) compute_fastHorLine(y, x1, x2);
+            if (x1 < x2) prefill_fastHorLine(y, x1, x2);
         }
     }
 }
 
 //! compute rectangle
-void compute_rectangle(
-	Point p0, Area area, uint8_t fill, uint8_t mirror
+void prefill_rect(
+	M_Point p0, Area area, uint8_t fill, uint8_t mirror
 ) {
 	// Validate coordinates
 	if (p0.x >= SSD1306_W || p0.y >= SSD1306_H) return;
@@ -104,15 +104,114 @@ void compute_rectangle(
     if (fill) {
 		// Filled rectangle using horizontal lines (faster for row-major displays)
 		for (uint8_t y_pos = p0.y; y_pos <= y_end; y_pos++) {
-			compute_horLine(y_pos, hLimit, 1, 0);
+			prefill_horLine(y_pos, hLimit, 1, 0);
 		}
     } else {
 		Limit vLimit = { l0: p0.y + 1, l1: y_end - 1 };
 
         // Outline only
-        compute_horLine(p0.y, hLimit, 1, 0);     	// Top edge
-        compute_horLine(y_end, hLimit, 1, 0);    	// Bottom edge
-        compute_verLine(p0.x, vLimit, 1, 0); 		// Left edge
-        compute_verLine(x_end, vLimit, 1, 0); 		// Right edge
+        prefill_horLine(p0.y, hLimit, 1, 0);     	// Top edge
+        prefill_horLine(y_end, hLimit, 1, 0);    	// Bottom edge
+        prefill_verLine(p0.x, vLimit, 1, 0); 		// Left edge
+        prefill_verLine(x_end, vLimit, 1, 0); 		// Right edge
     }
+}
+
+
+void test_polys() {
+    int y = 0;
+
+    //! rectangles
+    for (int8_t i = 0; i<4; i++) {
+		uint8_t should_fill = i > 1 ? 1 : 0;
+		prefill_rect((M_Point){ 84, y }, (Area) { 15, 5 }, should_fill, 0);
+		y += 7;
+	}
+
+    //! zigzag
+    M_Point zigzag[] = {
+        (M_Point) { 60, 8 },
+        (M_Point) { 50, 15 },
+        (M_Point) { 80, 8 },
+        (M_Point) { 70, 0 },
+        (M_Point) { 70, 20 }
+    };
+
+    uint8_t pt_count = sizeof(zigzag)/sizeof(M_Point);
+    prefill_solid_poly(zigzag, pt_count);
+
+    M_Point zigzag2[4];
+    memcpy(zigzag2, zigzag, sizeof(zigzag));  // Fast copy
+
+    for (int i = 0; i < sizeof(zigzag)/sizeof(M_Point); i++) {
+        zigzag2[i].y += 24;  // Add 20 to each x-coordinate
+    }
+    prefill_poly(zigzag2, pt_count, 1);
+
+
+    // Concave polygon: Star (22px tall)
+    M_Point star[] = {
+        {12 , 0},  // Top point
+        {16 , 8}, // Right upper
+        {24 , 8}, // Right outer
+        {18 , 14}, // Right inner
+        {22 , 22}, // Bottom right
+        {12 , 16}, // Bottom center
+        {2  , 22},  // Bottom left
+        {6  , 14},  // Left inner
+        {0  , 8},  // Left outer
+        {8  , 8}   // Left upper
+    };
+
+    // Convex polygon: Quad (12px tall)
+    static M_Point quad[] = {
+        {6  , 24},  // Bottom-left (aligned with star's left)
+        {18 , 24}, // Bottom-right (centered)
+        {22 , 34}, // Top-right (matches star width - unchanged)
+        {2  , 34}   // Top-left (aligned - unchanged)
+    };
+
+    // Self-intersecting: Hourglass (12px tall)
+    static M_Point hourglass[] = {
+        {6  , 38},   // Top-left (aligned with quad's bottom-left)
+        {18 , 38},  // Top-right (aligned with quad's bottom-right)
+        {6  , 52},   // Bottom-left
+        {18 , 52}   // Bottom-right
+    };
+
+    //! star
+    pt_count = sizeof(star)/sizeof(M_Point);
+    prefill_solid_poly(star, pt_count);
+
+    // Shift star right by 25px
+    for (int i = 0; i < sizeof(star)/sizeof(M_Point); i++) {
+        star[i].x += 25;  // Add 20 to each x-coordinate
+    }
+    prefill_poly(star, pt_count, 1);
+
+    //! quad
+    pt_count = sizeof(quad)/sizeof(M_Point);
+    prefill_solid_poly(quad, pt_count);
+
+    // Shift quad right by 25px
+    M_Point quad2[4];
+    memcpy(quad2, quad, sizeof(quad));  // Fast copy
+
+    for (int i = 0; i < sizeof(quad)/sizeof(M_Point); i++) {
+        quad2[i].x += 25;  // Add 20 to each x-coordinate
+    }
+    prefill_poly(quad2, pt_count, 1);
+
+    //! hourglass
+    pt_count = sizeof(hourglass)/sizeof(M_Point);
+    prefill_solid_poly(hourglass, pt_count);
+
+    // Shift hourglass right by 25px
+    M_Point hourglass2[4];
+    memcpy(hourglass2, hourglass, sizeof(hourglass));  // Fast copy
+
+    for (int i = 0; i < sizeof(hourglass)/sizeof(M_Point); i++) {
+        hourglass2[i].x += 25;  // Add 20 to each x-coordinate
+    }
+    prefill_poly(hourglass2, pt_count, 1);
 }
