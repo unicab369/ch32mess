@@ -3,6 +3,8 @@
 #define CLAMP(val, min, max) (val < min ? min : (val > max ? max : val))
 
 
+#ifndef MODUTILITY_H
+#define MODUTILITY_H
 
 const uint8_t SIN_LUT[] = {
     0, 4, 9, 13, 18, 22, 27, 31, 36, 40, 44, 49, 53, 58, 62, 66,
@@ -20,3 +22,5 @@ const uint8_t SIN_LUT[] = {
 
 // Cosine table (just offset by 90 degrees from sine)
 #define COS_LUT(angle) SIN_LUT[(angle + 90) % 360]
+
+#endif

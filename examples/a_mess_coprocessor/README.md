@@ -32,3 +32,13 @@ wire a LED to PD0 and GND
 | **Voltage Range** | 2.7-5.5V         | 2.7-5.5V         | 2.7-5.5V         | 2.7-5.5V         | 2.7-5.5V         |
 | **Packages**      | TSSOP-20         | LQFP48, QFN32    | LQFP100, QFN68   | LQFP64, QFN48    | LQFP48, QFN32    |
 | **Best For**      | Basic GPIO/LEDs  | USB devices      | High-performance | Mixed-signal     | ARM migration    |
+
+
+Discord:
+```init
+```bash
+```css
+```diff
+```fix
+|| Spoiler Text ||
+> blockquote
