@@ -62,13 +62,11 @@ int main(void) {
 	int i, dx, iColor;
 	SystemInit();
 
-	printf("IM HERE!\n\r");
-	lcdInit(LCD_ST7735_80x160_B, 24000000, CS_PIN, DC_PIN, RST_PIN, BL_PIN);
+	lcdInit(LCD_ST7735_80x160, 24000000, CS_PIN, DC_PIN, RST_PIN, BL_PIN);
 	lcdFill(COLOR_GREEN);
 	i = 1; dx = 1;
 
 	while (1) {
-		printf("IM HERE!\n\r");
 		lcdRectangle(rand8() & 127, rand8() & 63, rand8() & 63, rand8() & 31, usPal[(iColor+1)&7], 1);
 		lcdEllipse(rand8() & 127, rand8() & 63, rand8() & 63, rand8() & 31, usPal[iColor & 7], 1);
 		iColor++;

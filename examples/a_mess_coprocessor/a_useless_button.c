@@ -167,48 +167,59 @@ void onRead(uint8_t reg) {
 }
 
 
-int main() {
-	SystemInit();
+// #include "ST7735/st7735_demo.h"
+#include "ST7735/modTFT.h"
 
+
+int main() {
 	static const char message[] = "Hello World!\r\n";
 	uint32_t ledc_time = 0;
 	uint32_t sec_time = 0;
 	uint32_t time_ref = 0;
 
+	// st7735_test();
 
-	modI2C_setup();
+	SystemInit();
 
-	pinMode(0xD0, OUTPUT);
 	button_setup(0xC3);	
-	modJoystick_setup();		// ADC Ch0, Ch1 | DMA1 Ch1
-	ws2812_setup();				// DMA1 Ch3
+	
+	modST7735_setup();
 
-	modEncoder_setup();			// TIM2 Ch1, Ch2
-	// modPWM_setup();				// TIM2 Ch3
+	// modI2C_setup();
 
-	// led_setup();
-	uart_setup();				// PD5
-	dma_uart_setup();			// DMA1 Ch4
+	// pinMode(0xD0, OUTPUT);
+	// modJoystick_setup();		// ADC Ch0, Ch1 | DMA1 Ch1
+	// ws2812_setup();				// DMA1 Ch3
+
+	// modEncoder_setup();			// TIM2 Ch1, Ch2
+	// // modPWM_setup();				// TIM2 Ch3
+
+	// // led_setup();
+	// uart_setup();				// PD5
+	// dma_uart_setup();			// DMA1 Ch4
 	
 	for(;;) {			
 		uint32_t now = millis();
 
-		button_run();
+		// button_run();
 		// modEncoder_task(now);
 
 		if (now - sec_time > 400) {
 			sec_time = now;
 
 			// modJoystick_task();
-			dma_uart_tx(message, sizeof(message) - 1);
+			// dma_uart_tx(message, sizeof(message) - 1);
 
-			print_runtime("I2C", modI2C_task);
+			// print_runtime("I2C", modI2C_task);
+			// print_runtime("ST7735", st7735_task);
+			print_runtime("ST7735", tft_test);
 		}
-		if (now - ledc_time > 12) {
-			ledc_time = now;
-			modPWM_task();
-			ws2812_task();
-		}
+
+	// 	if (now - ledc_time > 12) {
+	// 		ledc_time = now;
+	// 		modPWM_task();
+	// 		ws2812_task();
+	// 	}
 	}
 }
 
