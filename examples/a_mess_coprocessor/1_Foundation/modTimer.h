@@ -74,7 +74,7 @@ void SysTick_Handler(void)
 
 void print_runtime(const char *tag, void *handler(void)) {
 	uint32_t now = micros();
-	handler();
+	// handler();
 	uint32_t time_diff = micros() - now;
 	printf("%s runtime: %lu us\n\r", tag, time_diff);
 }

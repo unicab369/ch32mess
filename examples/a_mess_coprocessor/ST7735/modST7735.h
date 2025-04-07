@@ -164,8 +164,6 @@ static uint8_t  _buffer[ST7735_WIDTH << 1] = {0};    // DMA buffer, long enough 
 /// \details Initialization sequence from Arduino_GFX
 /// https://github.com/moononournation/Arduino_GFX/blob/master/src/display/Arduino_ST7735.h
 void tft_init(void) {
-    SPI_init();
-
     // Reset display
     RESET_LOW();
     Delay_Ms(ST7735_RST_DELAY);

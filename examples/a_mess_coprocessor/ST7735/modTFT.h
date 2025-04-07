@@ -1,3 +1,5 @@
+// stolen and adjusted from: GitHub: https://github.com/limingjie/
+
 #include "ch32fun.h"
 #include "font5x7.h"
 #include "modTFT_line.h"
@@ -6,7 +8,7 @@
 #define ST7735_H    80
 
 
-static uint8_t  _frame_buffer[3 * (ST7735_W << 1)] = {0};
+static uint8_t  _frame_buffer[ST7735_W << 1] = {0};
 
 
 void tft_print_char(
@@ -114,6 +116,8 @@ void tft_draw_bitmap(
 
 
 void modST7735_setup() {
+    SPI_init();
+    
     tft_init();
     tft_fill_rect(0, 0, 160, 80, PURPLE);
 }

@@ -169,7 +169,7 @@ void onRead(uint8_t reg) {
 
 // #include "ST7735/st7735_demo.h"
 #include "ST7735/modTFT.h"
-
+#include "Storage/modStorage.h"
 
 int main() {
 	static const char message[] = "Hello World!\r\n";
@@ -177,13 +177,12 @@ int main() {
 	uint32_t sec_time = 0;
 	uint32_t time_ref = 0;
 
-	// st7735_test();
-
 	SystemInit();
-
+	Delay_Ms(200);
+	
 	button_setup(0xC3);	
 	
-	modST7735_setup();
+	// modST7735_setup();
 
 	// modI2C_setup();
 
@@ -197,6 +196,8 @@ int main() {
 	// // led_setup();
 	// uart_setup();				// PD5
 	// dma_uart_setup();			// DMA1 Ch4
+
+    SPI_init2();
 	
 	for(;;) {			
 		uint32_t now = millis();
@@ -204,7 +205,7 @@ int main() {
 		// button_run();
 		// modEncoder_task(now);
 
-		if (now - sec_time > 400) {
+		if (now - sec_time > 2000) {
 			sec_time = now;
 
 			// modJoystick_task();
@@ -212,7 +213,9 @@ int main() {
 
 			// print_runtime("I2C", modI2C_task);
 			// print_runtime("ST7735", st7735_task);
-			print_runtime("ST7735", tft_test);
+			print_runtime("ST7735b", tft_test);
+
+			storage_test();
 		}
 
 	// 	if (now - ledc_time > 12) {
