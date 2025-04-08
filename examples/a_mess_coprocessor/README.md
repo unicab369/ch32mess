@@ -16,23 +16,25 @@ wire a LED to PD0 and GND
 
 ### WCH Microcontroller Comparison
 
-| Feature      | CH32V003    | CH32V203    | CH32V303     | CH32X035     | CH32F203     |
-|--------------|-------------|-------------|--------------|--------------|--------------|
-| **Core**     | RISC-V (V2) | RISC-V (V4) | RISC-V (V4A) | RISC-V (V4C) | ARM Cortex-M3 |
-| **Max Frequency** | 48 MHz           | 144 MHz          | 144 MHz          | 144 MHz          | 72 MHz           |
-| **Flash**/**SRAM** | 16 KB / 2KB     | 64 KB / 20 BK    | 256 KB / 64 KB   | 128 KB / 32 KB   | 64 KB / 20 KB    |
-| **GPIOs**         | 18               | 42               | 80               | 50               | 37               |
-| **ADC**           | 1x 12-bit (10ch) | 2x 12-bit (16ch) | 3x 12-bit (16ch) | 2x 12-bit (16ch) | 2x 12-bit (16ch) |
-| **DAC**           | -                | 2x 12-bit        | 2x 12-bit        | 2x 12-bit        | 2x 12-bit        |
-| **Timers**        | 1x 16-bit        | 4x 16-bit        | 10x 16/32-bit    | 6x 16-bit        | 4x 16-bit        |
-| **DMA Channels**  | 5                | 12               | 12               | 10               | 12               |
-| **USB**           | -                | USB FS 2.0       | USB FS/HS 2.0    | USB FS 2.0       | USB FS 2.0       |
-| **CAN**           | -                | 1x CAN 2.0B      | 2x CAN 2.0B      | 1x CAN 2.0B      | 1x CAN 2.0B      |
-| **I2C/SPI/UART**  | 1/1/2            | 2/2/3            | 3/3/5            | 2/2/4            | 2/2/3            |
-| **Voltage Range** | 2.7-5.5V         | 2.7-5.5V         | 2.7-5.5V         | 2.7-5.5V         | 2.7-5.5V         |
-| **Packages**      | TSSOP-20         | LQFP48, QFN32    | LQFP100, QFN68   | LQFP64, QFN48    | LQFP48, QFN32    |
-| **Best For**      | Basic GPIO/LEDs  | USB devices      | High-performance | Mixed-signal     | ARM migration    |
+| Model | Freq | Flash | SRAM | GPIO | TIM | WDOG | RTC | ADC | Tchkey | DAC | OPA | SPI | I2C | UART | CAN | USB | Ethnet | BLE | SDIO | VDD (V) | Package | Other Features|
+|----|----|----|----|----|----|----|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `CH32V002` | 48  | 16K  | 2K  | 18 | 5  | 1 | 1  | 1x10b | -   | - | - | 1 | 1 | 1 | - | -  | -      | -   | -  | 2.7-5.5 | TSSOP20 | SWD, WFE mode |
+| `CH32V003` | 48  | 16K  | 2K  | 18 | 5  | 1 | 1  | 1x10b | -   | - | - | 1 | 1 | 1 | - | -  | -      | -   | -  | 2.7-5.5 | TSSOP20 |  power
+| `CH32V004` | 48  | 32K  | 4K  | 26 | 6  | 1 | 1  | 1x12b | -   | - | - | 2 | 1 | 2 | - | FS | -      | -   | -  | 2.7-5.5 | LQFP32  |B 2.0 
+| `CH32V005` | 48  | 32K  | 4K  | 26 | 6  | 1 | 1  | 1x12b | -   | - | - | 2 | 1 | 2 | - | FS | -      | -   | -  | 2.7-5.5 | LQFP32  |B PD  
+| `CH32V006` | 48  | 64K  | 8K  | 42 | 7  | 1 | 1  | 2x12b | -   | 1 | - | 3 | 2 | 3 | - | FS | -      | -   | -  | 2.7-5.5 | LQFP48  |  contr
+| `CH32V007` | 48  | 64K  | 8K  | 42 | 7  | 1 | 1  | 2x12b | -   | 1 | - | 3 | 2 | 3 | - | HS | -      | -   | -  | 2.7-5.5 | LQFP48  |B 2.0 
+| `CH32X033` | 144 | 64K  | 20K | 42 | 10 | 1 | 1  | 2x12b | Yes | 2 | 2 | 4 | 2 | 4 | 1 | FS | -      | -   | 1  | 2.7-5.5 | LQFP48  |P, AES
+| `CH32X035` | 144 | 128K | 32K | 52 | 12 | 1 | 1  | 3x12b | Yes | 2 | 2 | 4 | 3 | 5 | 2 | HS | 10/100 | -   | 1  | 2.7-5.5 | LQFP64  |hernet
+| `CH32V103` | 72  | 64K  | 20K | 42 | 7  | 1 | 1  | 2x12b | -   | 1 | - | 2 | 2 | 3 | - | FS | -      | -   | -  | 2.7-5.5 | LQFP48  |rtex-M
+| `CH32V203` | 144 | 64K  | 20K | 42 | 7  | 1 | 1  | 2x12b | -   | 1 | - | 2 | 2 | 3 | - | FS | -      | -   | -  | 2.7-5.5 | LQFP48  |SC-V V
+| `CH32V208` | 144 | 128K | 64K | 52 | 10 | 1 | 1  | 2x12b | -   | 2 | - | 3 | 2 | 4 | 2 | HS | 10/100 | -   | 1  | 2.7-5.5 | LQFP64  |al USB
+| `CH32V303` | 144 | 128K | 32K | 52 | 10 | 1 | 1  | 3x12b | Yes | 2 | 2 | 4 | 3 | 5 | 2 | HS | -      | -   | 1  | 2.7-5.5 | LQFP64  |U, Cry
+| `CH32V305` | 144 | 256K | 64K | 80 | 16 | 1 | 1  | 3x12b | Yes | 2 | 2 | 6 | 4 | 8 | 2 | HS | 10/100 | -   | 2  | 2.7-5.5 | LQFP100 |al CAN
+| `CH32V307` | 144 | 256K | 64K | 80 | 16 | 1 | 1  | 3x12b | Yes | 2 | 2 | 6 | 4 | 8 | 2 | HS | 10/100 | BLE5 | 2  | 2.7-5.5 | LQFP100 | WiFi optional |
 
+
+Freq, Flash SRAM GPIO TIMER, WDOG, RTC, ADC, Touchkey DAC, OPA, SPI, I2C, UART, CAN USB, Ethernet, BLE, SDIO, VDD, Package, and other features
 
 Discord:
 ```init

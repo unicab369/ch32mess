@@ -62,6 +62,5 @@ void load_sd_file(uint32_t addr, const char filename[] ) {
 
 
 void storage_test() {
-
 	load_sd_file( 0, "testfile.txt" );
 }
