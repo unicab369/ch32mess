@@ -519,18 +519,53 @@ keep_going:
 #if TERMINAL_INPUT_BUFFER
 							if ( nice_terminal )
 							{
-								uint8_t new_line = 0;
-								if( buffer[r - 1] == '\n' ) new_line = 1;
-								if( new_line == 0 ) strncpy( print_buf, TERMINAL_CLEAR_PREV, TERMINAL_BUFFER_SIZE - 1 ); //  Go one line up and erase it
-								else strncpy( print_buf, TERMINAL_CLEAR_CUR, TERMINAL_BUFFER_SIZE - 1 ); // Go to the start of the line and erase it
-								strncat( pline_buf, (char *)buffer, r ); // Add newly received chars to line buffer
+								int new_line = -1;
+								if( buffer[r - 1] == '\n' )
+								{
+									new_line = 0;
+									strncpy( print_buf, TERMINAL_CLEAR_CUR, TERMINAL_BUFFER_SIZE - 1 ); // Go to the start of the line and erase it
+									strncat( pline_buf, (char *)buffer, r - new_line ); // Add newly received chars to line buffer
+								}
+								else
+								{
+									for( int i = r; i > 0; i-- )
+									{
+										if( buffer[i-1] == '\n' )
+										{
+											new_line = r - i;
+											break; 
+										}
+									}
+									if( new_line < 0 )
+									{
+										strncpy( print_buf, TERMINAL_CLEAR_PREV, TERMINAL_BUFFER_SIZE - 1 ); //  Go one line up and erase it
+										strncat( pline_buf, (char *)buffer, r); // Add newly received chars to line buffer
+									}
+									else
+									{
+										strncpy( print_buf, TERMINAL_CLEAR_CUR, TERMINAL_BUFFER_SIZE - 1 ); // Go to the start of the line and erase it
+										strncat( pline_buf, (char *)buffer, r - new_line ); // Add newly received chars to line buffer
+									}
+								}
+								
 								strncat( print_buf, pline_buf, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Add line to buffer
+								if( new_line >= 0 )
+								{
+									memset( pline_buf, 0, sizeof( pline_buf ) );
+								}
+								if( new_line > 0)
+								{
+									strncat( pline_buf, (char *)buffer+r-new_line, new_line );
+									strncat( print_buf, pline_buf, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Add line to buffer
+								}
+								
 								if( to_send > 0 ) strncat( print_buf, TERMINAL_DIM, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) );
 								strncat( print_buf, TERMINAL_SEND_LABEL, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Print styled "Send" label
 								strncat( print_buf, input_buf, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Print current input
 								fwrite( print_buf, strlen( print_buf ), 1, stdout );
 								print_buf[0] = 0;
-								if( new_line == 1 ) pline_buf[0] = 0;
+								// memset( print_buf, 0, sizeof( print_buf ) );
+								
 							}
 							else
 							{
