@@ -382,6 +382,7 @@ keep_going:
 				}
 
 				CaptureKeyboardInput();
+				printf( "Terminal started\n\n" );
 
 #if TERMINAL_INPUT_BUFFER
 				char pline_buf[256]; // Buffer that contains current line that is being printed to
@@ -409,11 +410,15 @@ keep_going:
 					{
 						nice_terminal = 0;
 					}
+					else
+					{
+						printf( TERMINAL_SEND_LABEL );
+						fflush( stdout );
+					}
 					memset( input_buf, 0, sizeof(input_buf) );
 				}
 #endif
 #endif
-				printf( "Terminal started\n\n" );
 				uint32_t appendword = 0;
 				do
 				{
@@ -520,34 +525,24 @@ keep_going:
 							if ( nice_terminal )
 							{
 								int new_line = -1;
-								if( buffer[r - 1] == '\n' )
+								for( int i = r; i > 0; i-- )
 								{
-									new_line = 0;
-									strncpy( print_buf, TERMINAL_CLEAR_CUR, TERMINAL_BUFFER_SIZE - 1 ); // Go to the start of the line and erase it
-									strncat( pline_buf, (char *)buffer, r - new_line ); // Add newly received chars to line buffer
+									if( buffer[i-1] == '\n' )
+									{
+										new_line = r - i;
+										break;
+									}
+								}
+								if( new_line < 0 )
+								{
+									strncpy( print_buf, TERMINAL_CLEAR_PREV, TERMINAL_BUFFER_SIZE - 1 ); //  Go one line up and erase it
+									strncat( pline_buf, (char *)buffer, r); // Add newly received chars to line buffer
 								}
 								else
 								{
-									for( int i = r; i > 0; i-- )
-									{
-										if( buffer[i-1] == '\n' )
-										{
-											new_line = r - i;
-											break; 
-										}
-									}
-									if( new_line < 0 )
-									{
-										strncpy( print_buf, TERMINAL_CLEAR_PREV, TERMINAL_BUFFER_SIZE - 1 ); //  Go one line up and erase it
-										strncat( pline_buf, (char *)buffer, r); // Add newly received chars to line buffer
-									}
-									else
-									{
-										strncpy( print_buf, TERMINAL_CLEAR_CUR, TERMINAL_BUFFER_SIZE - 1 ); // Go to the start of the line and erase it
-										strncat( pline_buf, (char *)buffer, r - new_line ); // Add newly received chars to line buffer
-									}
+									strncpy( print_buf, TERMINAL_CLEAR_CUR, TERMINAL_BUFFER_SIZE - 1 ); // Go to the start of the line and erase it
+									strncat( pline_buf, (char *)buffer, r - new_line ); // Add newly received chars to line buffer
 								}
-								
 								strncat( print_buf, pline_buf, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Add line to buffer
 								if( new_line >= 0 )
 								{
