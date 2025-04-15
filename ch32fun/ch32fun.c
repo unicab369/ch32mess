@@ -384,9 +384,13 @@ static char *twoway_strstr(const unsigned char *h, const unsigned char *n)
 WEAK char *strchr(const char *s, int c)
 {
 	c = (unsigned char)c;
-	if (!c) return (char *)s + strlen(s);
-	for (; *s && *(unsigned char *)s != c; s++);
-	return (char *)s;
+	do
+	{
+		char ts = *s;
+		if( ts == c ) return (char*)s;
+		if( !ts ) return 0;
+		s++;
+	} while(1);
 }
 
 WEAK char *strstr(const char *h, const char *n)
