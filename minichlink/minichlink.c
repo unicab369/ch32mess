@@ -382,17 +382,43 @@ keep_going:
 				}
 
 				CaptureKeyboardInput();
+				printf( "Terminal started\n\n" );
 
 #if TERMINAL_INPUT_BUFFER
 				char pline_buf[256]; // Buffer that contains current line that is being printed to
 				char input_buf[128]; // Buffer that contains user input until it is sent out
-				memset( pline_buf, 0, sizeof( pline_buf ) );
-				memset( input_buf, 0, sizeof( input_buf ) );
+				memset( pline_buf, 0, sizeof(pline_buf) );
+				memset( input_buf, 0, sizeof(input_buf) );
 				uint8_t input_pos = 0;
 				uint8_t to_send = 0;
-        uint8_t nice_terminal = isatty(1);
+				uint8_t nice_terminal = isatty( fileno(stdout) );
+#if defined(WINDOWS) || defined(WIN32) || defined(_WIN32)
+				unsigned long console_mode;
+				void* handle_output = GetStdHandle(STD_OUTPUT_HANDLE);
+				GetConsoleMode(handle_output, &console_mode);
+				console_mode |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+				uint8_t set_result = SetConsoleMode(handle_output, console_mode);
+				if ( set_result == 0 ) nice_terminal = 0;
+#else
+				if( nice_terminal > 0 )
+				{
+					fflush( stdin );
+					fprintf( stdout, "\x1b[6n" );
+					fflush( stdout );
+					read( fileno(stdin), input_buf, 10 );
+					if (input_buf[0] != 27)
+					{
+						nice_terminal = 0;
+					}
+					else
+					{
+						printf( TERMINAL_SEND_LABEL );
+						fflush( stdout );
+					}
+					memset( input_buf, 0, sizeof(input_buf) );
+				}
 #endif
-				printf( "Terminal started\n\n" );
+#endif
 				uint32_t appendword = 0;
 				do
 				{
@@ -498,18 +524,43 @@ keep_going:
 #if TERMINAL_INPUT_BUFFER
 							if ( nice_terminal )
 							{
-								uint8_t new_line = 0;
-								if( buffer[r - 1] == '\n' ) new_line = 1;
-								if( new_line == 0 ) strncpy( print_buf, TERMINAL_CLEAR_PREV, TERMINAL_BUFFER_SIZE - 1 ); //  Go one line up and erase it
-								else strncpy( print_buf, TERMINAL_CLEAR_CUR, TERMINAL_BUFFER_SIZE - 1 ); // Go to the start of the line and erase it
-								strncat( pline_buf, (char *)buffer, r ); // Add newly received chars to line buffer
+								int new_line = -1;
+								for( int i = r; i > 0; i-- )
+								{
+									if( buffer[i-1] == '\n' )
+									{
+										new_line = r - i;
+										break;
+									}
+								}
+								if( new_line < 0 )
+								{
+									strncpy( print_buf, TERMINAL_CLEAR_PREV, TERMINAL_BUFFER_SIZE - 1 ); //  Go one line up and erase it
+									strncat( pline_buf, (char *)buffer, r); // Add newly received chars to line buffer
+								}
+								else
+								{
+									strncpy( print_buf, TERMINAL_CLEAR_CUR, TERMINAL_BUFFER_SIZE - 1 ); // Go to the start of the line and erase it
+									strncat( pline_buf, (char *)buffer, r - new_line ); // Add newly received chars to line buffer
+								}
 								strncat( print_buf, pline_buf, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Add line to buffer
+								if( new_line >= 0 )
+								{
+									memset( pline_buf, 0, sizeof( pline_buf ) );
+								}
+								if( new_line > 0)
+								{
+									strncat( pline_buf, (char *)buffer+r-new_line, new_line );
+									strncat( print_buf, pline_buf, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Add line to buffer
+								}
+								
 								if( to_send > 0 ) strncat( print_buf, TERMINAL_DIM, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) );
 								strncat( print_buf, TERMINAL_SEND_LABEL, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Print styled "Send" label
 								strncat( print_buf, input_buf, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Print current input
 								fwrite( print_buf, strlen( print_buf ), 1, stdout );
 								print_buf[0] = 0;
-								if( new_line == 1 ) pline_buf[0] = 0;
+								// memset( print_buf, 0, sizeof( print_buf ) );
+								
 							}
 							else
 							{
@@ -2715,6 +2766,3 @@ void TestFunction(void * dev )
 		if( (i & 0xf) == 0xf ) printf( "\n" );
 	}
 }
-
-
-

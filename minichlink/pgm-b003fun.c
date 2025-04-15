@@ -582,6 +582,7 @@ int B003PollTerminal( void * dev, uint8_t * buffer, int maxlen, uint32_t leavefl
 		int num_printf_chars = (rr & 0xf)-4;
 		memcpy( buffer, eps->respbuffer+1, num_printf_chars );
 		*(buffer+num_printf_chars) = 0; //  For ease of mind make the buffer a C-string
+		if( num_printf_chars <= 0 ) return num_printf_chars-1;
 		return num_printf_chars;
 	}
 	else
