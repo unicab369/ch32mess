@@ -27,7 +27,7 @@ int main()
 	TIM1->SWEVGR |= TIM_UG;
 
 	// Set TIM1 as a master with TRGO configured to trigger on an update event
-    TIM1->CTLR2 |= TIM_TRGOSource_Update;
+	TIM1->CTLR2 |= TIM_TRGOSource_Update;
 	
 	// Select TRIGO of TIM1 as CLK source for TIM2
 	TIM2->SMCFGR |= TIM_TS_ITR0
@@ -49,9 +49,7 @@ int main()
 	{
 		uint16_t ms = TIM1->CNT;
 		uint16_t s = TIM2->CNT;
-		ms < 100 ?
-			printf("%d.0%d s\r\n", s, ms):
-			printf("%d.%d s\r\n", s, ms);
+		printf("%d.%03d s\r\n", s, ms);
 		Delay_Ms(500);
 	}
 }
