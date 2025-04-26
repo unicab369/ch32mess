@@ -21,9 +21,9 @@ int main()
 	// Enable access to the RTC and backup registers
 	RCC->APB1PCENR |= RCC_PWREN | RCC_BKPEN;
 	PWR->CTLR |= PWR_CTLR_DBP;
-	
-	// this is needed to reset RTC on external manual reset (nRST pin)
-	if ( (BKP->DATAR1 != 0xDEAD) || (RCC->RSTSCKR & RCC_PINRSTF) )
+
+	// this is needed to reset RTC on external manual reset (nRST pin) and first time flashing
+	if ( !(RCC->RSTSCKR & RCC_PORRSTF) && (BKP->DATAR1 != 0xDEAD) || (RCC->RSTSCKR & RCC_PINRSTF) )
 	{
 		// Clear nRST pin reset flag
 		RCC->RSTSCKR |= RCC_RMVF;
@@ -92,7 +92,6 @@ int main()
 		RTC->CTLRL &=~ RTC_CTLRL_CNF;
 
 	}
-
 	// IDK if it actually needed, but in RM:
 	// "after the PB1 is reset or PB1 clock is stopped, the bit should be reset firstly"
 	RTC->CTLRL &=~ RTC_CTLRL_RSF;
