@@ -1,5 +1,7 @@
 // Basic GPIO and Injection-Mode ADC Example using modern funPinMode / funDigitalWrite / etc... modes.
 //
+// Check the datasheet "Pin alternate functions" for associating GPIO value (e.g. PD2) to it's analog channel (e.g. A3)
+//
 // Modes (Assume processor VCC = 3.3V)
 //  Push/Pull (PP): 
 //   * ADC Works. 
@@ -36,8 +38,10 @@ int main()
 	funGpioInitAll();
 	funAnalogInit();
 
-	funPinMode( PA1, GPIO_CFGLR_IN_ANALOG );    // Corresponds to analog in A0
-	funPinMode( PA2, GPIO_CFGLR_IN_PUPD );      // Corresponds to analog in A1
+	// Warning: on the ch32v003 evaluation board, PA1 and PA2 are connected to an external crystal.
+	// To use them for ADC, Y1, C7, & C8 will have to be removed. R4 & R5 wil have to be bridged.
+	funPinMode( PA1, GPIO_CFGLR_IN_ANALOG );    // Corresponds to analog in A1
+	funPinMode( PA2, GPIO_CFGLR_IN_PUPD );      // Corresponds to analog in A0
 	funPinMode( PC4, GPIO_CFGLR_OUT_50Mhz_OD ); // Corresponds to analog in A2
 	funPinMode( PD2, GPIO_CFGLR_OUT_50Mhz_PP ); // Corresponds to analog in A3
 	funPinMode( PC1, GPIO_CFGLR_OUT_50Mhz_OD ); // PC1 = 5V tolerant (so no ADC)

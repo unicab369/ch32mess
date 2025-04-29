@@ -13,6 +13,7 @@
 #include "../ch32fun/ch32fun.h"
 
 #if defined(WINDOWS) || defined(WIN32) || defined(_WIN32)
+extern int isatty(int);
 #if !defined(_SYNCHAPI_H_) && !defined(__TINYC__)
 void Sleep(uint32_t dwMilliseconds);
 #endif
@@ -43,7 +44,7 @@ void * MiniCHLinkInitAsDLL( struct MiniChlinkFunctions ** MCFO, const init_hints
 		else if( strcmp( specpgm, "nchlink" ) == 0 )
 			dev = TryInit_NHCLink042();
 		else if( strcmp( specpgm, "b003boot" ) == 0 )
-			dev = TryInit_B003Fun();
+			dev = TryInit_B003Fun(SimpleReadNumberInt(init_hints->serial_port, 0x1209b003));
 		else if( strcmp( specpgm, "ardulink" ) == 0 )
 			dev = TryInit_Ardulink(init_hints);
 	}
@@ -61,11 +62,11 @@ void * MiniCHLinkInitAsDLL( struct MiniChlinkFunctions ** MCFO, const init_hints
 		{
 			fprintf( stderr, "Found NHC-Link042 Programmer\n" );
 		}
-		else if ((dev = TryInit_B003Fun()))
+		else if ((dev = TryInit_B003Fun(SimpleReadNumberInt(init_hints->serial_port, 0x1209b003))))
 		{
 			fprintf( stderr, "Found B003Fun Bootloader\n" );
 		}
-		else if ( init_hints->serial_port && (dev = TryInit_Ardulink(init_hints)))
+		else if ( init_hints->serial_port && strncmp( init_hints->serial_port, "0x", 2 ) && (dev = TryInit_Ardulink(init_hints)))
 		{
 			fprintf( stderr, "Found Ardulink Programmer\n" );
 		}
@@ -73,7 +74,13 @@ void * MiniCHLinkInitAsDLL( struct MiniChlinkFunctions ** MCFO, const init_hints
 
 	if( !dev )
 	{
-		fprintf( stderr, "Error: Could not initialize any supported programmers\n" );
+		if ( specpgm )
+		{
+			fprintf( stderr, "Error: Could not initialize %s programmer\n", specpgm );	
+		} else
+		{
+			fprintf( stderr, "Error: Could not initialize any supported programmers\n" );
+		}
 		return 0;
 	}
 
@@ -82,7 +89,6 @@ void * MiniCHLinkInitAsDLL( struct MiniChlinkFunctions ** MCFO, const init_hints
 	iss->ram_base = 0x20000000;
 	iss->ram_size = 2048;
 	iss->sector_size = 64;
-	iss->flash_size = 16384;
 	iss->target_chip_type = 0;
 
 	SetupAutomaticHighLevelFunctions( dev );
@@ -114,7 +120,13 @@ int main( int argc, char ** argv )
 		{
 			i++;
 			if( i < argc )
+			{
 				hints.serial_port = argv[i];
+				if( strncmp( hints.serial_port, "0x", 2 ) == 0 )
+				{
+					hints.specific_programmer = "b003boot";
+				}
+			}
 		}
 		else if( strncmp( v, "-C", 2 ) == 0 )
 		{
@@ -151,7 +163,7 @@ int main( int argc, char ** argv )
 	void * dev = MiniCHLinkInitAsDLL( 0, &hints );
 	if( !dev )
 	{
-		fprintf( stderr, "Error: Could not initialize any supported programmers\n" );
+		// fprintf( stderr, "Error: Could not initialize any supported programmers\n" );
 		return -32;
 	}
 
@@ -159,6 +171,7 @@ int main( int argc, char ** argv )
 	int must_be_end = 0;
 
 	int skip_startup = 
+		(argc > 1 && argv[1][0] == '-' && argv[1][1] == 'k' ) |
 		(argc > 1 && argv[1][0] == '-' && argv[1][1] == 'e' ) |
 		(argc > 1 && argv[1][0] == '-' && argv[1][1] == 'A' ) |
 		(argc > 1 && argv[1][0] == '-' && argv[1][1] == 'u' ) |
@@ -204,6 +217,10 @@ keep_going:
 				fprintf( stderr, "Error: Unknown command %c\n", argchar[1] );
 			case 'h':
 				goto help;
+      case 'k':
+        printf( "Skipping programmer initialization\n" );
+        argchar++;
+        goto keep_going;
 			case '3':
 				if( MCF.Control3v3 )
 					MCF.Control3v3( dev, 1 );
@@ -365,14 +382,110 @@ keep_going:
 				}
 
 				CaptureKeyboardInput();
+				printf( "Terminal started\n\n" );
 
+#if TERMINAL_INPUT_BUFFER
+				char pline_buf[256]; // Buffer that contains current line that is being printed to
+				char input_buf[128]; // Buffer that contains user input until it is sent out
+				memset( pline_buf, 0, sizeof(pline_buf) );
+				memset( input_buf, 0, sizeof(input_buf) );
+				uint8_t input_pos = 0;
+				uint8_t to_send = 0;
+				uint8_t nice_terminal = isatty( fileno(stdout) );
+#if defined(WINDOWS) || defined(WIN32) || defined(_WIN32)
+				unsigned long console_mode;
+				void* handle_output = GetStdHandle(STD_OUTPUT_HANDLE);
+				GetConsoleMode(handle_output, &console_mode);
+				console_mode |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+				uint8_t set_result = SetConsoleMode(handle_output, console_mode);
+				if ( set_result == 0 ) nice_terminal = 0;
+#else
+				if( nice_terminal > 0 )
+				{
+					fflush( stdin );
+					fprintf( stdout, "\x1b[6n" );
+					fflush( stdout );
+					read( fileno(stdin), input_buf, 10 );
+					if (input_buf[0] != 27)
+					{
+						nice_terminal = 0;
+					}
+					else
+					{
+						printf( TERMINAL_SEND_LABEL );
+						fflush( stdout );
+					}
+					memset( input_buf, 0, sizeof(input_buf) );
+				}
+#endif
+#endif
 				uint32_t appendword = 0;
 				do
 				{
 					uint8_t buffer[256];
+#if TERMINAL_INPUT_BUFFER
+					char print_buf[TERMINAL_BUFFER_SIZE]; // Buffer that is filled with everything and will be written to stdout (basically it's for formatting)
+					uint8_t update = 0;
+#endif
 					if( !IsGDBServerInShadowHaltState( dev ) )
 					{
 						// Handle keyboard input.
+#if TERMINAL_INPUT_BUFFER
+						if ( nice_terminal > 0 ) 
+						{
+							if( IsKBHit() && to_send == 0 )
+							{
+								uint8_t c = ReadKBByte();
+								if ( c == 8 || c == 127 )
+								{
+									input_buf[input_pos - 1] = 0;
+									if ( input_pos > 0 ) input_pos--;
+								}
+								else if ( c > 31 && c < 127 )
+								{
+									input_buf[input_pos] = c;
+									input_pos++;
+								}
+								else if ( c == '\n' || c == 10 )
+								{
+									to_send = input_pos;
+								}
+								update = 1;
+							}
+							// Process incomming buffer during sending
+							if( to_send > 0 && appendword == 0 )
+							{
+								for( int i = 0; i < 3; i++ )
+								{
+									appendword |= input_buf[input_pos - to_send] << ( i * 8 + 8 );
+									to_send--;
+									if ( to_send == 0 ) break;
+								}
+								if( to_send == 0 )
+								{
+									snprintf(print_buf, TERMINAL_BUFFER_SIZE - 1, "%s%s%s\n%s%s", TERMINAL_CLEAR_CUR, TERMIANL_INPUT_SENT, input_buf, pline_buf, TERMINAL_SEND_LABEL);
+									fwrite( print_buf, strlen( print_buf ), 1, stdout );
+									fflush( stdout );
+									input_pos = 0;
+									memset( input_buf, 0, sizeof( input_buf ) );
+								}
+								appendword |= i + 4;
+							}
+						}
+						else
+						{
+							if( appendword == 0 )
+							{
+								int i;
+								for( i = 0; i < 3; i++ )
+								{
+									if( !IsKBHit() ) break;
+									appendword |= ReadKBByte() << (i*8+8);
+								}
+								appendword |= i+4; // Will go into DATA0.
+							}
+						}
+#else
 						if( appendword == 0 )
 						{
 							int i;
@@ -383,7 +496,19 @@ keep_going:
 							}
 							appendword |= i+4; // Will go into DATA0.
 						}
+#endif
 						int r = MCF.PollTerminal( dev, buffer, sizeof( buffer ), appendword, 0 );
+#if TERMINAL_INPUT_BUFFER
+						if( (nice_terminal > 0) && ( r == -1 || r == 0 ) && update > 0 )
+						{
+							strncpy( print_buf, TERMINAL_CLEAR_CUR, TERMINAL_BUFFER_SIZE - 1 );
+							if ( to_send > 0 ) strncat( print_buf, TERMINAL_DIM, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) );
+							strncat( print_buf, TERMINAL_SEND_LABEL, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) );
+							strncat( print_buf, input_buf, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) );
+							fwrite( print_buf, strlen( print_buf ), 1, stdout );
+							fflush( stdout );
+						}
+#endif
 						if( r < -5 )
 						{
 							fprintf( stderr, "Terminal dead.  code %d\n", r );
@@ -396,7 +521,54 @@ keep_going:
 						}
 						else if( r > 0 )
 						{
+#if TERMINAL_INPUT_BUFFER
+							if ( nice_terminal )
+							{
+								int new_line = -1;
+								for( int i = r; i > 0; i-- )
+								{
+									if( buffer[i-1] == '\n' )
+									{
+										new_line = r - i;
+										break;
+									}
+								}
+								if( new_line < 0 )
+								{
+									strncpy( print_buf, TERMINAL_CLEAR_PREV, TERMINAL_BUFFER_SIZE - 1 ); //  Go one line up and erase it
+									strncat( pline_buf, (char *)buffer, r); // Add newly received chars to line buffer
+								}
+								else
+								{
+									strncpy( print_buf, TERMINAL_CLEAR_CUR, TERMINAL_BUFFER_SIZE - 1 ); // Go to the start of the line and erase it
+									strncat( pline_buf, (char *)buffer, r - new_line ); // Add newly received chars to line buffer
+								}
+								strncat( print_buf, pline_buf, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Add line to buffer
+								if( new_line >= 0 )
+								{
+									memset( pline_buf, 0, sizeof( pline_buf ) );
+								}
+								if( new_line > 0)
+								{
+									strncat( pline_buf, (char *)buffer+r-new_line, new_line );
+									strncat( print_buf, pline_buf, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Add line to buffer
+								}
+								
+								if( to_send > 0 ) strncat( print_buf, TERMINAL_DIM, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) );
+								strncat( print_buf, TERMINAL_SEND_LABEL, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Print styled "Send" label
+								strncat( print_buf, input_buf, TERMINAL_BUFFER_SIZE - 1 - strlen(print_buf) ); // Print current input
+								fwrite( print_buf, strlen( print_buf ), 1, stdout );
+								print_buf[0] = 0;
+								// memset( print_buf, 0, sizeof( print_buf ) );
+								
+							}
+							else
+							{
+								fwrite( buffer, r, 1, stdout );
+							}
+#else
 							fwrite( buffer, r, 1, stdout );
+#endif
 							fflush( stdout );
 							// Otherwise it's basically just an ack for appendword.
 							appendword = 0;
@@ -579,7 +751,7 @@ keep_going:
 			}
 			case 'w':
 			{
-				struct InternalState * iss = (struct InternalState*)(((struct ProgrammerStructBase*)dev)->internal);
+				//struct InternalState * iss = (struct InternalState*)(((struct ProgrammerStructBase*)dev)->internal);
 				if( argchar[2] != 0 ) goto help;
 				iarg++;
 				argchar = 0; // Stop advancing
@@ -660,11 +832,6 @@ keep_going:
 					fprintf( stderr, "Error: File I/O Fault.\n" );
 					exit( -10 );
 				}
-				if( len > iss->flash_size )
-				{
-					fprintf( stderr, "Error: Image for CH32V003 too large (%d)\n", len );
-					exit( -9 );
-				}
 
 
 				int is_flash = IsAddressFlash( offset );
@@ -677,7 +844,7 @@ keep_going:
 				
 				if( MCF.WriteBinaryBlob )
 				{
-				        printf("Writing image\n");
+					printf("Writing image\n");
 					if( MCF.WriteBinaryBlob( dev, offset, len, image ) )
 					{
 						fprintf( stderr, "Error: Fault writing image.\n" );
@@ -715,7 +882,8 @@ help:
 	fprintf( stderr, " -5 Enable 5V\n" );
 	fprintf( stderr, " -t Disable 3.3V\n" );
 	fprintf( stderr, " -f Disable 5V\n" );
-	fprintf( stderr, " -c [serial port for Ardulink, try /dev/ttyACM0 or COM11 etc]\n" );
+	fprintf( stderr, " -k Skip programmer initialization\n" );
+	fprintf( stderr, " -c [serial port for Ardulink, try /dev/ttyACM0 or COM11 etc] or [VID+PID of USB for b003boot, try 0x1209b003]\n" );
 	fprintf( stderr, " -C [specified programmer, eg. b003boot, ardulink, esp32s2chfun]\n" );
 	fprintf( stderr, " -u Clear all code flash - by power off (also can unbrick)\n" );
 	fprintf( stderr, " -E Erase chip\n" );
@@ -896,7 +1064,6 @@ int DefaultSetupInterface( void * dev )
 		return r;
 	}
 
-
 	iss->statetag = STTAG( "STRT" );
 	return 0;
 }
@@ -948,15 +1115,18 @@ int DefaultDetermineChipType( void * dev )
 		MCF.WriteReg32( dev, DMCOMMAND, 0x00231008 );		// Copy data to x8
 		MCF.WriteReg32( dev, DMDATA0, old_data0 );
 
+		uint32_t chip_type = (vendorid & 0xfff00000)>>20;
+		printf( "Chip Type: %03x\n", chip_type );
 		if( data0offset == 0xe00000f4 )
 		{
-			// Only known processor with this signature = 0 is a CH32V003.
-			switch( vendorid >> 20 )
+			// Only known processor with this signature = 0 is qingke-v2.
+			switch( chip_type )
 			{
 			case 0x002: iss->target_chip_type = CHIP_CH32V002; break;
 			case 0x004: iss->target_chip_type = CHIP_CH32V004; break;
 			case 0x005: iss->target_chip_type = CHIP_CH32V005; break;
 			case 0x006: iss->target_chip_type = CHIP_CH32V006; break;
+			case 0x641: iss->target_chip_type = CHIP_CH641; break;
 			default:    iss->target_chip_type = CHIP_CH32V003; break; // not usually 003
 			}
 			// Examples:
@@ -967,13 +1137,21 @@ int DefaultDetermineChipType( void * dev )
 		else if( data0offset == 0xe0000380 )
 		{
 			// All other known chips.
-			uint32_t chip_type = (vendorid & 0xfff00000)>>20;
-			printf( "Chip Type: %03x\n", chip_type );
 			switch( chip_type )
 			{
 				case 0x103:
-					fprintf( stderr, "Autodetected a ch32v10x\n" );
-					iss->target_chip_type = CHIP_CH32V10x;
+					// V103 Special chip ID location: 0x1ffff884
+					// CH32V103C8T6-0x25004102
+					// CH32V103R8T6-0x2500410F
+					// L103 Special chip ID location: 0x1ffff704
+					// CH32L103C8T6-0x103107x0
+					// CH32L103F8P6-0x103A07x0
+					// CH32L103G8R6-0x103B07x0
+					// CH32L103K8U6-0x103207x0
+					// CH32L103F8U6-0x103D07x0
+					// can be find in DBGMCU_GetCHIPID in \EVT\EXAM\SRC\Peripheral\src\chxxx_dbgmcu.c
+					fprintf( stderr, "Autodetected a ch32l10x\n" );
+					iss->target_chip_type = CHIP_CH32L10x;
 					break;
 				case 0x035: case 0x033:
 					fprintf( stderr, "Autodetected a ch32x03x\n" );
@@ -986,6 +1164,10 @@ int DefaultDetermineChipType( void * dev )
 				case 0x303: case 0x305: case 0x307:
 					fprintf( stderr, "Autodetected a ch32v30x\n" );
 					iss->target_chip_type = CHIP_CH32V30x;
+					break;
+				case 0x643:
+					fprintf( stderr, "Autodetected a ch643\n" );
+					iss->target_chip_type = CHIP_CH643;
 					break;
 			}
 		}
@@ -1040,23 +1222,26 @@ int InternalUnlockBootloader( void * dev )
 {
 	if( !MCF.WriteWord ) return -99;
 	int ret = 0;
-	uint32_t OBTKEYR;
+	uint32_t STATR;
 	ret |= MCF.WriteWord( dev, 0x40022028, 0x45670123 ); //(FLASH_BOOT_MODEKEYP)
 	ret |= MCF.WriteWord( dev, 0x40022028, 0xCDEF89AB ); //(FLASH_BOOT_MODEKEYP)
-	ret |= MCF.ReadWord( dev, 0x40022008, &OBTKEYR ); //(FLASH_OBTKEYR)
+	ret |= MCF.ReadWord( dev, 0x4002200C, &STATR ); //(FLASH_OBTKEYR)
 	if( ret )
 	{
 		fprintf( stderr, "Error operating with OBTKEYR\n" );
 		return -1;
 	}
-	if( OBTKEYR & (1<<15) )
+	if( STATR & (1<<15) )
 	{
-		fprintf( stderr, "Error: Could not unlock boot section (%08x)\n", OBTKEYR );
+		fprintf( stderr, "Error: Could not unlock boot section (%08x)\n", STATR );
 	}
-	OBTKEYR |= (1<<14); // Configure for boot-to-bootload.
-	ret |= MCF.WriteWord( dev, 0x40022008, OBTKEYR );
-	ret |= MCF.ReadWord( dev, 0x40022008, &OBTKEYR ); //(FLASH_OBTKEYR)
-	printf( "FLASH_OBTKEYR = %08x (%d)\n", OBTKEYR, ret );
+	STATR |= (1<<14); // Configure for boot-to-bootload.
+	ret |= MCF.WriteWord( dev, 0x4002200C, STATR );
+	ret |= MCF.ReadWord( dev, 0x4002200C, &STATR ); //(FLASH_OBTKEYR)
+
+	// Need to flush state.
+	struct InternalState * iss = (struct InternalState*)(((struct ProgrammerStructBase*)dev)->internal);
+	iss->statetag = STTAG( "XXXX" );
 
 	return ret;
 }
@@ -1240,7 +1425,9 @@ static int DefaultWriteWord( void * dev, uint32_t address_to_write, uint32_t dat
 			// fc75 c.bnez x8, -4
 			// c.ebreak
 			MCF.WriteReg32( dev, DMPROGBUF3, 
-				(iss->target_chip_type == CHIP_CH32X03x || iss->target_chip_type == CHIP_CH32V003 || (iss->target_chip_type >= CHIP_CH32V002 && iss->target_chip_type <= CHIP_CH32V006 ) ) ? 
+				(iss->target_chip_type == CHIP_CH32V003 || (iss->target_chip_type >= CHIP_CH32V002 && iss->target_chip_type <= CHIP_CH32V006)
+				 || iss->target_chip_type == CHIP_CH32X03x || iss->target_chip_type == CHIP_CH32L10x
+				 || iss->target_chip_type == CHIP_CH641 || iss->target_chip_type == CHIP_CH643) ?
 				0x4200c254 : 0x42000001  );
 
 			MCF.WriteReg32( dev, DMPROGBUF4,
@@ -1469,17 +1656,18 @@ int DefaultWriteBinaryBlob( void * dev, uint32_t address_to_write, uint32_t blob
 						MCF.Erase( dev, base, sectorsize, 0 );
 					if( iss->target_chip_type != CHIP_CH32V20x && iss->target_chip_type != CHIP_CH32V30x )
 					{
-						// No bufrst on v20x, v30x
 						// V003, x035, maybe more.
 						MCF.WriteWord( dev, 0x40022010, CR_PAGE_PG ); // THIS IS REQUIRED, (intptr_t)&FLASH->CTLR = 0x40022010
 						MCF.WriteWord( dev, 0x40022010, CR_BUF_RST | CR_PAGE_PG );  // (intptr_t)&FLASH->CTLR = 0x40022010
 					}
 					else
 					{
+						// No bufrst on v20x, v30x
 						if( MCF.WaitForFlash ) MCF.WaitForFlash( dev );
 						MCF.WriteWord( dev, 0x40022010, CR_PAGE_PG ); // THIS IS REQUIRED, (intptr_t)&FLASH->CTLR = 0x40022010
 						//FTPG ==  CR_PAGE_PG   == ((uint32_t)0x00010000)
 					}
+					if( MCF.WaitForFlash ) MCF.WaitForFlash( dev );
 				}
 
 				int j;
@@ -1541,17 +1729,18 @@ int DefaultWriteBinaryBlob( void * dev, uint32_t address_to_write, uint32_t blob
 						MCF.Erase( dev, base, sectorsize, 0 );
 					if( iss->target_chip_type != CHIP_CH32V20x && iss->target_chip_type != CHIP_CH32V30x )
 					{
-						// No bufrst on v20x, v30x
 						// V003, x035, maybe more.
 						MCF.WriteWord( dev, 0x40022010, CR_PAGE_PG ); // THIS IS REQUIRED, (intptr_t)&FLASH->CTLR = 0x40022010
 						MCF.WriteWord( dev, 0x40022010, CR_BUF_RST | CR_PAGE_PG );  // (intptr_t)&FLASH->CTLR = 0x40022010
 					}
 					else
 					{
+						// No bufrst on v20x, v30x
 						if( MCF.WaitForFlash ) MCF.WaitForFlash( dev );
 						MCF.WriteWord( dev, 0x40022010, CR_PAGE_PG ); // THIS IS REQUIRED, (intptr_t)&FLASH->CTLR = 0x40022010
 						//FTPG ==  CR_PAGE_PG   == ((uint32_t)0x00010000)
 					}
+					if( MCF.WaitForFlash ) MCF.WaitForFlash( dev );
 
 					int j;
 					for( j = 0; j < sectorsize/4; j++ )
@@ -1655,7 +1844,9 @@ static int DefaultReadWord( void * dev, uint32_t address_to_read, uint32_t * dat
 
 	int autoincrement = 1;
 	if( address_to_read == 0x40022010 || address_to_read == 0x4002200C )  // Don't autoincrement when checking flash flag. 
+	{
 		autoincrement = 0;
+	}
 
 	if( iss->statetag != STTAG( "RDSQ" ) || address_to_read != iss->currentstateval || autoincrement != iss->autoincrement)
 	{
@@ -2028,7 +2219,8 @@ void PostSetupConfigureInterface( void * dev )
 		iss->sector_size = 256;
 		break;
 	case CHIP_CH32X03x:
-	case CHIP_CH32V10x:
+	case CHIP_CH32L10x:
+	case CHIP_CH643:
 		iss->sector_size = 256;  // ??? The X035 datasheet clearly says this is 128 bytes, but fast page erases do 256?
 		break;
 	case CHIP_CH57x:
@@ -2038,6 +2230,7 @@ void PostSetupConfigureInterface( void * dev )
 		break;
 	default:
 	case CHIP_CH32V003:
+	case CHIP_CH641:
 		iss->sector_size = 64;
 		iss->nr_registers_for_debug = 16;
 		break;
@@ -2387,7 +2580,9 @@ int DefaultUnbrick( void * dev )
 	InternalUnlockFlash(dev, iss);
 
 	const uint8_t * option_data = 
-		( iss->target_chip_type == CHIP_CH32X03x || iss->target_chip_type == CHIP_CH32V003 || (iss->target_chip_type >= CHIP_CH32V002 && iss->target_chip_type <= CHIP_CH32V006 ) ) ?
+		(iss->target_chip_type == CHIP_CH32V003 || (iss->target_chip_type >= CHIP_CH32V002 && iss->target_chip_type <= CHIP_CH32V006)
+		 || iss->target_chip_type == CHIP_CH32X03x || iss->target_chip_type == CHIP_CH32L10x
+		 || iss->target_chip_type == CHIP_CH641 || iss->target_chip_type == CHIP_CH643) ?
 		option_data_003_x03x : option_data_20x_30x;
 
 	DefaultWriteBinaryBlob(dev, 0x1ffff800, 16, option_data );
@@ -2571,6 +2766,3 @@ void TestFunction(void * dev )
 		if( (i & 0xf) == 0xf ) printf( "\n" );
 	}
 }
-
-
-

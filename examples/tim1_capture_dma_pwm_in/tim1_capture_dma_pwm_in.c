@@ -69,7 +69,7 @@ int main()
 	TIM1->PSC = 0x01ff;		// set TIM1 clock prescaler divider (Massive prescaler)
 	TIM1->ATRLR = 65535;	// set PWM total cycle width
 
-	// Tim 1 input / capture (CC1S = 01) / Tim 2 / capture input CC2S = 10)
+	// Tim 1 input / capture (CC1S = 01) / t1c2 / capture input CC2S = 10)
 	TIM1->CHCTLR1 = TIM_CC1S_0 | TIM_CC2S_1;
 
 	// Set CC1 and CC2 to have opposite polarities.
@@ -78,10 +78,13 @@ int main()
 	// initialize counter
 	TIM1->SWEVGR = TIM_UG;
 
-	// Setup slave mode for tim1 input to go to tim2.
+	// Setup slave mode for tim1 input to go to t1c2
+	// 010: encoder mode 2, where the core counter
+	// increments or decrements the count at the edge of
+	// TI1FP1, depending on the level of TI2FP2.
 	TIM1->SMCFGR = TIM_TS_0 | TIM_TS_2 | TIM_SMS_2;
 
-	// Enable TIM2
+	// Enable TIM1
 	TIM1->CTLR1 = TIM_ARPE | TIM_CEN;
 	TIM1->DMAINTENR = TIM_CC1DE | TIM_CC2DE | TIM_UDE; // Enable DMA for T1CC1 + T1CC2
 
