@@ -967,7 +967,7 @@ static inline void Delay_Tiny( int n ) {
 #endif //defined(__riscv) || defined(__riscv__) || defined( CH32V003FUN_BASE )
 
 // Tricky: We need to make sure main and SystemInit() are preserved.
-#ifdef _MINICHLINK_H
+#ifdef MINICHLINK
 int main( int argc, char ** argv) __attribute__((used));
 #else
 int main() __attribute__((used));
