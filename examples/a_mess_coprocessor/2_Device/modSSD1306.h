@@ -7,11 +7,14 @@
 #define CHUNK_SIZE 32  		// Define your desired chunk size
 #define SSD1306_PAGES       (SSD1306_H / 8) // 8 pages for 64 rows
 // #define SSD1306_PAGES       1 // 8 pages for 64 rows
-uint8_t frame_buffer[SSD1306_PAGES][SSD1306_W] = { 0 };
+
 #define SSD1306_W_LIMIT	SSD1306_W - 1
 #define SSD1306_H_LIMIT	SSD1306_H - 1
 
 #define M_PI 3.14
+
+uint8_t frame_buffer[SSD1306_PAGES][SSD1306_W] = { 0 };
+
 typedef struct {
 	uint8_t x;
 	uint8_t y;

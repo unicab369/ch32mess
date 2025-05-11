@@ -189,7 +189,7 @@ void prefill_lines(M_Point *pts, uint8_t num_pts, uint8_t thickness) {
 // #include "lib_rand.h"
 
 uint8_t myvalues[16] = { 30, 50, 60, 40, 20, 50, 30, 10, 35, 10, 20, 30, 40, 50, 60, 20 };
-
+ 
 
 void test_lines() {
 	// seed(0x12345678);

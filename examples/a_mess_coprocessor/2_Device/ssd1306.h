@@ -515,6 +515,7 @@ void ssd1306_drawchar(uint8_t x, uint8_t y, uint8_t chr, uint8_t color) {
 	
 	for(i=0;i<8;i++) {
 		d = fontdata[(chr<<3)+i];
+		
 		for(j=0;j<8;j++){
 			if(d&0x80)
 				col = color;
