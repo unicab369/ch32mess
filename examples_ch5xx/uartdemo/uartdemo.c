@@ -5,6 +5,8 @@ int main()
 {
 	SystemInit();
 
+	funGpioInitAll(); // Enable GPIOs
+
 	funPinMode( PB22, GPIO_CFGLR_IN_PU );
 
 	SetupUART(FUNCONF_UART_PRINTF_BAUD); // UART1 on rx,tx:PA8,PA9 at 115200 baud

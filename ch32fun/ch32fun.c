@@ -1290,7 +1290,7 @@ void SetupUART( int uartBRR )
 	// Push-Pull, 10MHz Output, GPIO A9, with AutoFunction
 	GPIOB->CFGHR &= ~(0xf<<(4*2));
 	GPIOB->CFGHR |= (GPIO_Speed_10MHz | GPIO_CNF_OUT_PP_AF)<<(4*2);
-#elif defined(CH59x)
+#elif defined(CH58x) || defined(CH59x)
 	// rx,tx:PA8,PA9 on uart1
 	funPinMode( PA8, GPIO_CFGLR_IN_PU );
 	funPinMode( PA9, GPIO_CFGLR_OUT_2Mhz_PP );
@@ -1307,7 +1307,7 @@ void SetupUART( int uartBRR )
 	GPIOA->CFGHR |= (GPIO_Speed_10MHz | GPIO_CNF_OUT_PP_AF)<<(4*1);
 #endif
 
-#if !defined(CH59x)
+#if !defined(CH58x) && !defined(CH59x)
 	// 115200, 8n1.  Note if you don't specify a mode, UART remains off even when UE_Set.
 	USART1->CTLR1 = USART_WordLength_8b | USART_Parity_No | USART_Mode_Tx;
 	USART1->CTLR2 = USART_StopBits_1;
@@ -1322,7 +1322,7 @@ void SetupUART( int uartBRR )
 WEAK int _write(int fd, const char *buf, int size)
 {
 	for(int i = 0; i < size; i++){
-#if defined(CH59x)
+#if defined(CH58x) || defined(CH59x)
 		while(!(R8_UART1_LSR & RB_LSR_TX_ALL_EMP));
 		R8_UART1_THR = buf[i];
 #else
@@ -1336,7 +1336,7 @@ WEAK int _write(int fd, const char *buf, int size)
 // single char to UART
 WEAK int putchar(int c)
 {
-#if defined(CH59x)
+#if defined(CH58x) || defined(CH59x)
 	while(!(R8_UART1_LSR & RB_LSR_TX_ALL_EMP));
 	R8_UART1_THR = c;
 #else
