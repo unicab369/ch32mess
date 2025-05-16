@@ -26,7 +26,7 @@ int main(void)
 	RTCInit(); // initialize RTC count to 0
 	NVIC_EnableIRQ(RTC_IRQn); // enable RTC IRQ to hit the RTC_IRQHandler
 
-	funGpioInitAll(); // Enable GPIOs
+	funGpioInitAll(); // no-op on ch5xx
 
 	funPinMode(LED, GPIO_CFGLR_OUT_2Mhz_PP);
 
