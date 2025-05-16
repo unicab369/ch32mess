@@ -142,14 +142,14 @@ typedef struct
 #define NVIC_KEY3                  ((uint32_t)0xBEEF0000)
 
 #define SysTick                    ((SysTick_Type *) SysTick_BASE)
-#define SysTick_LOAD_RELOAD_Msk    (0xFFFFFFFFFFFFFFFF)
-#define SysTick_CTLR_INIT          (1 << 5)
-#define SysTick_CTLR_MODE          (1 << 4)
-#define SysTick_CTLR_STRE          (1 << 3)
-#define SysTick_CTLR_STCLK         (1 << 2)
-#define SysTick_CTLR_STIE          (1 << 1)
-#define SysTick_CTLR_STE           (1 << 0)
-#define SysTick_SR_CNTIF           (1 << 0)
+#define SYSTICK_LOAD_RELOAD_MSK    (0xFFFFFFFFFFFFFFFF)
+#define SYSTICK_CTLR_INIT          (1 << 5)
+#define SYSTICK_CTLR_MODE          (1 << 4)
+#define SYSTICK_CTLR_STRE          (1 << 3)
+#define SYSTICK_CTLR_STCLK         (1 << 2)
+#define SYSTICK_CTLR_STIE          (1 << 1)
+#define SYSTICK_CTLR_STE           (1 << 0)
+#define SYSTICK_SR_CNTIF           (1 << 0)
 
 typedef enum
 {
@@ -289,6 +289,168 @@ typedef enum
 #define PB22     (0x80400000) /*!< Pin 22 selected */
 #define PB23     (0x80800000) /*!< Pin 23 selected */
 #define P_All    (0xFFFFFFFF) /*!< All pins selected */
+
+/* UART0 register */
+#define R32_UART0_CTRL      (*((vu32*)0x40003000)) // RW, UART0 control
+#define R8_UART0_MCR        (*((vu8*)0x40003000))  // RW, UART0 modem control
+#define R8_UART0_IER        (*((vu8*)0x40003001))  // RW, UART0 interrupt enable
+#define R8_UART0_FCR        (*((vu8*)0x40003002))  // RW, UART0 FIFO control
+#define R8_UART0_LCR        (*((vu8*)0x40003003))  // RW, UART0 line control
+#define R32_UART0_STAT      (*((vu32*)0x40003004)) // RO, UART0 status
+#define R8_UART0_IIR        (*((vu8*)0x40003004))  // RO, UART0 interrupt identification
+#define R8_UART0_LSR        (*((vu8*)0x40003005))  // RO, UART0 line status
+#define R8_UART0_MSR        (*((vu8*)0x40003006))  // RO, UART0 modem status
+#define R32_UART0_FIFO      (*((vu32*)0x40003008)) // RW, UART0 data or FIFO port
+#define R8_UART0_RBR        (*((vu8*)0x40003008))  // RO, UART0 receiver buffer, receiving byte
+#define R8_UART0_THR        (*((vu8*)0x40003008))  // WO, UART0 transmitter holding, transmittal byte
+#define R8_UART0_RFC        (*((vu8*)0x4000300A))  // RO, UART0 receiver FIFO count
+#define R8_UART0_TFC        (*((vu8*)0x4000300B))  // RO, UART0 transmitter FIFO count
+#define R32_UART0_SETUP     (*((vu32*)0x4000300C)) // RW, UART0 setup
+#define R16_UART0_DL        (*((vu16*)0x4000300C)) // RW, UART0 divisor latch
+#define R8_UART0_DLL        (*((vu8*)0x4000300C))  // RW, UART0 divisor latch LSB byte
+#define R8_UART0_DLM        (*((vu8*)0x4000300D))  // RW, UART0 divisor latch MSB byte
+#define R8_UART0_DIV        (*((vu8*)0x4000300E))  // RW, UART0 pre-divisor latch byte, only low 7 bit, from 1 to 0/128
+#define R8_UART0_ADR        (*((vu8*)0x4000300F))  // RW, UART0 slave address: 0xFF=disable, other=enable
+
+/* UART1 register */
+#define R32_UART1_CTRL      (*((vu32*)0x40003400)) // RW, UART1 control
+#define R8_UART1_MCR        (*((vu8*)0x40003400))  // RW, UART1 modem control
+#define R8_UART1_IER        (*((vu8*)0x40003401))  // RW, UART1 interrupt enable
+#define R8_UART1_FCR        (*((vu8*)0x40003402))  // RW, UART1 FIFO control
+#define R8_UART1_LCR        (*((vu8*)0x40003403))  // RW, UART1 line control
+#define R32_UART1_STAT      (*((vu32*)0x40003404)) // RO, UART1 status
+#define R8_UART1_IIR        (*((vu8*)0x40003404))  // RO, UART1 interrupt identification
+#define R8_UART1_LSR        (*((vu8*)0x40003405))  // RO, UART1 line status
+#define R32_UART1_FIFO      (*((vu32*)0x40003408)) // RW, UART1 data or FIFO port
+#define R8_UART1_RBR        (*((vu8*)0x40003408))  // RO, UART1 receiver buffer, receiving byte
+#define R8_UART1_THR        (*((vu8*)0x40003408))  // WO, UART1 transmitter holding, transmittal byte
+#define R8_UART1_RFC        (*((vu8*)0x4000340A))  // RO, UART1 receiver FIFO count
+#define R8_UART1_TFC        (*((vu8*)0x4000340B))  // RO, UART1 transmitter FIFO count
+#define R32_UART1_SETUP     (*((vu32*)0x4000340C)) // RW, UART1 setup
+#define R16_UART1_DL        (*((vu16*)0x4000340C)) // RW, UART1 divisor latch
+#define R8_UART1_DLL        (*((vu8*)0x4000340C))  // RW, UART1 divisor latch LSB byte
+#define R8_UART1_DLM        (*((vu8*)0x4000340D))  // RW, UART1 divisor latch MSB byte
+#define R8_UART1_DIV        (*((vu8*)0x4000340E))  // RW, UART1 pre-divisor latch byte, only low 7 bit, from 1 to 0/128
+
+/* UART2 register */
+#define R32_UART2_CTRL      (*((vu32*)0x40003800)) // RW, UART2 control
+#define R8_UART2_MCR        (*((vu8*)0x40003800))  // RW, UART2 modem control
+#define R8_UART2_IER        (*((vu8*)0x40003801))  // RW, UART2 interrupt enable
+#define R8_UART2_FCR        (*((vu8*)0x40003802))  // RW, UART2 FIFO control
+#define R8_UART2_LCR        (*((vu8*)0x40003803))  // RW, UART2 line control
+#define R32_UART2_STAT      (*((vu32*)0x40003804)) // RO, UART2 status
+#define R8_UART2_IIR        (*((vu8*)0x40003804))  // RO, UART2 interrupt identification
+#define R8_UART2_LSR        (*((vu8*)0x40003805))  // RO, UART2 line status
+#define R32_UART2_FIFO      (*((vu32*)0x40003808)) // RW, UART2 data or FIFO port
+#define R8_UART2_RBR        (*((vu8*)0x40003808))  // RO, UART2 receiver buffer, receiving byte
+#define R8_UART2_THR        (*((vu8*)0x40003808))  // WO, UART2 transmitter holding, transmittal byte
+#define R8_UART2_RFC        (*((vu8*)0x4000380A))  // RO, UART2 receiver FIFO count
+#define R8_UART2_TFC        (*((vu8*)0x4000380B))  // RO, UART2 transmitter FIFO count
+#define R32_UART2_SETUP     (*((vu32*)0x4000380C)) // RW, UART2 setup
+#define R16_UART2_DL        (*((vu16*)0x4000380C)) // RW, UART2 divisor latch
+#define R8_UART2_DLL        (*((vu8*)0x4000380C))  // RW, UART2 divisor latch LSB byte
+#define R8_UART2_DLM        (*((vu8*)0x4000380D))  // RW, UART2 divisor latch MSB byte
+#define R8_UART2_DIV        (*((vu8*)0x4000380E))  // RW, UART2 pre-divisor latch byte, only low 7 bit, from 1 to 0/128
+
+/* UART3 register */
+#define R32_UART3_CTRL      (*((vu32*)0x40003C00)) // RW, UART3 control
+#define R8_UART3_MCR        (*((vu8*)0x40003C00))  // RW, UART3 modem control
+#define R8_UART3_IER        (*((vu8*)0x40003C01))  // RW, UART3 interrupt enable
+#define R8_UART3_FCR        (*((vu8*)0x40003C02))  // RW, UART3 FIFO control
+#define R8_UART3_LCR        (*((vu8*)0x40003C03))  // RW, UART3 line control
+#define R32_UART3_STAT      (*((vu32*)0x40003C04)) // RO, UART3 status
+#define R8_UART3_IIR        (*((vu8*)0x40003C04))  // RO, UART3 interrupt identification
+#define R8_UART3_LSR        (*((vu8*)0x40003C05))  // RO, UART3 line status
+#define R32_UART3_FIFO      (*((vu32*)0x40003C08)) // RW, UART3 data or FIFO port
+#define R8_UART3_RBR        (*((vu8*)0x40003C08))  // RO, UART3 receiver buffer, receiving byte
+#define R8_UART3_THR        (*((vu8*)0x40003C08))  // WO, UART3 transmitter holding, transmittal byte
+#define R8_UART3_RFC        (*((vu8*)0x40003C0A))  // RO, UART3 receiver FIFO count
+#define R8_UART3_TFC        (*((vu8*)0x40003C0B))  // RO, UART3 transmitter FIFO count
+#define R32_UART3_SETUP     (*((vu32*)0x40003C0C)) // RW, UART3 setup
+#define R16_UART3_DL        (*((vu16*)0x40003C0C)) // RW, UART3 divisor latch
+#define R8_UART3_DLL        (*((vu8*)0x40003C0C))  // RW, UART3 divisor latch LSB byte
+#define R8_UART3_DLM        (*((vu8*)0x40003C0D))  // RW, UART3 divisor latch MSB byte
+#define R8_UART3_DIV        (*((vu8*)0x40003C0E))  // RW, UART3 pre-divisor latch byte, only low 7 bit, from 1 to 0/128
+
+/* UART register address offset and bit define */
+#define UART_FIFO_SIZE      8                         // UART FIFO size (depth)
+#define UART_RECV_RDY_SZ    7                         // the max FIFO trigger level for UART receiver data available
+#define BA_UART0            ((vu8*)0x40003000)     // point UART0 base address
+#define BA_UART1            ((vu8*)0x40003400)     // point UART1 base address
+#define BA_UART2            ((vu8*)0x40003800)     // point UART2 base address
+#define BA_UART3            ((vu8*)0x40003C00)     // point UART3 base address
+#define UART_MCR            0
+#define  RB_MCR_DTR         0x01                      // RW, UART0 control DTR
+#define  RB_MCR_RTS         0x02                      // RW, UART0 control RTS
+#define  RB_MCR_OUT1        0x04                      // RW, UART0 control OUT1
+#define  RB_MCR_OUT2        0x08                      // RW, UART control OUT2
+#define  RB_MCR_INT_OE      0x08                      // RW, UART interrupt output enable
+#define  RB_MCR_LOOP        0x10                      // RW, UART0 enable local loop back
+#define  RB_MCR_AU_FLOW_EN  0x20                      // RW, UART0 enable autoflow control
+#define  RB_MCR_TNOW        0x40                      // RW, UART0 enable TNOW output on DTR pin
+#define  RB_MCR_HALF        0x80                      // RW, UART0 enable half-duplex
+#define UART_IER            1
+#define  RB_IER_RECV_RDY    0x01                      // RW, UART interrupt enable for receiver data ready
+#define  RB_IER_THR_EMPTY   0x02                      // RW, UART interrupt enable for THR empty
+#define  RB_IER_LINE_STAT   0x04                      // RW, UART interrupt enable for receiver line status
+#define  RB_IER_MODEM_CHG   0x08                      // RW, UART0 interrupt enable for modem status change
+#define  RB_IER_DTR_EN      0x10                      // RW, UART0 DTR/TNOW output pin enable
+#define  RB_IER_RTS_EN      0x20                      // RW, UART0 RTS output pin enable
+#define  RB_IER_TXD_EN      0x40                      // RW, UART TXD pin enable
+#define  RB_IER_RESET       0x80                      // WZ, UART software reset control, high action, auto clear
+#define UART_FCR            2
+#define  RB_FCR_FIFO_EN     0x01                      // RW, UART FIFO enable
+#define  RB_FCR_RX_FIFO_CLR 0x02                      // WZ, clear UART receiver FIFO, high action, auto clear
+#define  RB_FCR_TX_FIFO_CLR 0x04                      // WZ, clear UART transmitter FIFO, high action, auto clear
+#define  RB_FCR_FIFO_TRIG   0xC0                      // RW, UART receiver FIFO trigger level: 00-1byte, 01-2bytes, 10-4bytes, 11-7bytes
+#define UART_LCR            3
+#define  RB_LCR_WORD_SZ     0x03                      // RW, UART word bit length: 00-5bit, 01-6bit, 10-7bit, 11-8bit
+#define  RB_LCR_STOP_BIT    0x04                      // RW, UART stop bit length: 0-1bit, 1-2bit
+#define  RB_LCR_PAR_EN      0x08                      // RW, UART parity enable
+#define  RB_LCR_PAR_MOD     0x30                      // RW, UART parity mode: 00-odd, 01-even, 10-mark, 11-space
+#define  RB_LCR_BREAK_EN    0x40                      // RW, UART break control enable
+#define  RB_LCR_DLAB        0x80                      // RW, UART reserved bit
+#define  RB_LCR_GP_BIT      0x80                      // RW, UART general purpose bit
+#define UART_IIR            4
+#define  RB_IIR_NO_INT      0x01                      // RO, UART no interrupt flag: 0=interrupt action, 1=no interrupt
+#define  RB_IIR_INT_MASK    0x0F                      // RO, UART interrupt flag bit mask
+#define  RB_IIR_FIFO_ID     0xC0                      // RO, UART FIFO enabled flag
+#define UART_LSR            5
+#define  RB_LSR_DATA_RDY    0x01                      // RO, UART receiver fifo data ready status
+#define  RB_LSR_OVER_ERR    0x02                      // RZ, UART receiver overrun error
+#define  RB_LSR_PAR_ERR     0x04                      // RZ, UART receiver parity error
+#define  RB_LSR_FRAME_ERR   0x08                      // RZ, UART receiver frame error
+#define  RB_LSR_BREAK_ERR   0x10                      // RZ, UART receiver break error
+#define  RB_LSR_TX_FIFO_EMP 0x20                      // RO, UART transmitter fifo empty status
+#define  RB_LSR_TX_ALL_EMP  0x40                      // RO, UART transmitter all empty status
+#define  RB_LSR_ERR_RX_FIFO 0x80                      // RO, indicate error in UART receiver fifo
+#define UART_MSR            6
+#define  RB_MSR_CTS_CHG     0x01                      // RZ, UART0 CTS changed status, high action
+#define  RB_MSR_DSR_CHG     0x02                      // RZ, UART0 DSR changed status, high action
+//#define  RB_MSR_RI_CHG      0x04                      // RZ, UART0 RI changed status, high action
+//#define  RB_MSR_DCD_CHG     0x08                      // RZ, UART0 DCD changed status, high action
+#define  RB_MSR_CTS         0x10                      // RO, UART0 CTS action status
+#define  RB_MSR_DSR         0x20                      // RO, UART0 DSR action status
+//#define  RB_MSR_RI          0x40                      // RO, UART0 RI action status
+//#define  RB_MSR_DCD         0x80                      // RO, UART0 DCD action status
+#define UART_RBR            8
+#define UART_THR            8
+#define UART_RFC            0x0A
+#define UART_TFC            0x0B
+#define UART_DLL            0x0C
+#define UART_DLM            0x0D
+#define UART_DIV            0x0E
+#define UART_ADR            0x0F
+
+/* UART interrupt identification values for IIR bits 3:0 */
+#define UART_II_SLV_ADDR    0x0E                      // RO, UART0 slave address match
+#define UART_II_LINE_STAT   0x06                      // RO, UART interrupt by receiver line status
+#define UART_II_RECV_RDY    0x04                      // RO, UART interrupt by receiver data available
+#define UART_II_RECV_TOUT   0x0C                      // RO, UART interrupt by receiver fifo timeout
+#define UART_II_THR_EMPTY   0x02                      // RO, UART interrupt by THR empty
+#define UART_II_MODEM_CHG   0x00                      // RO, UART0 interrupt by modem status change
+#define UART_II_NO_INTER    0x01                      // RO, no UART interrupt is pending
+
 
 typedef enum
 {
