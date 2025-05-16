@@ -1292,8 +1292,13 @@ void SetupUART( int uartBRR )
 	GPIOB->CFGHR |= (GPIO_Speed_10MHz | GPIO_CNF_OUT_PP_AF)<<(4*2);
 #elif defined(CH57x) || defined(CH58x) || defined(CH59x)
 	// rx,tx:PA8,PA9 on uart1
+#if defined(CH57x) && (MCU_PACKAGE == 0 || MCU_PACKAGE == 2) // ch570 ch572
+	funPinMode( PA2, GPIO_CFGLR_IN_PU );
+	funPinMode( PA3, GPIO_CFGLR_OUT_2Mhz_PP );
+#else
 	funPinMode( PA8, GPIO_CFGLR_IN_PU );
 	funPinMode( PA9, GPIO_CFGLR_OUT_2Mhz_PP );
+#endif
 	R16_UART1_DL = ((10 * FUNCONF_SYSTEM_CORE_CLOCK / 8 / uartBRR) +5) /10;
 	R8_UART1_FCR = (2 << 6) | RB_FCR_TX_FIFO_CLR | RB_FCR_RX_FIFO_CLR | RB_FCR_FIFO_EN;
 	R8_UART1_LCR = RB_LCR_WORD_SZ;

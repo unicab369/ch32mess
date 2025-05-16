@@ -9,8 +9,8 @@ int main()
 
 	funPinMode( PB22, GPIO_CFGLR_IN_PU );
 
-	SetupUART(FUNCONF_UART_PRINTF_BAUD); // UART1 on rx,tx:PA8,PA9 at 115200 baud
-	printf("TX in on PA9, RX is on PA8 but not implemented in this demo.\r\n");
+	SetupUART(FUNCONF_UART_PRINTF_BAUD); // UART1 on rx,tx:PA8,PA9 at 115200 baud (PA2,PA3 on ch570/2)
+	printf("TX in on PA3 or PA9, RX is on PA2 or PA8 but not implemented in this demo.\r\n");
 
 	u8 i = 0;
 	char msg[] = "ch32fun is awesome!\r\n";
