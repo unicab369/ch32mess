@@ -17,7 +17,7 @@ int main()
 {
 	SystemInit();
 
-	funGpioInitAll(); // Enable GPIOs
+	funGpioInitAll(); // no-op on ch5xx
 
 	funPinMode( PA8, GPIO_CFGLR_OUT_10Mhz_PP );
 

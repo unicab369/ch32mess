@@ -57,7 +57,7 @@ int main(void)
 	SystemInit();
 	systick_init();
 
-	funGpioInitAll(); // Enable GPIOs
+	funGpioInitAll(); // no-op on ch5xx
 
 	funPinMode(LED, GPIO_CFGLR_OUT_2Mhz_PP);
 		
