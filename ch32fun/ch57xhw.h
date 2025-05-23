@@ -997,7 +997,6 @@ typedef enum
 #define R8_FLASH_CTRL       (*((vu8*)0x40001806))  // RW, flash ROM access control
 #define R8_FLASH_CFG        (*((vu8*)0x40001807))  // RWA, flash ROM access config, SAM
 
-#if MCU_PACKAGE == 1 || MCU_PACKAGE == 3 // CH571/3
 /* UART0 register */
 #define R32_UART0_CTRL      (*((vu32*)0x40003000)) // RW, UART0 control
 #define R8_UART0_MCR        (*((vu8*)0x40003000))  // RW, UART0 modem control
@@ -1079,24 +1078,6 @@ typedef enum
 #define R8_UART3_DLL        (*((vu8*)0x40003C0C))  // RW, UART3 divisor latch LSB byte
 #define R8_UART3_DLM        (*((vu8*)0x40003C0D))  // RW, UART3 divisor latch MSB byte
 #define R8_UART3_DIV        (*((vu8*)0x40003C0E))  // RW, UART3 pre-divisor latch byte, only low 7 bit, from 1 to 0/128
-#else
-/* UART register */
-#define R32_UART_CTRL      (*((vu32*)0x40003400)) // RW, UART control
-#define R8_UART_MCR        (*((vu8*)0x40003400))  // RW, UART modem control
-#define R8_UART_IER        (*((vu8*)0x40003401))  // RW, UART interrupt enable
-#define R8_UART_FCR        (*((vu8*)0x40003402))  // RW, UART FIFO control
-#define R8_UART_LCR        (*((vu8*)0x40003403))  // RW, UART line control
-#define R8_UART_IIR        (*((vu8*)0x40003404))  // RO, UART interrupt identification
-#define R8_UART_LSR        (*((vu8*)0x40003405))  // RO, UART line status
-#define R8_UART_RBR        (*((vu8*)0x40003408))  // RO, UART receiver buffer, receiving byte
-#define R8_UART_THR        (*((vu8*)0x40003408))  // WO, UART transmitter holding, transmittal byte
-#define R8_UART_RFC        (*((vu8*)0x4000340A))  // RO, UART receiver FIFO count
-#define R8_UART_TFC        (*((vu8*)0x4000340B))  // RO, UART transmitter FIFO count
-#define R16_UART_DL        (*((vu16*)0x4000340C)) // RW, UART divisor latch
-#define R8_UART_DLL        (*((vu8*)0x4000340C))  // RW, UART divisor latch LSB byte
-#define R8_UART_DLM        (*((vu8*)0x4000340D))  // RW, UART divisor latch MSB byte
-#define R8_UART_DIV        (*((vu8*)0x4000340E))  // RW, UART pre-divisor latch byte, only low 7 bit, from 1 to 0/128
-#endif
 
 /* UART register address offset and bit define */
 #define UART_FIFO_SIZE      8                         // UART FIFO size (depth)
