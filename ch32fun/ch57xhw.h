@@ -375,7 +375,7 @@ typedef enum
 #define  RB_PWR_DCDC_PRE    0x0400                    // RWA, DC/DC converter pre-enable
 #else
 #define  RB_MAIN_ACT        0x40                      // RWA, main power chose
-#define  RB_PWR_LDO_EN      0x0100                    // RWA, LDO enable 
+#define  RB_PWR_LDO_EN      0x01                      // RWA, LDO enable
 #endif
 #define  RB_PWR_PLAN_EN     0x8000                    // RWA/WZ, power plan enable, auto clear after sleep executed
 #define  RB_PWR_MUST_0010   0x1000                    // RWA, must write 0010
@@ -1328,18 +1328,22 @@ typedef enum
 #define R8_PWM4_DATA        (*((vu8*)0x40005010)) // RW, PWM4 data (8 bit) holding
 #define R8_PWM5_DATA        (*((vu8*)0x40005011)) // RW, PWM5 data (8 bit) holding
 #define R8_PWM_INT_EN       (*((vu8*)0x4000500C))  // RW, PWM interrupt enable
-#define  RB_PWM_IE_OVER     0x40                     // RW, enable interrupt for fifo overflow  
-#define  RB_PWM_IE_DMA      0x20                     // RW, enable interrupt for DMA transmision end
-#define  RB_PWM_IE_FIFO     0x10                     // RW, enable interrupt for fifo count < 4  
-#define  RB_PWM1_IE_CYC     0x04                     // RW, enable interrupt for PWM4\5 cycle end
-#define  RB_PWM_CYC_PRE     0x02                     // RW, select PWM cycle interrupt point: 0=after count 0xFE (0x7E for 7 bits mode...), 1=after count 0xF0 (0x70 for 7 bits mode...) 
 #define  RB_PWM_IE_CYC      0x01                     // RW, enable interrupt for PWM1\2\3 cycle end
+#define  RB_PWM_CYC_PRE     0x02                     // RW, select PWM cycle interrupt point: 0=after count 0xFE (0x7E for 7 bits mode...), 1=after count 0xF0 (0x70 for 7 bits mode...)
+#define  RB_PWM1_IE_CYC     0x04                     // RW, enable interrupt for PWM4\5 cycle end
+#define  RB_PWM_IE_FIFO     0x10                     // RW, enable interrupt for fifo count < 4
+#define  RB_PWM_IE_DMA      0x20                     // RW, enable interrupt for DMA transmision end
+#define  RB_PWM_IE_OVER     0x40                     // RW, enable interrupt for fifo overflow
 #define R8_PWM_INT_FLAG     (*((vu8*)0x4000500D))  // RW1, PWM interrupt flag
-#define  RB_PWM_IF_OVER     0x10                     // RW1, interrupt flag for fifo overflow 
-#define  RB_PWM_IF_DMA      0x08                     // RW1, interrupt flag for DMA transmision end
-#define  RB_PWM_IF_FIFO     0x04                     // RW1, interrupt flag for fifo count < 4 
-#define  RB_PWM1_IF_CYC     0x02                     // RW1, interrupt flag for PWM4\5 cycle end 
+#if MCU_PACKAGE == 1 || MCU_PACKAGE == 3 // CH571/3
+#define  RB_PWM_IF_CYC      0x80                     // RW1, interrupt flag for PWM1\2\3 cycle end
+#else
 #define  RB_PWM_IF_CYC      0x01                     // RW1, interrupt flag for PWM1\2\3 cycle end
+#endif
+#define  RB_PWM1_IF_CYC     0x02                     // RW1, interrupt flag for PWM4\5 cycle end
+#define  RB_PWM_IF_FIFO     0x04                     // RW1, interrupt flag for fifo count < 4
+#define  RB_PWM_IF_DMA      0x08                     // RW1, interrupt flag for DMA transmision end
+#define  RB_PWM_IF_OVER     0x10                     // RW1, interrupt flag for fifo overflow
 #define R16_PWM_CYC_VALUE  (*((vu16*)0x40005014)) // RW, PWM1\2\3 cycle value for 16bit
 #define R16_PWM_CYC1_VALUE   (*((vu16*)0x40005016)) // RW, PWM4\5 cycle value for 16bit
 #define R16_PWM_CLOCK_DIV   (*((vu16*)0x40005018)) // RW, PWM clock division
@@ -1366,7 +1370,11 @@ typedef enum
 #define  RB_PWM_SYNC_START  0x40                      // RW, enable sync start when RB_PWM_SYN_EN=1
 #define  RB_PWM4_5_CH       0x10                      // RO, 1=PWM4 channel output 0=PWM5 channel output
 #define  RB_PWM4_5_STAG_EN  0x08                      // RW, PWM4/5 stagger output enable: 0=independent output, 1=stagger output
+#if MCU_PACKAGE == 1 || MCU_PACKAGE == 3 // CH571/3
+#define  RB_PWM_CYC_MOD     0x0C                      // RW, PWM data width mode: 00=8 bits data, 01=7 bits data, 10=6 bits data, 11=16 bits data
+#else
 #define  RB_PWM_CYC_MOD     0x06                      // RW, PWM data width mode: 00=8 bits data, 01=7 bits data, 10=6 bits data, 11=16 bits data
+#endif
 #define  RB_PWM_CYCLE_SEL   0x01                      // RW, PWM cycle selection: 0=256/128/64/32 clocks, 1=255/127/63/31 clocks
 #define PWM_DMA_CTRL        3
 #define  RB_DMA_SEL         0x04                      // RW, RB_PWM_SYN_EN=0: 1=DMA choose 1/2/3 channel output , 0=DMA choose 4/5 channel output ,RB_PWM_SYN_EN=1:  1=DMA choose 1/2/3/4/5 channel output
