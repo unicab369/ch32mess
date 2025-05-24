@@ -20,7 +20,7 @@
 // micros() reads the raw SysTick Count, and divides it by the number of 
 // ticks per microsecond (WARN: This only uses the lower 32 bits of the SysTick)
 #define millis() (systick_millis)
-#define micros() (SysTick->CNTL / SYSTICK_ONE_MICROSECOND)
+#define micros() (SysTick->CNT / SYSTICK_ONE_MICROSECOND)
 
 // Incremented in the SysTick IRQ - in this example once per millisecond
 volatile uint32_t systick_millis;
@@ -34,14 +34,8 @@ void systick_init(void)
 	// Reset any pre-existing configuration
 	SysTick->CTLR = 0x0000;
 	
-	// Get the current SysTick Count
-	uint64_t CNT = (SysTick->CNTL | ((uint64_t)SysTick->CNTH << 32));
-	// Add 1 millisecond to the current count
-	CNT += SYSTICK_ONE_MILLISECOND;
-
-	// Set the compare register to the new count value
-	SysTick->CMPL = (uint32_t)(CNT & 0xFFFFFFFF);
-	SysTick->CMPH = (uint32_t)(CNT >> 32);
+	// Set the SysTick Compare Register to trigger in 1 millisecond
+	SysTick->CMP = SysTick->CNT + SYSTICK_ONE_MILLISECOND;
 
 	systick_millis = 0x00000000;
 	
@@ -64,14 +58,8 @@ void systick_init(void)
 void SysTick_Handler(void) __attribute__((interrupt));
 void SysTick_Handler(void)
 {
-	// Get the current SysTick Count
-	uint64_t CNT = (SysTick->CNTL | ((uint64_t)SysTick->CNTH << 32));
-	// Add 1 millisecond to the current count
-	CNT += SYSTICK_ONE_MILLISECOND;
-
-	// Set the compare register to the new count value
-	SysTick->CMPL = (uint32_t)(CNT & 0xFFFFFFFF);
-	SysTick->CMPH = (uint32_t)(CNT >> 32);
+	// Set the SysTick Compare Register to trigger in 1 millisecond
+	SysTick->CMP = SysTick->CNT + SYSTICK_ONE_MILLISECOND;
 
 	// Clear the trigger state for the next IRQ
 	SysTick->SR = 0x00000000;
@@ -120,7 +108,8 @@ int main(void)
 		// increment more than 500 per loop
 		printf("\nMilliseconds taken:\t%lu\n", end_millis - start_millis);
 		printf("Current Milliseconds:\t%lu\n", millis());
-		printf("Current Microseconds:\t%lu\n", micros());
+      // cannot print 64-bit value directly
+		printf("Current Microseconds:\t%lu\n", (uint32_t)micros());
 		printf("SysTick->CNTH:\t\t%lu\n", SysTick->CNTH);
 		printf("SysTick->CNTL:\t\t%lu\n", SysTick->CNTL);
 	}
