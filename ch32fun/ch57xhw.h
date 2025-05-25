@@ -1651,10 +1651,12 @@ typedef enum
 #define R16_RTC_CNT_DIV1    R16_RTC_CNT_2S 
 #define R8_LSI_CONFIG       R8_CK32K_CONFIG
 #define RB_CLK_LSI_PON      RB_CLK_XT32K_PON
+
 // Additional power plan bits.
 #define RB_PWR_LDO5V_EN     0x0100
 #define RB_PWR_RAM12K       RB_PWR_RAM2K
 #define RB_PWR_RAM24K       RB_PWR_RAM12K
+#define RB_XT_PRE_EN        0 //no such bit for ch570/2
 
 
 #define CLK_PER_US          (1.0 / ((1.0 / RTC_FREQ) * 1000 * 1000))
