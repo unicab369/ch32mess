@@ -1,6 +1,8 @@
-# CH570/CH572 Low Power Configuration
+# Low Power Configuration
 
 ## Power Consumption
+
+For CH570/2:
 
 - In sleep mode with RAM retention, the MCU consumes approximately **0.9 µA**.  
 - In sleep mode with LSI, RTC and RAM retention, it consumes arnoud **1.2 µA**.
@@ -9,6 +11,8 @@
 CH570 and CH572 have identical low-power modes and configuration options.
 
 ## Pin Configuration
+
+This apply to all WCH chips.
 
 **Do not leave any pins floating.**  
 A floating pin with digital input enabled can draw extra current due to the internal Schmitt trigger.
@@ -36,33 +40,19 @@ After performing one of the above configurations, you can set up pin functions a
 
 ---
 
-## LDO Configuration
+## CH570/572 LDO Configuration
 
-The CH570 and CH572 include an integrated 5V LDO. Configuration depends on the power supply source:
+The CH570 and CH572 include an integrated 5V LDO. Configure `POWERED_BY_V5PIN` according to the power supply source in the funconfig.h. 
 
 ### If powered via the V5 pin
 
-Set the `RB_PWR_LDO5V_EN` bit (in safe access):
-
-```c
-SYS_SAFE_ACCESS
-(
-	R16_POWER_PLAN |= RB_PWR_LDO5V_EN;
-);
-```
+`POWERED_BY_V5PIN = 1` will set the `RB_PWR_LDO5V_EN` bit (in safe access):
 
 ---
 
 ### If powered via the VCC pin
 
-Clear the `RB_PWR_LDO5V_EN` bit:
-
-```c
-SYS_SAFE_ACCESS
-(
-	R16_POWER_PLAN &= ~RB_PWR_LDO5V_EN;
-);
-```
+No additional setting required.
 
 ---
 
@@ -71,7 +61,8 @@ Although connecting a 1 MΩ resistor between VCC and V5 can help reduce this exc
 
 ## System clock frequency
 
-If the clock frequency is below 60 Mhz, one can simply configure `R8_SLP_POWER_CTRL`, `R16_POWER_PLAN` and then call `__WFI()`.
+
+For CH570/2, if the clock frequency is below 60 Mhz, one can simply configure `R8_SLP_POWER_CTRL`, `R16_POWER_PLAN` and then call `__WFI()`.
 
 **For higher clock frequency like 100 Mhz, the flash will become unstable after waking up**
 
@@ -79,4 +70,4 @@ Either lower the clock frequency before going into sleep mode, or let the code r
 
 ## Unofficial test results
 
-- Datasheet asked for a 1.5k resistor between VCC and V5. Preliminary tests suggest that it is not necessary to do so. The MCU works fine without.
+- For CH570/2, datasheet asked for a 1.5k resistor between VCC and V5. Preliminary tests suggest that it is not necessary to do so. The MCU works fine without.

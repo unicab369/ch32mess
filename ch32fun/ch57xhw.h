@@ -1715,6 +1715,8 @@ RV_STATIC_INLINE void RTCTrigger(uint32_t cyc)
 	//get the rtc current time
 	uint32_t alarm = (uint32_t) R16_RTC_CNT_LSI | ( (uint32_t) R16_RTC_CNT_DIV1 << 16 );
 
+	alarm += cyc;
+
 	if( alarm > RTC_MAX_COUNT )
 	{
 		alarm-=	RTC_MAX_COUNT;
@@ -1773,45 +1775,24 @@ RV_STATIC_INLINE void LowPowerSleep(uint32_t cyc, uint16_t power_plan)
 
 		//machine delay for a while.
 		uint16_t i = 400;
-		do{asm volatile("nop");}while (i--);
+		do{asm volatile("nop");}while(i--);
 
 		//get system clock back to normal
 		SYS_SAFE_ACCESS(
 			R8_CLK_SYS_CFG = CLK_SOURCE_CH5XX;
 		);
-	#endif
 
-	SYS_SAFE_ACCESS(
-		R16_POWER_PLAN &= ~RB_PWR_PLAN_EN;
-	);
+	#endif
 
 }
 
-RV_STATIC_INLINE void LowPower(uint32_t time, uint16_t power_plan) {
-	uint32_t time_sleep, time_curr;
-	
-	if (time <= WAKE_UP_RTC_MAX_TIME) {
-		time = time + (RTC_MAX_COUNT - WAKE_UP_RTC_MAX_TIME);
-	}
-	else {
-		time = time - WAKE_UP_RTC_MAX_TIME;
-	}
-
-	time_curr = R32_RTC_CNT_32K;
-	if (time < time_curr) {
-		time_sleep = time + (RTC_MAX_COUNT - time_curr);
-	}
-	else {
-		time_sleep = time - time_curr;
-	}
-	
-	if ((SLEEP_RTC_MIN_TIME < time_sleep) && (time_sleep < SLEEP_RTC_MAX_TIME)) {
+RV_STATIC_INLINE void LowPower(uint32_t time, uint16_t power_plan) 
+{
+	if( time > 500){
 		LowPowerSleep( time, power_plan );
-	}
-	else {
+	} else {
 		LowPowerIdle( time );
 	}
-	
 }
 
 #endif
