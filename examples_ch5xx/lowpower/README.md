@@ -20,21 +20,10 @@ A floating pin with digital input enabled can draw extra current due to the inte
 To avoid unnecessary power consumption, you can either:
 
 1. **Enable all internal pull-up resistors:**
-    ```c
-    R32_PA_PD_DRV = 0;
-    R32_PA_PU = 0xFFFFFFFF;
-    R32_PA_DIR = 0;
-    ```
 
 2. **Use external pull-up resistors.**
 
 3. **Disable all digital functions on the pins:**
-    ```c
-    R32_PA_PD_DRV = 0;
-    R32_PA_PU = 0;
-    R32_PA_DIR = 0;
-    R16_PIN_ALTERNATE = 0x0FFF;
-    ```
 
 After performing one of the above configurations, you can set up pin functions as needed for your application.
 
@@ -42,7 +31,7 @@ After performing one of the above configurations, you can set up pin functions a
 
 ## CH570/572 LDO Configuration
 
-The CH570 and CH572 include an integrated 5V LDO. Configure `POWERED_BY_V5PIN` according to the power supply source in the funconfig.h. 
+The CH570 and CH572 include an integrated 5V LDO. Configure `POWERED_BY_V5PIN` in the funconfig.h according to which pin you use to power the MCU. 
 
 ### If powered via the V5 pin
 
@@ -56,7 +45,7 @@ No additional setting required.
 
 ---
 
-If not configured correctly, the sleep current may increase by approximately 100 µA.  
+If not configured correctly, the sleep current may increase by approximately 100 µA.
 Although connecting a 1 MΩ resistor between VCC and V5 can help reduce this excess current, this workaround is not recommended.
 
 ## System clock frequency

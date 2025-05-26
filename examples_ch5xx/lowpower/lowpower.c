@@ -18,8 +18,8 @@ void allPinPullUp(void)
 {
 	R32_PA_DIR = 0; //Direction input
 	R32_PA_PD_DRV = 0; //Disable pull-down
-    R32_PA_PU = 0xFFFFFFFF; //Enable pull-up  
-    
+	R32_PA_PU = 0xFFFFFFFF; //Enable pull-up  
+	
 }
 
 void blink_led(int n) {
@@ -48,11 +48,13 @@ int main()
 
 	uint8_t i = 5;
 	while(i--)
-	{
-		// 
+	{ 
 		LowPower( MS_TO_RTC(SLEEPTIME_MS), (RB_PWR_RAM12K) );
+		DCDCEnable();
 		blink_led(2);
+		
 		LowPower( MS_TO_RTC(SLEEPTIME_MS), (RB_PWR_RAM12K) );
+		DCDCEnable();
 		blink_led(3);
 	}
 

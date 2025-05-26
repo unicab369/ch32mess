@@ -1668,11 +1668,6 @@ typedef enum
 #define SLEEP_RTC_MAX_TIME  (RTC_MAX_COUNT - 1000 * 1000 * 30)
 #define WAKE_UP_RTC_MAX_TIME US_TO_RTC(1600)
 
-RV_STATIC_INLINE void PFIC_EnableIRQ(IRQn_Type IRQn)
-{
-    PFIC->IENR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
-}
-
 RV_STATIC_INLINE void LSIEnable() 
 {
 	SYS_SAFE_ACCESS(
@@ -1687,13 +1682,13 @@ RV_STATIC_INLINE void LSIEnable()
 RV_STATIC_INLINE void SleepInit()
 {
 	SYS_SAFE_ACCESS
-    (
+	(
 		R8_RTC_MODE_CTRL |= RB_RTC_TRIG_EN;  //enable RTC trigger
    		R8_SLP_WAKE_CTRL |= RB_SLP_RTC_WAKE; // enable wakeup control
-    );
-
-	PFIC_EnableIRQ(RTC_IRQn);//enable RTC interrupt
-
+	);
+	//enable RTC interrupt
+	NVIC->IENR[((uint32_t)(RTC_IRQn) >> 5)] = (1 << ((uint32_t)(RTC_IRQn) & 0x1F));
+	
 }
 
 //clear RTC counters.
@@ -1706,10 +1701,11 @@ RV_STATIC_INLINE void RTCInit()
 		R32_RTC_TRIG = 0;
 		R32_RTC_CTRL |= RB_RTC_LOAD_HI;
 		R32_RTC_CTRL |= RB_RTC_LOAD_LO;
-    );
+	);
 
 }
 
+//Set RTC to generate an interrupt after cyc ticks.
 RV_STATIC_INLINE void RTCTrigger(uint32_t cyc) 
 {
 	//get the rtc current time
@@ -1722,10 +1718,10 @@ RV_STATIC_INLINE void RTCTrigger(uint32_t cyc)
 		alarm-=	RTC_MAX_COUNT;
 	}
 
-    SYS_SAFE_ACCESS
-    (
+	SYS_SAFE_ACCESS
+	(
 		R32_RTC_TRIG = alarm;   
-    );
+	);
 
 }
 
@@ -1734,8 +1730,8 @@ RV_STATIC_INLINE void LowPowerIdle(uint32_t cyc)
 {
 	RTCTrigger(cyc);
 
-	PFIC->SCTLR &= ~(1 << 2); // don't deep sleep
-	PFIC->SCTLR &= ~(1 << 3); // wfi
+	NVIC->SCTLR &= ~(1 << 2); // don't deep sleep
+	NVIC->SCTLR &= ~(1 << 3); // wfi
 	asm volatile ("wfi\nnop\nnop" );
 
 }
@@ -1743,13 +1739,13 @@ RV_STATIC_INLINE void LowPowerIdle(uint32_t cyc)
 // This macro defines which power pin 
 // to use. If not defined correctly, sleep current
 // will be higher than expected.
-#ifndef POWERED_BY_V5PIN
-#define POWERED_BY_V5PIN 0
+#ifndef FUNCONF_POWERED_BY_V5PIN
+#define FUNCONF_POWERED_BY_V5PIN 0
 #endif
 
 RV_STATIC_INLINE void LowPowerSleep(uint32_t cyc, uint16_t power_plan) 
 {
-	#if (POWERED_BY_V5PIN == 1)
+	#if (FUNCONF_POWERED_BY_V5PIN == 1)
 		power_plan |= RB_PWR_LDO5V_EN;
 	#endif
 
@@ -1762,14 +1758,14 @@ RV_STATIC_INLINE void LowPowerSleep(uint32_t cyc, uint16_t power_plan)
 		);
 	#endif
 
-	PFIC->SCTLR |= (1 << 2); //deep sleep
+	NVIC->SCTLR |= (1 << 2); //deep sleep
 	SYS_SAFE_ACCESS
 	(
  	   R8_SLP_POWER_CTRL |= 0x40; //longest wake up delay
   	   R16_POWER_PLAN = RB_PWR_PLAN_EN | RB_PWR_CORE | power_plan | (1<<12);
-    );
+	);
 	
-    asm volatile ("wfi\nnop\nnop" );
+	asm volatile ("wfi\nnop\nnop" );
 
 	#if ( CLK_SOURCE_CH5XX == CLK_SOURCE_PLL_75MHz ) || ( CLK_SOURCE_CH5XX == CLK_SOURCE_PLL_100MHz )
 
@@ -1793,6 +1789,7 @@ RV_STATIC_INLINE void LowPower(uint32_t time, uint16_t power_plan)
 	} else {
 		LowPowerIdle( time );
 	}
+
 }
 
 #endif
