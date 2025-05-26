@@ -6065,48 +6065,13 @@ typedef volatile unsigned long *PUINT32V;
 * 0-LDO buck enabled, limited to approx 3.3V, for PD applications with VDD more than 4V
 * ********************************************************/
 
-/* Vendor Define Message Command */
-#define DEF_VDM_DISC_IDENT         0x01
-#define DEF_VDM_DISC_SVID          0x02
-#define DEF_VDM_DISC_MODE          0x03
-#define DEF_VDM_ENTER_MODE         0x04
-#define DEF_VDM_EXIT_MODE          0x05
-#define DEF_VDM_ATTENTION          0x06
-#define DEF_VDM_DP_S_UPDATE        0x10
-#define DEF_VDM_DP_CONFIG          0x11
-
-/* PD Revision */
-#define DEF_PD_REVISION_10         0x00
-#define DEF_PD_REVISION_20         0x01
-#define DEF_PD_REVISION_30         0x02
-
-
-/* PD PHY Channel */
-#define DEF_PD_CC1                 0x00
-#define DEF_PD_CC2                 0x01
-
 #define PIN_CC1                    GPIO_Pin_14
 #define PIN_CC2                    GPIO_Pin_15
 
-/* PD Tx Status */
-#define DEF_PD_TX_OK               0x00
-#define DEF_PD_TX_FAIL             0x01
-
-/* PDO INDEX */
-#define PDO_INDEX_1                1
-#define PDO_INDEX_2                2
-#define PDO_INDEX_3                3
-#define PDO_INDEX_4                4
-#define PDO_INDEX_5                5
-
 /******************************************************************************/
 
-#define UPD_TMR_TX_48M    (80-1)                                             /* timer value for USB PD BMC transmittal @Fsys=48MHz */
-#define UPD_TMR_RX_48M    (120-1)                                            /* timer value for USB PD BMC receiving @Fsys=48MHz */
-#define UPD_TMR_TX_24M    (40-1)                                             /* timer value for USB PD BMC transmittal @Fsys=24MHz */
-#define UPD_TMR_RX_24M    (60-1)                                             /* timer value for USB PD BMC receiving @Fsys=24MHz */
-#define UPD_TMR_TX_12M    (20-1)                                             /* timer value for USB PD BMC transmittal @Fsys=12MHz */
-#define UPD_TMR_RX_12M    (30-1)                                             /* timer value for USB PD BMC receiving @Fsys=12MHz */
+#define UPD_TMR_TX (FUNCONF_SYSTEM_CORE_CLOCK / 600000 - 1)
+#define UPD_TMR_RX (FUNCONF_SYSTEM_CORE_CLOCK / 400000 - 1)
 
 #define MASK_PD_STAT      0x03                                               /* Bit mask for current PD status */
 #define PD_RX_SOP0        0x01                                               /* SOP0 received */
@@ -6118,15 +6083,6 @@ typedef volatile unsigned long *PUINT32V;
 #define UPD_SOP2          ( TX_SEL1_SYNC1 | TX_SEL2_SYNC3 | TX_SEL3_SYNC1 | TX_SEL4_SYNC3 )     /* SOP3 */
 #define UPD_HARD_RESET    ( TX_SEL1_RST1  | TX_SEL2_RST1  | TX_SEL3_RST1  | TX_SEL4_RST2  )     /* Hard Reset*/
 #define UPD_CABLE_RESET   ( TX_SEL1_RST1  | TX_SEL2_SYNC1 | TX_SEL3_RST1  | TX_SEL4_SYNC3 )     /* Cable Reset*/
-
-
-#define bCC_CMP_22        0X01
-#define bCC_CMP_45        0X02
-#define bCC_CMP_55        0X04
-#define bCC_CMP_66        0X08
-#define bCC_CMP_95        0X10
-#define bCC_CMP_123       0X20
-#define bCC_CMP_220       0X40
 
 /* ch32v00x_wwdg.h -----------------------------------------------------------*/
 
