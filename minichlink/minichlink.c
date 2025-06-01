@@ -10,6 +10,7 @@
 #include <getopt.h>
 #include "terminalhelp.h"
 #include "minichlink.h"
+#include "cmdserver.h"
 #include "../ch32fun/ch32fun.h"
 
 #if defined(WINDOWS) || defined(WIN32) || defined(_WIN32)
@@ -384,6 +385,11 @@ keep_going:
 				CaptureKeyboardInput();
 				printf( "Terminal started\n\n" );
 
+				if( argchar[1] != 'G' )
+				{
+					CMDInit();
+				}
+
 #if TERMINAL_INPUT_BUFFER
 				char pline_buf[256]; // Buffer that contains current line that is being printed to
 				char input_buf[128]; // Buffer that contains user input until it is sent out
@@ -586,9 +592,15 @@ keep_going:
 						}
 					}
 
+
+					// WARN: servers share global state, can only run one at a time.
 					if( argchar[1] == 'G' )
 					{
 						PollGDBServer( dev );
+					}
+					else
+					{
+						CMDPollServer( dev );
 					}
 				} while( 1 );
 
