@@ -1,16 +1,26 @@
 #!/usr/bin/env bash
 
-ADDR=$1
-if [ -z "$ADDR" ]; then
-    echo "Usage: $0 <address>"
-    exit 1
+SYMBOL=$1
+if [ -z "$SYMBOL" ]; then
+   echo "Usage: $0 <symbol>"
+   exit 1
 fi
+
+echo "Searching for symbol: '$SYMBOL'"
+
+ADDR="0x$(riscv64-unknown-elf-objdump -t *.elf | rg $SYMBOL | awk '{print $1}')"
+
+if [ -z "$ADDR" ]; then
+   echo "Error: Symbol '$SYMBOL' not found in the object file."
+   exit 1
+fi
+
 if ! [[ $ADDR =~ ^0x[0-9a-fA-F]+$ ]]; then
     echo "Error: Address must be in hexadecimal format (e.g., 0x20000000)."
     exit 1
 fi
 
-echo "Reading from address: $ADDR"
+echo "Reading '$SYMBOL' at address: $ADDR"
 
 commands=" -s 0x10 0x80000001" # Make the debug module work properly. 
 commands+=" -s 0x20 0x0002a303" # Write wcode of lw x6,0(x5)
