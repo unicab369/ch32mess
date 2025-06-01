@@ -596,7 +596,10 @@ keep_going:
 						PollGDBServer( dev );
 					}
 
-					CMDPollServer( dev );
+					if(1 == CMDPollServer( dev ))
+					{
+						// TODO: signal to GDB server that it should resume.
+					}
 
 				} while( 1 );
 

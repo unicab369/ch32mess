@@ -303,6 +303,7 @@ int CMDPollServer( void * dev )
 			g_cmdServerSocket = 0;
 			g_cmdListenMode = 1;
 			CMDListen();
+			return 1; // Indicate that we processed a command.
 		}
 	}
 
