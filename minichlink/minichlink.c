@@ -385,10 +385,7 @@ keep_going:
 				CaptureKeyboardInput();
 				printf( "Terminal started\n\n" );
 
-				if( argchar[1] != 'G' )
-				{
-					CMDInit();
-				}
+				CMDInit();
 
 #if TERMINAL_INPUT_BUFFER
 				char pline_buf[256]; // Buffer that contains current line that is being printed to
@@ -598,10 +595,9 @@ keep_going:
 					{
 						PollGDBServer( dev );
 					}
-					else
-					{
-						CMDPollServer( dev );
-					}
+
+					CMDPollServer( dev );
+
 				} while( 1 );
 
 				// Currently unreachable - consider reachable-ing
