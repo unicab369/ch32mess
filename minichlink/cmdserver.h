@@ -145,10 +145,6 @@ uint32_t CMDRead(void *dev, uint32_t datareg)
       {
          fprintf( stderr, "Error reading register %02x: %d\n", datareg, ret );
       }
-      else
-      {
-         printf( "REGISTER %02x: %08x, %d\n", datareg, value, ret );
-      }
    }
    else
    {
@@ -159,7 +155,7 @@ uint32_t CMDRead(void *dev, uint32_t datareg)
 
 void CMDRequestHandler(void *dev, const char *request, size_t size, char *out, size_t outsize)
 {
-   printf( "Received(%d): %.*s\n", (int)size, (int)size, request );
+   // printf( "Received(%d): %.*s\n", (int)size, (int)size, request );
    char *cmd = (char*)request;
    while( *cmd && size > 0 )
    {
