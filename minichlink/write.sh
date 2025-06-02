@@ -34,7 +34,7 @@ commands+=" -s 0x21 0x00100073" # Write wcode of ebreak
 commands+=" -s 0x04 $ADDR" # Write address 0x20000000 to DATA0
 commands+=" -s 0x17 0x00271005" # Abstract cmd data0->x5 and exec progbuf
 commands+=" -s 0x04 $VAL" # Write value to DATA0
-commands+=" -s 0x17 0x00271007" # Abstract cmd data0->x6
+commands+=" -s 0x17 0x00271007" # Abstract cmd data0->x7
 commands+=" -m 0x16" # Read ABSTRACTCS
 commands+=" -s 0x10 0x40000001" # Resume(1<<30) without reset(1<<0)
 
