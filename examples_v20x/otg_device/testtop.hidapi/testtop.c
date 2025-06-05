@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <errno.h>
 
 // We borrow the combined hidapi.c from minichlink.
 //
@@ -49,7 +50,7 @@ int main()
 		dSendTotal += OGGetAbsoluteTime() - dStartSend;
 		if( r != sizeof(buffer0) )
 		{
-			fprintf( stderr, "Warning: HID Send fault (%d) Retrying\n", r );
+			fprintf( stderr, "Warning: HID Send fault (%d) (%s) Retrying\n", r, strerror(errno) );
 			retries++;
 			if( retries > 10 ) break;
 			goto retrysend;

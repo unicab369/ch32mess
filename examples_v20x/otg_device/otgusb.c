@@ -57,15 +57,15 @@ static inline void DMA7FastCopyComplete() { while( DMA1_Channel7->CNTR ); }
 
 #if FUSB_USE_HPE
 // There is an issue with some registers apparently getting lost with HPE, just do it the slow way.
-void USBHD_IRQHandler() __attribute__((section(".text.vector_handler")))  __attribute((interrupt));
+void USBFS_IRQHandler() __attribute__((section(".text.vector_handler")))  __attribute((interrupt));
 //void USBHD_IRQHandler() __attribute__((section(".text.vector_handler")))  __attribute((naked));
 #else
-void USBHD_IRQHandler() __attribute__((section(".text.vector_handler")))  __attribute((interrupt));
+void USBFS_IRQHandler() __attribute__((section(".text.vector_handler")))  __attribute((interrupt));
 #endif
 
 void USBOTG_InternalFinishSetup();
 
-void USBHD_IRQHandler()
+void USBFS_IRQHandler()
 {
 #if FUSB_IO_PROFILE
 	funDigitalWrite( PB0, 1 );

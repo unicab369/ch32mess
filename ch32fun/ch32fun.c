@@ -1290,10 +1290,15 @@ void SetupUART( int uartBRR )
 	// Push-Pull, 10MHz Output, GPIO A9, with AutoFunction
 	GPIOB->CFGHR &= ~(0xf<<(4*2));
 	GPIOB->CFGHR |= (GPIO_Speed_10MHz | GPIO_CNF_OUT_PP_AF)<<(4*2);
-#elif defined(CH59x)
+#elif defined(CH57x) || defined(CH58x) || defined(CH59x)
 	// rx,tx:PA8,PA9 on uart1
+#if defined(CH57x) && (MCU_PACKAGE == 0 || MCU_PACKAGE == 2) // ch570 ch572
+	funPinMode( PA2, GPIO_CFGLR_IN_PU );
+	funPinMode( PA3, GPIO_CFGLR_OUT_2Mhz_PP );
+#else
 	funPinMode( PA8, GPIO_CFGLR_IN_PU );
 	funPinMode( PA9, GPIO_CFGLR_OUT_2Mhz_PP );
+#endif
 	R16_UART1_DL = ((10 * FUNCONF_SYSTEM_CORE_CLOCK / 8 / uartBRR) +5) /10;
 	R8_UART1_FCR = (2 << 6) | RB_FCR_TX_FIFO_CLR | RB_FCR_RX_FIFO_CLR | RB_FCR_FIFO_EN;
 	R8_UART1_LCR = RB_LCR_WORD_SZ;
@@ -1307,7 +1312,7 @@ void SetupUART( int uartBRR )
 	GPIOA->CFGHR |= (GPIO_Speed_10MHz | GPIO_CNF_OUT_PP_AF)<<(4*1);
 #endif
 
-#if !defined(CH59x)
+#if !defined(CH57x) && !defined(CH58x) && !defined(CH59x)
 	// 115200, 8n1.  Note if you don't specify a mode, UART remains off even when UE_Set.
 	USART1->CTLR1 = USART_WordLength_8b | USART_Parity_No | USART_Mode_Tx;
 	USART1->CTLR2 = USART_StopBits_1;
@@ -1322,7 +1327,7 @@ void SetupUART( int uartBRR )
 WEAK int _write(int fd, const char *buf, int size)
 {
 	for(int i = 0; i < size; i++){
-#if defined(CH59x)
+#if defined(CH57x) || defined(CH58x) || defined(CH59x)
 		while(!(R8_UART1_LSR & RB_LSR_TX_ALL_EMP));
 		R8_UART1_THR = buf[i];
 #else
@@ -1336,7 +1341,7 @@ WEAK int _write(int fd, const char *buf, int size)
 // single char to UART
 WEAK int putchar(int c)
 {
-#if defined(CH59x)
+#if defined(CH57x) || defined(CH58x) || defined(CH59x)
 	while(!(R8_UART1_LSR & RB_LSR_TX_ALL_EMP));
 	R8_UART1_THR = c;
 #else
@@ -1476,10 +1481,10 @@ void SetupDebugPrintf( void )
 int WaitForDebuggerToAttach( int timeout_ms )
 {
 
-#if defined(CH32V20x) || defined(CH32V30x) || (defined(CH57x) && MCU_PACKAGE == 3) || defined(CH58x) || defined(CH59x) // ch573
+#if defined(CH32V20x) || defined(CH32V30x) || defined(CH32X03x) || (defined(CH57x) && MCU_PACKAGE == 3) || defined(CH58x) || defined(CH59x) // ch573
 	#define systickcnt_t uint64_t
 	#define SYSTICKCNT SysTick->CNT
-#elif defined(CH32V10x) || defined(CH32X03x) || defined(CH57x) // ch570 ch572
+#elif defined(CH32V10x) || defined(CH57x) // ch570 ch572
 	#define systickcnt_t uint32_t
 	#define SYSTICKCNT SysTick->CNTL
 #else
@@ -1525,10 +1530,10 @@ void DelaySysTick( uint32_t n )
 #if defined(CH32V003) || defined(CH32V00x)
 	uint32_t targend = SysTick->CNT + n;
 	while( ((int32_t)( SysTick->CNT - targend )) < 0 );
-#elif defined(CH32V20x) || defined(CH32V30x) || defined(CH58x) || defined(CH59x)
+#elif defined(CH32V20x) || defined(CH32V30x) || defined(CH32X03x) ||defined(CH58x) || defined(CH59x)
 	uint64_t targend = SysTick->CNT + n;
 	while( ((int64_t)( SysTick->CNT - targend )) < 0 );
-#elif defined(CH32V10x) || defined(CH32X03x) || (defined(CH57x) && (MCU_PACKAGE == 0 || MCU_PACKAGE == 2)) // ch570 ch572
+#elif defined(CH32V10x) || (defined(CH57x) && (MCU_PACKAGE == 0 || MCU_PACKAGE == 2)) // ch570 ch572
 	uint32_t targend = SysTick->CNTL + n;
 	while( ((int32_t)( SysTick->CNTL - targend )) < 0 );
 #elif defined(CH57x) && MCU_PACKAGE == 3
@@ -1602,7 +1607,7 @@ void SystemInit( void )
 #ifndef CLK_SOURCE_CH5XX
 	#define CLK_SOURCE_CH5XX CLK_SOURCE_PLL_60MHz
 #endif
-#if defined(CH57x) && (MCU_PACKAGE == 0 || MCU_PACKAGE == 2) // ch570 ch572
+#if (defined(CH57x) && (MCU_PACKAGE == 0 || MCU_PACKAGE == 2)) || (defined(CH58x) && (MCU_PACKAGE == 4 || MCU_PACKAGE == 5)) // ch570/2 ch584/5
 	SYS_CLKTypeDef sc = CLK_SOURCE_CH5XX;
 	
 	if(sc == RB_CLK_SYS_MOD)  // LSI
