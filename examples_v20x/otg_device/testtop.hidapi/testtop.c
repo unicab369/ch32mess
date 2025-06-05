@@ -6,6 +6,9 @@
 // We borrow the combined hidapi.c from minichlink.
 //
 // This is for total perf testing.
+//
+// for this setup, this is typical:
+//  590.212 KB/s PC->003 / 779.573 KB/s 003->PC
 
 #include "hidapi.c"
 
@@ -82,7 +85,7 @@ int main()
 		
 		if( dStartRecv - dSecond > 1.0 )
 		{
-			printf( "\n%2.3f KB/s PC->003 / %2.3f KB/s 003->PC\n", j * .249 / dSendTotal, j * .249 / dRecvTotal );
+			printf( "\n%2.3f KB/s PC->203 / %2.3f KB/s 203->PC\n", j * .249 / dSendTotal, j * .249 / dRecvTotal );
 			dSecond++;
 		}
 	}
