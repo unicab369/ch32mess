@@ -72,6 +72,7 @@ int main()
 	{
 		//printf( "%lu %08lx %lu %d %d\n", USBDEBUG0, USBDEBUG1, USBDEBUG2, 0, 0 );
 		int i;
+
 		for( i = 1; i < 3; i++ )
 		{
 			uint32_t * buffer = (uint32_t*)USBOTG_GetEPBufferIfAvailable( i );

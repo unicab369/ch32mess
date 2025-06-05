@@ -125,74 +125,17 @@ static const uint8_t config_descriptor[ ] =
     /* Configuration Descriptor */
     0x09,                                                   // bLength
     0x02,                                                   // bDescriptorType
-    0x54, 0x00,                                             // wTotalLength
+    0x84, 0x00,                                             // wTotalLength
     0x03,                                                   // bNumInterfaces (3)
     0x01,                                                   // bConfigurationValue
     0x00,                                                   // iConfiguration
     0xA0,                                                   // bmAttributes: Bus Powered; Remote Wakeup
     0x32,                                                   // MaxPower: 100mA
 
-    /* Interface Descriptor (Keyboard) */
-    0x09,                                                   // bLength
-    0x04,                                                   // bDescriptorType
-    0x00,                                                   // bInterfaceNumber
-    0x00,                                                   // bAlternateSetting
-    0x01,                                                   // bNumEndpoints
-    0x03,                                                   // bInterfaceClass
-    0x01,                                                   // bInterfaceSubClass
-    0x01,                                                   // bInterfaceProtocol: Keyboard
-    0x00,                                                   // iInterface
-
-    /* HID Descriptor (Keyboard) */
-    0x09,                                                   // bLength
-    0x21,                                                   // bDescriptorType
-    0x11, 0x01,                                             // bcdHID
-    0x00,                                                   // bCountryCode
-    0x01,                                                   // bNumDescriptors
-    0x22,                                                   // bDescriptorType
-    sizeof(KeyRepDesc), 0x00,                               // wDescriptorLength
-
-    /* Endpoint Descriptor (Keyboard) */
-    0x07,                                                   // bLength
-    0x05,                                                   // bDescriptorType
-    0x81,                                                   // bEndpointAddress: IN Endpoint 1
-    0x03,                                                   // bmAttributes
-    0x08, 0x00,                                             // wMaxPacketSize
-    0x0A,                                                   // bInterval: 10mS
-
-    /* Interface Descriptor (Mouse) */
-    0x09,                                                   // bLength
-    0x04,                                                   // bDescriptorType
-    0x01,                                                   // bInterfaceNumber
-    0x00,                                                   // bAlternateSetting
-    0x01,                                                   // bNumEndpoints
-    0x03,                                                   // bInterfaceClass
-    0x01,                                                   // bInterfaceSubClass
-    0x02,                                                   // bInterfaceProtocol: Mouse
-    0x00,                                                   // iInterface
-
-    /* HID Descriptor (Mouse) */
-    0x09,                                                   // bLength
-    0x21,                                                   // bDescriptorType
-    0x10, 0x01,                                             // bcdHID
-    0x00,                                                   // bCountryCode
-    0x01,                                                   // bNumDescriptors
-    0x22,                                                   // bDescriptorType
-    sizeof(MouseRepDesc), 0x00,                             // wDescriptorLength
-
-    /* Endpoint Descriptor (Mouse) */
-    0x07,                                                   // bLength
-    0x05,                                                   // bDescriptorType
-    0x82,                                                   // bEndpointAddress: IN Endpoint 2
-    0x03,                                                   // bmAttributes
-    0x08, 0x00,                                             // wMaxPacketSize
-    0x01,                                                   // bInterval: 1mS
-
-
     /* Interface Descriptor (HIDAPI) */
     0x09,                                                   // bLength
     0x04,                                                   // bDescriptorType
-    0x02,                                                   // bInterfaceNumber
+    0x00,                                                   // bInterfaceNumber
     0x00,                                                   // bAlternateSetting
     0x01,                                                   // bNumEndpoints
     0x03,                                                   // bInterfaceClass
@@ -216,6 +159,62 @@ static const uint8_t config_descriptor[ ] =
     0x03,                                                   // bmAttributes
     0x08, 0x00,                                             // wMaxPacketSize
     0x0a,                                                   // bInterval: 10mS
+
+    /* Interface Descriptor (Keyboard) */
+    0x09,                                                   // bLength
+    0x04,                                                   // bDescriptorType
+    0x01,                                                   // bInterfaceNumber
+    0x00,                                                   // bAlternateSetting
+    0x01,                                                   // bNumEndpoints
+    0x03,                                                   // bInterfaceClass
+    0x01,                                                   // bInterfaceSubClass
+    0x01,                                                   // bInterfaceProtocol: Keyboard
+    0x00,                                                   // iInterface
+
+    /* HID Descriptor (Keyboard) */
+    0x09,                                                   // bLength
+    0x21,                                                   // bDescriptorType
+    0x11, 0x01,                                             // bcdHID
+    0x00,                                                   // bCountryCode
+    0x01,                                                   // bNumDescriptors
+    0x22,                                                   // bDescriptorType
+    sizeof(KeyRepDesc), 0x00,                               // wDescriptorLength
+
+    /* Endpoint Descriptor (Keyboard) */
+    0x07,                                                   // bLength
+    0x05,                                                   // bDescriptorType
+    0x81,                                                   // bEndpointAddress: IN Endpoint 1
+    0x03,                                                   // bmAttributes
+    0x08, 0x00,                                             // wMaxPacketSize
+    0x0a,                                                   // bInterval: 10mS
+
+    /* Interface Descriptor (Mouse) */
+    0x09,                                                   // bLength
+    0x04,                                                   // bDescriptorType
+    0x02,                                                   // bInterfaceNumber
+    0x00,                                                   // bAlternateSetting
+    0x01,                                                   // bNumEndpoints
+    0x03,                                                   // bInterfaceClass
+    0x01,                                                   // bInterfaceSubClass
+    0x02,                                                   // bInterfaceProtocol: Mouse
+    0x00,                                                   // iInterface
+
+    /* HID Descriptor (Mouse) */
+    0x09,                                                   // bLength
+    0x21,                                                   // bDescriptorType
+    0x10, 0x01,                                             // bcdHID
+    0x00,                                                   // bCountryCode
+    0x01,                                                   // bNumDescriptors
+    0x22,                                                   // bDescriptorType
+    sizeof(MouseRepDesc), 0x00,                             // wDescriptorLength
+
+    /* Endpoint Descriptor (Mouse) */
+    0x07,                                                   // bLength
+    0x05,                                                   // bDescriptorType
+    0x82,                                                   // bEndpointAddress: IN Endpoint 2
+    0x03,                                                   // bmAttributes
+    0x08, 0x00,                                             // wMaxPacketSize
+    0x01,                                                   // bInterval: 1mS
 };
 
 
