@@ -2,8 +2,6 @@
 #include "ch32fun.h"
 #include <string.h>
 
-uint32_t USBDEBUG0, USBDEBUG1, USBDEBUG2;
-
 #define UEP_CTRL_LEN(n) (((uint16_t*)&USBOTG_FS->UEP0_TX_LEN)[n*2])
 #define UEP_CTRL_TX(n)  (((uint8_t*)&USBOTG_FS->UEP0_TX_CTRL)[n*4])
 #define UEP_CTRL_RX(n)  (((uint8_t*)&USBOTG_FS->UEP0_RX_CTRL)[n*4])
