@@ -12,7 +12,7 @@ typedef struct pollfd { SOCKET fd; SHORT  events; SHORT  revents; };
 #define POLLIN 0x0001
 #define POLLERR 0x008
 #define POLLHUP 0x010
-int WSAAPI WSAPoll(struct pollfd * fdArray, ULONG	   fds, INT		 timeout );
+int WSAAPI WSAPoll(struct pollfd * fdArray, ULONG fds, INT timeout );
 #endif
 #define poll WSAPoll
 #define socklen_t uint32_t
@@ -95,7 +95,7 @@ static int CMDListen(void)
 		return -1;
 	}
 
-	fprintf( stderr, "CMD server running on port %d\n", CMDSERVER_PORT );
+	// fprintf( stderr, "CMD server running on port %d\n", CMDSERVER_PORT );
 	
 	return 0;
 }
@@ -122,70 +122,74 @@ static int CMDInit(void)
 
 void CMDWrite(void *dev, uint32_t datareg, uint32_t value)
 {
-   if( MCF.WriteReg32 && MCF.FlushLLCommands )
-   {
-      MCF.FlushLLCommands( dev );
-      MCF.WriteReg32( dev, datareg, value );
-      MCF.FlushLLCommands( dev );
-   }
-   else
-   {
-      fprintf( stderr, "Error: WriteReg32 or FlushLLCommands not implemented.\n" );
-   }
+	if( MCF.WriteReg32 && MCF.FlushLLCommands )
+	{
+		struct InternalState * iss = (struct InternalState*)(((struct ProgrammerStructBase*)dev)->internal);
+		iss->statetag = STTAG( "XXXX" );
+		MCF.FlushLLCommands( dev );
+		MCF.WriteReg32( dev, datareg, value );
+		MCF.FlushLLCommands( dev );
+	}
+	else
+	{
+		fprintf( stderr, "Error: WriteReg32 or FlushLLCommands not implemented.\n" );
+	}
 }
 
 uint32_t CMDRead(void *dev, uint32_t datareg)
 {
 	uint32_t value = 0;
-   if( MCF.ReadReg32 && MCF.FlushLLCommands )
-   {
-      MCF.FlushLLCommands( dev );
-      int ret = MCF.ReadReg32( dev, datareg, &value );
-      if( ret < 0 )
-      {
-         fprintf( stderr, "Error reading register %02x: %d\n", datareg, ret );
-      }
-   }
-   else
-   {
-      fprintf( stderr, "Error: ReadReg32 or FlushLLCommands not implemented.\n" );
-   }
+	if( MCF.ReadReg32 && MCF.FlushLLCommands )
+	{
+		struct InternalState * iss = (struct InternalState*)(((struct ProgrammerStructBase*)dev)->internal);
+		iss->statetag = STTAG( "XXXX" );
+		MCF.FlushLLCommands( dev );
+		int ret = MCF.ReadReg32( dev, datareg, &value );
+		if( ret < 0 )
+		{
+			fprintf( stderr, "Error reading register %02x: %d\n", datareg, ret );
+		}
+	}
+	else
+	{
+		fprintf( stderr, "Error: ReadReg32 or FlushLLCommands not implemented.\n" );
+	}
 	return value;
 }
 
 void CMDRequestHandler(void *dev, const char *request, size_t size, char *out, size_t outsize)
 {
-   // printf( "Received(%d): %.*s\n", (int)size, (int)size, request );
-   char *cmd = (char*)request;
-   while( *cmd && size > 0 )
-   {
-      switch(*cmd)
-      {
-         case 's': // Write command
-         {
-            uint32_t datareg = 0;
-            uint32_t value = 0;
-            int consumed = 0;
-            int ret = sscanf( cmd + 1, " %x %x%n", &datareg, &value, &consumed);
-            if( ret == 2 )
-            {
-               CMDWrite( dev, datareg, value );
-            }
-            else
-            {
-               fprintf( stderr, "Error parsing write command: %s\n", cmd );
-            }
-            cmd += consumed + 1; // Move past the command and the two hex values
-            break;
-         }
-         case 'm': // Read command
-         {
-            uint32_t datareg = 0;
-            int consumed = 0;
-            int ret = sscanf( cmd + 1, " %x%n", &datareg, &consumed );
-            if( ret == 1 )
-            {
-               uint32_t val = CMDRead( dev, datareg );
+	// printf( "Received(%d): %.*s\n", (int)size, (int)size, request );
+	char *cmd = (char*)request;
+	while( *cmd && size > 0 )
+	{
+		switch(*cmd)
+		{
+			case 's': // Write command
+			{
+				uint32_t datareg = 0;
+				uint32_t value = 0;
+				int consumed = 0;
+				int ret = sscanf( cmd + 1, " %x %x%n", &datareg, &value, &consumed);
+				if( ret == 2 )
+				{
+					CMDWrite( dev, datareg, value );
+				}
+				else
+				{
+					fprintf( stderr, "Error parsing write command: %s\n", cmd );
+				}
+				cmd += consumed + 1; // Move past the command and the two hex values
+				break;
+			}
+			case 'm': // Read command
+			{
+				uint32_t datareg = 0;
+				int consumed = 0;
+				int ret = sscanf( cmd + 1, " %x%n", &datareg, &consumed );
+				if( ret == 1 )
+				{
+					uint32_t val = CMDRead( dev, datareg );
 					int ret = snprintf( out, outsize, "%02x: %08x\n", datareg, val );
 					if( ret < 0 )
 					{
@@ -200,26 +204,26 @@ void CMDRequestHandler(void *dev, const char *request, size_t size, char *out, s
 					}
 					out += ret;
 					outsize -= ret;
-            }
-            else
-            {
-               fprintf( stderr, "Error parsing read command: %s\n", cmd );
-            }
-            cmd += consumed + 1; // Move past the command and the hex value
-            break;
-         }
-         case '\r':
-         case '\n': // Newline command
-         {
-            return;
-         }
-         default:
-         {
-            cmd++; // Move to the next character
-            break;
-         }
-      }
-   }
+				}
+				else
+				{
+					fprintf( stderr, "Error parsing read command: %s\n", cmd );
+				}
+				cmd += consumed + 1; // Move past the command and the hex value
+				break;
+			}
+			case '\r':
+			case '\n': // Newline command
+			{
+				return;
+			}
+			default:
+			{
+				cmd++; // Move to the next character
+				break;
+			}
+		}
+	}
 
 }
 
@@ -258,22 +262,21 @@ int CMDPollServer( void * dev )
 			if( g_cmdServerSocket ) 	close( g_cmdServerSocket );
 			g_cmdServerSocket = 0;
 			g_cmdListenMode = 1;
-         CMDListen();
+			CMDListen();
 		}
 	}
 	if( allpolls[0].revents & POLLIN )
 	{
 		if( g_cmdListenMode == 1 )
 		{
-			struct   sockaddr_in tin;
+			struct	sockaddr_in tin;
 			socklen_t addrlen  = sizeof(tin);
 			memset( &tin, 0, addrlen );
 			int tsocket = accept( g_cmdServerSocket, (struct sockaddr *)&tin, (void*)&addrlen );
 			closesocket( g_cmdServerSocket );
 			g_cmdServerSocket = tsocket;
 			g_cmdListenMode = 2;
-			fprintf( stderr, "Connection established to cmd server client\n" );	
-			// Established.
+			// fprintf( stderr, "Connection established to cmd server client\n" );	
 		}
 		else if( g_cmdListenMode == 2 )
 		{
@@ -284,7 +287,15 @@ int CMDPollServer( void * dev )
 			ssize_t rx = recv( g_cmdServerSocket, (char*)buffer, sizeof( buffer ), MSG_NOSIGNAL );
 			if( rx > 0 )
 			{
+				// Save the current DMDATA0 register value, so we can restore it later.
+				uint32_t data0;
+				MCF.FlushLLCommands( dev );
+				(void)MCF.ReadReg32( dev, DMDATA0, &data0 );
+				MCF.FlushLLCommands( dev );
+
 				CMDRequestHandler( dev, (const char*)buffer, rx , (char*)outbuffer, sizeof( outbuffer ) );
+				// Restore the DMDATA0 register value.
+				MCF.WriteReg32( dev, DMDATA0, data0 );
 				int outsize = strlen( (const char*)outbuffer );
 				if( outsize > 0 )
 				{
