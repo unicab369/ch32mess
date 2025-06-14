@@ -8,9 +8,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include "cmdserver.h"
 #include "terminalhelp.h"
 #include "minichlink.h"
-#include "cmdserver.h"
 #include "../ch32fun/ch32fun.h"
 
 #if defined(WINDOWS) || defined(WIN32) || defined(_WIN32)

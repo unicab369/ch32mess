@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "minichlink.h"
 
 #define CMDSERVER_PORT 4444
 
@@ -56,11 +57,11 @@ static int CMDListen(void)
 	struct linger lx;
 	lx.l_onoff = 1;
 	lx.l_linger = 0;
-	setsockopt( serverSocket, SOL_SOCKET, SO_LINGER, (const char *)&lx, sizeof( lx ) );
+	setsockopt( g_cmdServerSocket, SOL_SOCKET, SO_LINGER, (const char *)&lx, sizeof( lx ) );
 
 	//Enable SO_REUSEADDR
 	int reusevar = 1;
-	setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&reusevar, sizeof(reusevar));
+	setsockopt( g_cmdServerSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&reusevar, sizeof(reusevar));
 #else
 	struct linger lx;
 	lx.l_onoff = 1;
