@@ -9,9 +9,9 @@ fi
 
 echo "Searching for symbol: '$SYMBOL'"
 
-ADDR="$(riscv64-unknown-elf-objdump -t *.elf | rg $SYMBOL | awk '{print "0x"$1}')"
+ADDR="$(riscv64-unknown-elf-objdump -t *.elf | grep $SYMBOL | awk '{print "0x"$1}')"
 if [ -z "$COUNT" ]; then
-   WORDS=$(riscv64-unknown-elf-objdump -t *.elf | rg $SYMBOL | awk '{print int(("0x"$5 + 3) / 4)}')
+   WORDS=$(riscv64-unknown-elf-objdump -t *.elf | grep $SYMBOL | awk '{print int(("0x"$5 + 3) / 4)}')
 else
    WORDS=$COUNT
 fi

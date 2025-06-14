@@ -9,7 +9,7 @@ fi
 
 echo "Searching for symbol: '$SYMBOL'"
 
-ADDR="0x$(riscv64-unknown-elf-objdump -t *.elf | rg $SYMBOL | awk '{print $1}')"
+ADDR="0x$(riscv64-unknown-elf-objdump -t *.elf | grep $SYMBOL | awk '{print $1}')"
 
 if [ -z "$ADDR" ]; then
    echo "Error: Symbol '$SYMBOL' not found in the object file."
