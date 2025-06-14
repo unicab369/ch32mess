@@ -589,8 +589,6 @@ keep_going:
 						}
 					}
 
-
-					// WARN: servers share global state, can only run one at a time.
 					if( argchar[1] == 'G' )
 					{
 						PollGDBServer( dev );
