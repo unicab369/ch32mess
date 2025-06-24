@@ -3,6 +3,25 @@
  *	Configuration:
  *		- USBPD_IMPLEMENTATION: Enable USB PD implementation
  *		- FUNCONF_USBPD_NO_STR: Disable string conversion functions
+ *	Notes:
+ *		- This library is based on the USB Power Delivery Specification.
+ *			https://www.usb.org/document-library/usb-power-delivery
+ *		- Packed bitfield structs are used for de/serialization of USB PD messages and
+ *			are taken directly from the spec above.
+ *		- Not all messages are implemented.
+ *		- Formatting macros are provided next to the struct deffinitions.
+ *	Basic usage:
+ *		USBPD_VCC_e vcc = eUSBPD_VCC_5V0; // set the VCC voltage
+ *		USBPD_Result_e result = USBPD_Init( vcc ); // initialize the peripheral
+ *
+ *		// wait for negotiation to complete.
+ *		while ( eUSBPD_BUSY == ( result = USBPD_SinkNegotiate() ) );
+ *
+ *		USBPD_SPR_CapabilitiesMessage_t *capabilities;
+ *		const size_t count = USBPD_GetCapabilities( &capabilities );
+ *		USBPD_SelectPDO( count - 1, voltage ); // select the last supply (voltage is only used for PPS)
+ *
+ *	The above is not a complete example, check the funtion declarations below for more details.
  */
 
 #pragma once
@@ -416,9 +435,6 @@ typedef enum
 	eUSBPD_MAX_EXTENDED_MSG_CHUNK_LEN = 26,
 	eUSBPD_MAX_EXTENDED_MSG_LEGACY_LEN = 26,
 } USBPD_ValueParameters_t;
-
-// Module public type definitions
-// -----------------------------------------------------------------------------
 
 typedef enum
 {
