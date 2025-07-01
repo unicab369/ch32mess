@@ -78,7 +78,7 @@ void SysTick_Handler(void)
 	// If more than this number of ticks elapse before the trigger is reset,
 	// you may miss your next interrupt trigger
 	// (Make sure the IQR is lightweight and CMP value is reasonable)
-	uint64_t cmp_tmp = SysTick->CMP + SYSTICK_ONE_MILLISECOND;
+	uint64_t cmp_tmp = SysTick->CMP + SYSTICK_ONE_MILLISECOND - 1;
 	
 	SysTick->CMP0 = (uint8_t)cmp_tmp;
 	SysTick->CMP1 = (uint8_t)(cmp_tmp >> 8);
