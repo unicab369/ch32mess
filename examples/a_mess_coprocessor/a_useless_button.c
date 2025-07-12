@@ -145,14 +145,6 @@ void turnOffGPIOs(uint8_t* arr, uint8_t len) {
 #include "2_Device/fun_ws2812.h"
 #include "2_Device/ssd1306_draw.h"
 
-void button_onSingleClick() {
-	printf("I'M USELESS.\n\r");
-	digitalWrite(0xC0, !digitalRead(0xD0));
-}
-
-void button_onDoubleClick() {
-	printf("I'M USELESS TWICE.\n\r");
-}
 
 volatile uint8_t i2c_registers[32] = {0xaa};
 
@@ -171,19 +163,44 @@ void onRead(uint8_t reg) {
 #include "ST7735/modTFT.h"
 #include "Storage/modStorage.h"
 
+char str_output[20];
+
+void encoder_onChanged(M_Encoder *model) {
+	sprintf(str_output, "Pos %ld delta %ld   ",
+			(int32_t)model->count - model->initial_count, 
+			(int32_t)model->count - model->last_count);
+	ssd1306_print_str_at(str_output, 0, 0);
+}
+
+void button_onChanged(int btn, uint32_t duration) {
+	if (btn == BTN_SINGLECLICK) {
+		sprintf(str_output, "BTN 1x CLICK");
+	} else if (btn == BTN_DOUBLECLICK) {
+		sprintf(str_output, "BTN 2x CLICK");
+	} else if (btn == BTN_LONGPRESS) {
+		sprintf(str_output, "BTN LONG PRESS %ld", duration);
+	}
+
+	ssd1306_print_str_at(str_output, 1, 0);
+}
+
 int main() {
 	static const char message[] = "Hello World!\r\n";
 	uint32_t ledc_time = 0;
 	uint32_t sec_time = 0;
 	uint32_t time_ref = 0;
 
+	M_Encoder encoder_a = {0, 0, 0};
+	M_Button button_a = {0xC0, 0, 0, 0, 0, BUTTON_IDLE, 0, 0};
+
 	SystemInit();
 	systick_init();			//! required for millis()
 	Delay_Ms(100);
 	
-	button_setup(0xC0);
-	modI2C_setup();				// I2C1: uses PC1 & PC2
-	modEncoder_setup();			// TIM2 Ch1, Ch2 : uses PD3, PD4.
+	button_setup(&button_a);
+	modEncoder_setup(&encoder_a);		// TIM2 Ch1, Ch2 : uses PD3, PD4.
+	modI2C_setup();						// I2C1: uses PC1 & PC2
+	modI2C_task();
 
 	// modST7735_setup();
 	// pinMode(0xD0, OUTPUT);
@@ -197,12 +214,13 @@ int main() {
 	// dma_uart_setup();			// DMA1 Ch4
 
     // SPI_init2();
-	
+
+
 	for(;;) {			
 		uint32_t now = millis();
 
-		button_run();
-		modEncoder_task(now);
+		button_run(&button_a, button_onChanged);
+		modEncoder_task(now, &encoder_a, encoder_onChanged);
 
 		if (now - sec_time > 2000) {
 			sec_time = now;
@@ -210,9 +228,9 @@ int main() {
 			// modJoystick_task();
 			// dma_uart_tx(message, sizeof(message) - 1);
 
-			uint32_t runtime_i2c = get_runTime(modI2C_task);
-			printf("I2C runtime: %lu us\n\r", runtime_i2c);
-
+			// uint32_t runtime_i2c = get_runTime(modI2C_task);
+			// sprintf(str_output, "I2C runtime: %lu us", runtime_i2c);
+			// ssd1306_print_str_at(str_output, 0, 0);
 
 			// print_runtime("ST7735", st7735_task);
 			// print_runtime("ST7735b", tft_test);

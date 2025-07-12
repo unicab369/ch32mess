@@ -1,9 +1,14 @@
 #include "ch32fun.h"
 #include <stdio.h>
 
+typedef struct {
+	uint16_t initial_count;		// initial count
+	uint16_t last_count;		// previous count
+	uint16_t count;				// current count
+} M_Encoder;
 
-uint16_t initial_count = 0;
-uint16_t last_count = 0;
+// uint16_t initial_count = 0;
+// uint16_t last_count = 0;
 
 
 //# Timer 2 pin mappings by AFIO->PCFR1
@@ -57,7 +62,7 @@ uint16_t last_count = 0;
 */
 
 
-void modEncoder_setup() {
+void modEncoder_setup(M_Encoder *model) {
 	//! Enable GPIOC, TIM2, and AFIO *very important!*
 	RCC->APB2PCENR |= RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOD | RCC_APB2Periph_GPIOC;
 	RCC->APB1PCENR |= RCC_APB1Periph_TIM2;
@@ -111,20 +116,24 @@ void modEncoder_setup() {
 	TIM2->SWEVGR |= TIM_UG;			// initialize timer
 	TIM2->CTLR1 |= TIM_CEN;			// TIM2 Counter Enable
 
-	initial_count = TIM2->CNT;
-	last_count = TIM2->CNT;
+	model->initial_count = TIM2->CNT;
+	model->last_count = TIM2->CNT;
 };
 
 static uint32_t encoder_debounceTime = 0;
 
-void modEncoder_task(uint32_t current_time) {
+void modEncoder_task(uint32_t current_time, M_Encoder *model, void (*handler)(M_Encoder *model)) {
 	// if (current_time - encoder_debounceTime < 50) return;
 	// encoder_debounceTime = current_time;
 
 	uint16_t count = TIM2->CNT;
-	if( count != last_count) {
-		printf("Position relative=%ld absolute=%u delta=%ld\n",
-				(int32_t)count - initial_count, count, (int32_t)count-last_count);
-		last_count = count;
+	model->count = count;
+
+	if( count != model->last_count) {
+		handler(model);
+		// model->task(model);
+		// printf("Position relative=%ld delta=%ld\n",
+		// 		(int32_t)count - model->initial_count, (int32_t)count-model->last_count);
+		model->last_count = count;
 	}
 }
