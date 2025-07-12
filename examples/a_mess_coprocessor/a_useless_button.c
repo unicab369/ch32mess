@@ -178,32 +178,31 @@ int main() {
 	uint32_t time_ref = 0;
 
 	SystemInit();
-	Delay_Ms(200);
+	systick_init();			//! required for millis()
+	Delay_Ms(100);
 	
-	button_setup(0xC3);	
-	
+	button_setup(0xC0);
+	modI2C_setup();				// I2C1: uses PC1 & PC2
+	modEncoder_setup();			// TIM2 Ch1, Ch2 : uses PD3, PD4.
+
 	// modST7735_setup();
-
-	// modI2C_setup();
-
 	// pinMode(0xD0, OUTPUT);
 	// modJoystick_setup();		// ADC Ch0, Ch1 | DMA1 Ch1
 	// ws2812_setup();				// DMA1 Ch3
 
-	// modEncoder_setup();			// TIM2 Ch1, Ch2
-	// // modPWM_setup();				// TIM2 Ch3
+	// modPWM_setup();				// TIM2 Ch3
 
-	// // led_setup();
+	// led_setup();
 	// uart_setup();				// PD5
 	// dma_uart_setup();			// DMA1 Ch4
 
-    SPI_init2();
+    // SPI_init2();
 	
 	for(;;) {			
 		uint32_t now = millis();
 
-		// button_run();
-		// modEncoder_task(now);
+		button_run();
+		modEncoder_task(now);
 
 		if (now - sec_time > 2000) {
 			sec_time = now;
@@ -211,11 +210,14 @@ int main() {
 			// modJoystick_task();
 			// dma_uart_tx(message, sizeof(message) - 1);
 
-			// print_runtime("I2C", modI2C_task);
-			// print_runtime("ST7735", st7735_task);
-			print_runtime("ST7735b", tft_test);
+			uint32_t runtime_i2c = get_runTime(modI2C_task);
+			printf("I2C runtime: %lu us\n\r", runtime_i2c);
 
-			storage_test();
+
+			// print_runtime("ST7735", st7735_task);
+			// print_runtime("ST7735b", tft_test);
+
+			// storage_test();
 		}
 
 	// 	if (now - ledc_time > 12) {

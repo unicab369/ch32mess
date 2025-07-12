@@ -50,14 +50,14 @@ void load_sd_file(uint32_t addr, const char filename[] ) {
 
 		if(total_bytes % (16*1024) == 0){
 			cnt++;
-			printf("%d kb so far...  ", total_bytes/1024);
+			// printf("%d kb so far...  ", total_bytes/1024);
 			putchar(spinner[cnt%4]);
 			putchar('\r');
 		}
 
 	}
 	if ( rc ) return;
-	printf("\n\rLoaded %d kilobytes.\n\r", total_bytes/1024);
+	// printf("\n\rLoaded %d kilobytes.\n\r", total_bytes/1024);
 }
 
 

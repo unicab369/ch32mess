@@ -3,9 +3,7 @@
 void modI2C_task() {
 	test_polys();
 	test_circles();
-	// test_lines();
-
-	ssd1306_renderFrame();
+	test_lines();
 
 	// ssd1306_vertical_line(&line, 2, 0);
 
@@ -20,6 +18,8 @@ void modI2C_task() {
 	// ssd1306_print_str_at("testing 66664fdafadfafa", 5, 0);
 	// ssd1306_print_str_at("testing 77774fdafadfafa", 6, 0);
 	// ssd1306_print_str_at("testing 88884fdafadfafa", 7, 0);
+
+	ssd1306_renderFrame();
 }
 
 int i2c_test() {

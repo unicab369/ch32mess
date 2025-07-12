@@ -46,7 +46,6 @@ void button_setup(uint8_t pin) {
    button_pin = pin;
 
 	pinMode(pin, INPUT_PULLUP);
-   systick_init();
    _reset_timers(BUTTON_IDLE);
 }
 
