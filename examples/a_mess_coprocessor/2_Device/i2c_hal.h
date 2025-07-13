@@ -147,7 +147,7 @@ void I2CInit(uint8_t iSDA, uint8_t iSCL, int iSpeed)
 #define  I2C_EVENT_MASTER_MODE_SELECT ((uint32_t)0x00030001)  /* BUSY, MSL and SB flag */
 #define  I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED ((uint32_t)0x00070082)  /* BUSY, MSL, ADDR, TXE and TRA flags */
 #define  I2C_EVENT_MASTER_BYTE_TRANSMITTED ((uint32_t)0x00070084)  /* TRA, BUSY, MSL, TXE and BTF flags */
-#define I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED              ((uint32_t)0x00030002) /* BUSY, MSL and ADDR flags */
+// #define I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED              ((uint32_t)0x00030002) /* BUSY, MSL and ADDR flags */
 /* I2C FLAG mask */
 #define I2C_FLAG_Mask                ((uint32_t)0x00FFFFFF)
 #define CTLR1_ACK_Reset          ((uint16_t)0xFBFF)
@@ -208,13 +208,13 @@ uint16_t u16;
 
 //    while( I2C_GetFlagStatus( I2C_FLAG_BUSY ) != 0) {};
    I2C1->CTLR1 |= I2C_CTLR1_START;
-   while( !I2C_CheckEvent( I2C_EVENT_MASTER_MODE_SELECT ) );
+   // while( !I2C_CheckEvent( I2C_EVENT_MASTER_MODE_SELECT ) );
 
    I2C1->DATAR = (u8Addr << 1) | 1; // send 7-bit address, read flag = 1
 
-   while(/*iTimeout < TIMEOUT &&*/ !I2C_CheckEvent( I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED ) ) {
-      iTimeout++;
-   }
+   // while(/*iTimeout < TIMEOUT &&*/ !I2C_CheckEvent( I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED ) ) {
+   //    iTimeout++;
+   // }
    //if (iTimeout >= TIMEOUT) return 0; // error
    u16 = I2C1->STAR2; // clear the status register
    I2C1->CTLR1 |= CTLR1_ACK_Set; // enable acknowledge
@@ -257,17 +257,17 @@ void I2CWrite(uint8_t u8Addr, uint8_t *pData, int iLen)
       I2C1->DATAR = pData[i];
    }
 
-   // while(iLen)
-   // {
-   //     if( I2C_GetFlagStatus( I2C_FLAG_TXE ) !=  0 )
-   //     {
-   //         I2C1->DATAR = pData[0];
-   //         pData++;
-   //         iLen--;
-   //     }
-   // }
+   while(iLen)
+   {
+      if( I2C_GetFlagStatus( I2C_FLAG_TXE ) !=  0 )
+      {
+         I2C1->DATAR = pData[0];
+         pData++;
+         iLen--;
+      }
+   }
 
-   while( !I2C_CheckEvent( I2C_EVENT_MASTER_BYTE_TRANSMITTED ) );
+   // while( !I2C_CheckEvent( I2C_EVENT_MASTER_BYTE_TRANSMITTED ) );
    I2C1->CTLR1 |= I2C_CTLR1_STOP;
 
 } /* I2CWrite() */

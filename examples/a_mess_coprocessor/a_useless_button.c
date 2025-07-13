@@ -13,6 +13,7 @@
 #include "ch32fun.h"
 #include <stdio.h>
 
+
 #include "1_Foundation/fun_button.h"
 // #include "3_Nrf/nrf24l01_main.h"
 
@@ -27,7 +28,7 @@
 
 void nrf_onReceive(uint8_t* data) {
 	digitalWrite(PIN_LED, !digitalRead(PIN_LED));
-	struct SensorData* receivedData = (struct SensorData*) data;
+	// struct SensorData* receivedData = (struct SensorData*) data;
 
 	// printf("\n\rRecieved");
 	// printf("\n\rtemp=%lu, hum=%lu, lux=%lu, v=%lu, mA=%lu", 
@@ -166,10 +167,11 @@ void onRead(uint8_t reg) {
 char str_output[20];
 
 void encoder_onChanged(M_Encoder *model) {
-	sprintf(str_output, "Pos %ld delta %ld   ",
+	sprintf(str_output, "Pos %ld delta %ld",
 			(int32_t)model->count - model->initial_count, 
 			(int32_t)model->count - model->last_count);
 	ssd1306_print_str_at(str_output, 0, 0);
+	printf(str_output); printf("\n\r");
 }
 
 void button_onChanged(int btn, uint32_t duration) {
@@ -178,29 +180,53 @@ void button_onChanged(int btn, uint32_t duration) {
 	} else if (btn == BTN_DOUBLECLICK) {
 		sprintf(str_output, "BTN 2x CLICK");
 	} else if (btn == BTN_LONGPRESS) {
-		sprintf(str_output, "BTN LONG PRESS %ld", duration);
+		sprintf(str_output, "BTN LONGPRESS %ld", duration);
 	}
 
-	ssd1306_print_str_at(str_output, 1, 0);
+	ssd1306_print_str_at(str_output, 0, 0);
+	printf(str_output); printf("\n\r");
+}
+
+void i2c_scan_callback(const uint8_t addr) {
+	if (addr == 0x00 || addr == 0x7F) return; // Skip reserved addresses
+	
+	static int line = 1;
+	sprintf(str_output, "I2C: 0x%02X", addr);
+	ssd1306_print_str_at(str_output, line++, 0);
+	printf(str_output); printf("\n\r");
 }
 
 int main() {
 	static const char message[] = "Hello World!\r\n";
+	uint32_t counter = 0;
 	uint32_t ledc_time = 0;
 	uint32_t sec_time = 0;
 	uint32_t time_ref = 0;
 
 	M_Encoder encoder_a = {0, 0, 0};
-	M_Button button_a = {0xC0, 0, 0, 0, 0, BUTTON_IDLE, 0, 0};
+	M_Button button_a = {0xC0, BUTTON_IDLE, 0, 0, 0, 0, 0, 0};
 
 	SystemInit();
 	systick_init();			//! required for millis()
 	Delay_Ms(100);
 	
+	// used PC0
 	button_setup(&button_a);
-	modEncoder_setup(&encoder_a);		// TIM2 Ch1, Ch2 : uses PD3, PD4.
-	modI2C_setup();						// I2C1: uses PC1 & PC2
-	modI2C_task();
+
+	// TIM2 Ch1, Ch2 : uses PD3, PD4.
+	modEncoder_setup(&encoder_a);
+
+	// I2C1: uses PC1 & PC2
+	if(i2c_init(&dev_bh17) != I2C_OK)
+		printf("Failed to init the I2C Bus\n");
+	// else
+	// 	Delay_Ms(100);
+	// 	// SSD1306 Addr: 0x3C
+	// 	ssd1306_setup();
+	// 	// modI2C_task();
+
+	// sprintf(str_output, "Hello Bee!");
+	// ssd1306_print_str_at(str_output, 0, 0);
 
 	// modST7735_setup();
 	// pinMode(0xD0, OUTPUT);
@@ -215,6 +241,14 @@ int main() {
 
     // SPI_init2();
 
+	// Scan the I2C Bus, prints any devices that respond
+	printf("----Scanning I2C Bus for Devices---\n");
+	i2c_scan(i2c_scan_callback);
+	printf("----Done Scanning----\n\n");
+
+	i2c_write_raw(&dev_bh17, BH17_POWER_ON, 1);
+	i2c_write_raw(&dev_bh17, BH17_RESET, 1);
+	Delay_Ms(100);
 
 	for(;;) {			
 		uint32_t now = millis();
@@ -224,6 +258,30 @@ int main() {
 
 		if (now - sec_time > 2000) {
 			sec_time = now;
+
+			sprintf(str_output, "counter %lu", counter++);
+			ssd1306_print_str_at(str_output, 7, 0);
+
+			// check_sensors();
+
+			// SHT3x Addr: 0x44
+			if (i2c_ping(SHT3_ADDR) == I2C_OK) {
+				uint16_t tempF, hum;
+				
+				Delay_Ms(1);
+				SHT3x_getReading(&tempF, &hum);
+				sprintf(str_output, "temp %lu, hum %lu", tempF, hum);
+				// ssd1306_print_str_at(str_output, 2, 0);
+				printf(str_output); printf("\n\r");
+			}
+
+			// BH1750 Addr: 0x23
+			if (i2c_ping(BH17_ADDR) == I2C_OK) {
+				uint16_t lux = BH17_Read(); 
+				sprintf(str_output, "lux %lu", lux);
+				// ssd1306_print_str_at(str_output, 1, 0);
+				printf(str_output); printf("\n\r");
+			}
 
 			// modJoystick_task();
 			// dma_uart_tx(message, sizeof(message) - 1);

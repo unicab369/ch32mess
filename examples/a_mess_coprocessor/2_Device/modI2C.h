@@ -7,7 +7,11 @@
 #include "ssd1306.h"
 #include "bomb.h"
 
+#include "lib_i2c.h"
+
 #define INA219_ADDR 0x40
+#define SHT3_ADDR 0x44
+#define BH17_ADDR 0x23
 
 //! BH1750
 #define BH17_CONT_HI1 0x10      // 1 lux resolution 120ms
@@ -18,7 +22,34 @@
 #define BH17_ONCE_LOW 0x23      // 4 lux resolution 16ms
 #define BH17_RESET 0x07
 #define BH17_POWER_ON 0x01
-#define BH17_ADDR 0x23
+
+
+//! SHT30
+uint8_t SHT_RESET_CMD[2]        = { 0x30, 0xA2 };
+uint8_t SHT_HIGHREP_HOLD_CMD[2] = { 0x2C, 0x06 };
+uint8_t SHT_MEDREP_HOLD_CMD[2]  = { 0x2C, 0x0D };
+uint8_t SHT_LOWREP_HOLD_CMD[2]  = { 0x2C, 0x10 };
+uint8_t SHT_HIGHREP_FREE_CMD[2] = { 0x24, 0x00 };
+uint8_t SHT_MEDREP_FREE_CMD[2]  = { 0x24, 0x0B };
+uint8_t SHT_LOWREP_FREE_CMD[2]  = { 0x24, 0x16 };
+uint8_t SHT_HEATER_DISABLE[2]   = { 0x30, 0x66 };
+uint8_t SHT_HEATER_ENABLE[2]    = { 0x30, 0x6D };
+
+
+i2c_device_t dev_bh17 = {
+	.clkr = I2C_CLK_400KHZ,
+	.type = I2C_ADDR_7BIT,
+	.addr = 0x23,
+	.regb = 1,
+};
+
+i2c_device_t dev_sht3x = {
+	.clkr = I2C_CLK_400KHZ,
+	.type = I2C_ADDR_7BIT,
+	.addr = 0x44,
+	.regb = 1,
+};
+
 
 uint16_t hexToDecimal(const uint8_t* hexArray, size_t length) {
 	uint16_t result = 0;
@@ -37,7 +68,8 @@ void BH17_Setup() {
 
 uint16_t BH17_Read() {
 	uint8_t readData[2];
-	I2CRead(BH17_ADDR, readData, 2);
+	// I2CRead(BH17_ADDR, readData, 2);
+	i2c_read_raw(&dev_bh17, readData, sizeof(readData));
 	return hexToDecimal(readData, sizeof(readData));
 }
 
@@ -54,21 +86,67 @@ uint16_t INA219_Read() {
 	return (swapped>>3)*4;
 }
 
-//! SHT30
-uint8_t SHT_RESET_CMD[2]        = { 0x30, 0xA2 };
-uint8_t SHT_HIGHREP_HOLD_CMD[2] = { 0x2C, 0x06 };
-uint8_t SHT_MEDREP_HOLD_CMD[2]  = { 0x2C, 0x0D };
-uint8_t SHT_LOWREP_HOLD_CMD[2]  = { 0x2C, 0x10 };
-uint8_t SHT_HIGHREP_FREE_CMD[2] = { 0x24, 0x00 };
-uint8_t SHT_MEDREP_FREE_CMD[2]  = { 0x24, 0x0B };
-uint8_t SHT_LOWREP_FREE_CMD[2]  = { 0x24, 0x16 };
-uint8_t SHT_HEATER_DISABLE[2]   = { 0x30, 0x66 };
-uint8_t SHT_HEATER_ENABLE[2]    = { 0x30, 0x6D };
-#define SHT3_ADDR 0x44
+void SHT3x_getReading(uint16_t *tempF, uint16_t *hum) {
+	i2c_write_raw(&dev_sht3x, SHT_LOWREP_FREE_CMD, sizeof(SHT_LOWREP_FREE_CMD));
+	// I2CWrite(SHT3_ADDR, SHT_LOWREP_FREE_CMD, sizeof(SHT_LOWREP_FREE_CMD));
+	Delay_Ms(5);
+	uint8_t buff[6];
+	i2c_read_raw(&dev_sht3x, buff, sizeof(buff));
+	// I2CRead(SHT3_ADDR, buff, 6);
+
+	uint16_t rawTemp = 0, rawHum = 0;
+	rawTemp = (buff[0]<<8) + buff[1];
+	rawHum = (buff[3]<<8) + buff[4];
+
+	// tempC = rawTemp*175/65535 - 45;
+	tempF = rawTemp*63/13107 - 49;
+	hum = rawHum*100/65535;
+}
+
+
 
 struct SensorData {
 	uint16_t tempF, hum, lux, voltage, mA;
 };
+
+
+
+// void i2c_setup_devices() {
+// 	i2c_write_reg()
+// 	i2c_write_reg(&dev_bh17, BH17_RESET, BH17_POWER_ON, 1);
+// 	Delay_Ms(10);
+// }
+
+
+void check_sensors() {
+	Delay_Ms(100);
+
+	uint8_t readData[2];
+	i2c_err_t ret = i2c_read_reg(&dev_bh17, BH17_POWER_ON, readData, sizeof(readData));
+
+	if (ret == I2C_OK) {
+		uint16_t value = hexToDecimal(readData, sizeof(readData));
+		printf("lux: %lu\n", value);
+	}
+
+	Delay_Ms(100);
+	if (i2c_ping(dev_sht3x.addr) == I2C_OK) {
+		i2c_write_reg(&dev_sht3x, 0x00, SHT_LOWREP_FREE_CMD[0], SHT_LOWREP_FREE_CMD[1]);
+		Delay_Ms(5);
+		uint8_t buff[6];
+		i2c_read_reg(&dev_sht3x, 0x00, buff, sizeof(buff));
+
+		uint16_t rawTemp = 0, rawHum = 0;
+		rawTemp = (buff[0]<<8) + buff[1];
+		rawHum = (buff[3]<<8) + buff[4];
+
+		// tempC = rawTemp*175/65535 - 45;
+		uint16_t tempF = rawTemp*63/13107 - 49;
+		uint16_t hum = rawHum*100/65535;
+		printf("tempF: %lu, hum: %lu\n", tempF, hum);
+	}
+}
+
 
 void i2c_getReadings(struct SensorData* data) {
    // uint16_t lux = 0;

@@ -22,10 +22,10 @@ enum {
 
 typedef struct {
    uint8_t pin;
+   uint8_t btn_state;
    uint32_t debounce_time;
    uint32_t release_time;
    uint32_t press_time;
-   uint8_t btn_state;
 } M_Button;
 
 void _reset_timers(uint8_t newState, M_Button *model) {

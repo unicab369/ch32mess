@@ -64,11 +64,13 @@ void ssd1306_print_str_at(
 ) {
 	ssd1306_setWindow_pages(page, page); // Set the window to the current page
 
-	for (int i=0; i<32; i++) {
+	for (int i=0; i<25; i++) {
 		if (*str) {
 			uint8_t char_index = *str - 32; // Adjust for ASCII offset
 			ssd1306_data((uint8_t *)FONT_7x5[char_index], 5); // Send font data
 			str++;
+		} else {
+			ssd1306_data((uint8_t *)FONT_7x5[0], 5); // Send space character if no more characters
 		}
 	}
 }
@@ -102,16 +104,18 @@ void prefill_pixel(uint8_t x, uint8_t y) {
     frame_buffer[mask.page][x] |= mask.bitmask;
 }
 
-void modI2C_setup() {
+void ssd1306_setup() {
 	precompute_page_masks();
+	ssd1306_init();
 
-	// # SSD1306
-	if(!ssd1306_i2c_init()) {
-		ssd1306_init();
-		printf("done.\n\r");
-	}
+	// //# SSD1306
+	// if(!ssd1306_i2c_init()) {
+	// 	ssd1306_init();
+	// 	printf("SSD1306 init.\n\r");
+	// }
 	
-	memset(frame_buffer, 0, sizeof(frame_buffer)); // Clear the frame buffer
+	//# Clear the frame buffer
+	memset(frame_buffer, 0, sizeof(frame_buffer));
 	ssd1306_renderFrame();
 }
 
