@@ -196,6 +196,108 @@ void i2c_scan_callback(const uint8_t addr) {
 	printf(str_output); printf("\n\r");
 }
 
+uint8_t decimal_to_bcd(uint8_t val) { return ((val/10)*16) + (val%10); }
+
+i2c_err_t ret;
+uint8_t buff[8];
+
+void test_htu21() {
+	uint8_t userRegisterData = 0;
+
+	ret = i2c_read_reg(&dev_htu21, 0xE7, userRegisterData, 1);		// Read User register
+	printf("Error0: %d\n", ret);
+	printf("HTU21 User Register: %02X\n", userRegisterData);
+
+	userRegisterData &= 0x7E;		// clear resolution bits with 0
+	userRegisterData |= 0x80;		// add new resolution bits
+
+	ret = i2c_write_reg(&dev_htu21, 0xE6, userRegisterData, 1);		// Write User register
+	printf("Error1: %d\n", ret);
+
+	ret = i2c_read_reg(&dev_htu21, 0xE7, buff, 1);		// Read User register
+	printf("Error2: %d\n", ret);
+	printf("HTU21 New User Register: %02X\n", userRegisterData);
+
+	buff[0] = 0xE5;									
+	ret = i2c_write_raw(&dev_htu21, buff, 1);		// Request Read Humidity
+	printf("Error3: %d\n", ret);
+
+	Delay_Ms(30);									// Wait for measurement to complete
+	ret = i2c_read_raw(&dev_htu21, buff, 3);		// Read Humidity
+	printf("Error4: %d\n", ret);
+	printf("HTU21 Read: %02X %02X %02X\n", buff[0], buff[1], buff[2]);
+}
+
+void test_aht21() {
+	ret = i2c_read_reg(&dev_aht21, 0x71, buff, 1);
+	buff[0] = buff[0] & 0x18;
+	printf("Error0: %d\n", ret);
+	printf("AHT21 Read reg 0x71: %02X\n", buff[0]);		// expect 0x18
+
+	buff[0] = 0xAC;
+	buff[1] = 0X33;
+	buff[2] = 0x00;
+	ret = i2c_write_raw(&dev_aht21, buff, 3);
+	printf("Error1: %d\n", ret);
+
+	Delay_Ms(100);									// Wait for measurement to complete
+	ret = i2c_read_raw(&dev_aht21, buff, 6);		// Read sensor
+	printf("Error2: %d\n", ret);
+
+	// calculate humidity
+	uint32_t hum = (buff[1] << 12) | (buff[2] << 4) | (buff[3] >> 4);
+	hum = (hum * 100) / 0x100000;
+	printf("Humidity: %lu\n", hum);
+
+	// calculate temperature
+	uint32_t temp = ((buff[3] & 0xF) << 16) | (buff[4] << 8) | (buff[5]);
+	temp = (temp * 200) / 0x100000;
+	printf("Temperature: %lu\n", temp);
+}
+
+void test_bmp280() {
+	struct {
+		int16_t dig_T1;
+		int16_t dig_T2;
+		int16_t dig_T3;
+		// Pressure calibration would be added similarly
+	} bmp280_calib;
+
+	ret = i2c_read_reg(&dev_bmp280, 0xD0, buff, 1);
+	printf("Error0: %d\n", ret);
+	printf("BMP280 Read reg 0xD0: %02X\n", buff[0]);		// expect 0x58
+
+	ret = i2c_read_reg(&dev_bmp280, 0x88, buff, 2);
+	bmp280_calib.dig_T1 =  (int16_t)(buff[1] << 8) | buff[0];
+
+	ret = i2c_read_reg(&dev_bmp280, 0x8A, buff, 2);
+	bmp280_calib.dig_T2 =  (int16_t)(buff[1] << 8) | buff[0];
+
+	ret = i2c_read_reg(&dev_bmp280, 0x8C, buff, 2);
+	bmp280_calib.dig_T3 =  (int16_t)(buff[1] << 8) | buff[0];
+
+	printf("dig_T1: %lu\n", bmp280_calib.dig_T1);
+	printf("dig_T2: %lu\n", bmp280_calib.dig_T2);
+	printf("dig_T3: %ld\n", bmp280_calib.dig_T3);
+
+	ret = i2c_write_reg(&dev_bmp280, 0xF4, (uint8_t[]){0x5D}, 1);
+	printf("Error1: %d\n", ret);
+	Delay_Ms(100);
+
+	ret = i2c_read_reg(&dev_bmp280, 0xF7, buff, 6);			// read sensors
+
+	uint32_t raw_pressure = (uint32_t)(buff[0]*4096 + buff[1]*16 + (buff[2]/16));
+	uint32_t raw_temp = (uint32_t)(buff[3]*4096 + buff[4]*16 + (buff[5]/16));
+
+	uint32_t var1 = (raw_temp/16384 - bmp280_calib.dig_T1/1024) * bmp280_calib.dig_T2;
+	uint32_t var2 = ((raw_temp/131072 - bmp280_calib.dig_T1/8192) * (raw_temp/131072 - bmp280_calib.dig_T1/8192)) * bmp280_calib.dig_T3;
+	uint32_t t_fine = var1 + var2;		// t_fine in 0.01 degrees Celsius
+
+	uint32_t temp = t_fine/5120;
+	printf("Temperature: %lu\n", temp);
+
+}
+
 int main() {
 	static const char message[] = "Hello World!\r\n";
 	uint32_t counter = 0;
@@ -216,14 +318,16 @@ int main() {
 	// TIM2 Ch1, Ch2 : uses PD3, PD4.
 	modEncoder_setup(&encoder_a);
 
+	// I2CInit(0xC1, 0xC2, 100000);
+
+	// return 0;
+
 	// I2C1: uses PC1 & PC2
-	if(i2c_init(&dev_bh17) != I2C_OK)
-		printf("Failed to init the I2C Bus\n");
-	// else
-	// 	Delay_Ms(100);
-	// 	// SSD1306 Addr: 0x3C
-	// 	ssd1306_setup();
-	// 	// modI2C_task();
+	if(i2c_init(&dev_aht21) != I2C_OK)
+		printf("Failed to init I2C\n");
+	else
+		ssd1306_setup();
+		// modI2C_task();
 
 	// sprintf(str_output, "Hello Bee!");
 	// ssd1306_print_str_at(str_output, 0, 0);
@@ -246,9 +350,23 @@ int main() {
 	i2c_scan(i2c_scan_callback);
 	printf("----Done Scanning----\n\n");
 
-	i2c_write_raw(&dev_bh17, BH17_POWER_ON, 1);
-	i2c_write_raw(&dev_bh17, BH17_RESET, 1);
-	Delay_Ms(100);
+	// test_htu21();
+	// test_aht21();
+	test_bmp280();
+
+	return 1;
+
+
+	
+    uint8_t config[] = {
+        0x80,           // ENABLE
+        0x0F,           // Power ON, Proximity enable, ALS enable, Wait enable
+        0x90,           // CONFIG2
+        0x01,           // Proximity gain control (4x)
+        0x8F, 0x20,     // Proximity pulse count (8 pulses)
+        0x8E, 0x87      // Proximity pulse length (16us)
+    };
+	// i2c_write_raw(&dev_apds9960, config, sizeof(config));
 
 	for(;;) {			
 		uint32_t now = millis();
@@ -264,22 +382,98 @@ int main() {
 
 			// check_sensors();
 
+
+			if (i2c_ping(dev_htu21.addr) == I2C_OK) {
+				printf("HTU21\n");
+				buff[0] = 0xE3;
+				ret = i2c_read_reg(&dev_htu21, 0xE3, buff, 3);
+				// err = i2c_write_raw(&dev_htu21, buff, 1);
+				printf(("Error0: %d\n"), ret);
+
+				// Delay_Ms(50);
+				// err = i2c_read_raw(&dev_htu21, buff, 3);
+				// printf(("Error1: %d\n"), err);
+
+				printf("HTU21 Read: %02X %02X %02X\n", buff[0], buff[1], buff[2]);
+			}
+
+			// AHT21 Addr: 0x38
+			if (i2c_ping(dev_aht21.addr) == I2C_OK) {
+				buff[0] = 0xAC;
+				buff[1] = 0X33;
+				buff[2] = 0x00;
+				// I2CWrite(dev_aht21.addr, buff, 3);
+				ret = i2c_write_raw(&dev_aht21, buff, 3);
+				printf(("Error1: %d\n"), ret);
+
+				Delay_Ms(100);
+				I2CRead(dev_aht21.addr, buff, 6);
+				ret = i2c_read_raw(&dev_aht21, buff, 6);
+				printf(("Error2: %d\n"), ret);
+
+				//CALCULATING HUMIDITY
+				uint32_t humidity;
+				humidity = (buff[1] << 12) | (buff[2] << 4) | (buff[3] >> 4);
+				humidity = (humidity * 100);
+				humidity = humidity / 0x100000;
+				printf("Humidity: %lu\n\n", humidity);
+			}
+
 			// SHT3x Addr: 0x44
-			if (i2c_ping(SHT3_ADDR) == I2C_OK) {
+			if (i2c_ping(dev_sht3x.addr) == I2C_OK) {
 				uint16_t tempF, hum;
 				
 				Delay_Ms(1);
 				SHT3x_getReading(&tempF, &hum);
 				sprintf(str_output, "temp %lu, hum %lu", tempF, hum);
 				// ssd1306_print_str_at(str_output, 2, 0);
-				printf(str_output); printf("\n\r");
+				// printf(str_output); printf("\n\r");
+
+				Delay_Ms(100);
 			}
 
 			// BH1750 Addr: 0x23
-			if (i2c_ping(BH17_ADDR) == I2C_OK) {
-				uint16_t lux = BH17_Read(); 
-				sprintf(str_output, "lux %lu", lux);
+			if (i2c_ping(dev_bh17.addr) == I2C_OK) {
+				uint8_t readData[2];
+
+				// I2CWrite(BH17_ADDR, BH17_CONT_HI1, 1);
+				// Delay_Ms(200); // Wait for measurement to complete
+				// I2CRead(BH17_ADDR, readData, 2);
+				// printf("BH17 Read: %02X %02X\n", readData[0], readData[1]);
+				
+				// uint16_t lux = BH17_Read(); 
+				// sprintf(str_output, "lux %lu", lux);
 				// ssd1306_print_str_at(str_output, 1, 0);
+				// printf(str_output); printf("\n\r");
+			}
+
+			// DS3231 Addr: 0x68
+			if (i2c_ping(dev_ds3231.addr) == I2C_OK) {
+				uint8_t time[3] = {0};  // Time in Sec, Min, Hrs (Hex not Decimal)
+
+				// Read time from DS3231
+				i2c_read_reg(&dev_ds3231, 0x00, time, sizeof(time));
+				sprintf(str_output, "Time %02X:%02X:%02X", time[2], time[1], time[0]);
+				ssd1306_print_str_at(str_output, 3, 0);
+				printf(str_output); printf("\n\r");
+			}
+
+			// APDS9960 Addr: 0x39
+			if (i2c_ping(dev_apds9960.addr) == I2C_OK) {
+				uint8_t proximity = 0;
+				i2c_read_reg(&dev_apds9960, 0x9C, &proximity, 1);
+				sprintf(str_output, "Prox %02X", proximity);
+				ssd1306_print_str_at(str_output, 5, 0);
+				printf(str_output); printf("\n\r");
+
+				uint8_t raw[8] = { 0 };
+				i2c_read_reg(&dev_apds9960, 0x94, raw, sizeof(raw));
+				uint16_t red = (raw[1] << 8) | raw[0];
+				uint16_t green = (raw[3] << 8) | raw[2	];
+				uint16_t blue = (raw[5] << 8) | raw[4];
+				uint16_t clear = (raw[7] << 8) | raw[6];				
+				sprintf(str_output, "Red %lu, Green %lu, Blue %lu, Clear %lu", red, green, blue, clear);
+				ssd1306_print_str_at(str_output, 6, 0);
 				printf(str_output); printf("\n\r");
 			}
 
