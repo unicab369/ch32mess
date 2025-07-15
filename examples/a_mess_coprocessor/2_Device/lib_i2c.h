@@ -55,7 +55,7 @@
 
 // Hardware CLK Prerate and timeout
 #define I2C_PRERATE       2000000
-#define I2C_TIMEOUT       2000
+#define I2C_TIMEOUT       10000
 
 // Default Pinout
 #ifdef I2C_PINOUT_DEFAULT

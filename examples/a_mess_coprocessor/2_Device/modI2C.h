@@ -36,58 +36,108 @@ uint8_t SHT_HEATER_ENABLE[2]    = { 0x30, 0x6D };
 i2c_device_t dev_bh17 = {
 	.clkr = I2C_CLK_100KHZ,
 	.type = I2C_ADDR_7BIT,
-	.addr = 0x23,
+	.addr = 0x23,				// Default address for BH1750
 	.regb = 1,
 };
 
 i2c_device_t dev_sht3x = {
 	.clkr = I2C_CLK_100KHZ,
 	.type = I2C_ADDR_7BIT,
-	.addr = 0x44,
+	.addr = 0x44,				// Default address for SHT30
 	.regb = 1,
 };
 
 i2c_device_t dev_ds3231 = {
 	.clkr = I2C_CLK_100KHZ,
 	.type = I2C_ADDR_7BIT,
-	.addr = 0x68,
+	.addr = 0x68,				// Default address for DS3231
 	.regb = 1,
 };
 
 i2c_device_t dev_ina219 = {
-	.clkr = I2C_CLK_100KHZ,
+	.clkr = I2C_CLK_400KHZ,
 	.type = I2C_ADDR_7BIT,
-	.addr = 0x40,
+	.addr = 0x40,				//! Default address for INA219
 	.regb = 1,
 };
 
 i2c_device_t dev_apds9960 = {
-	.clkr = I2C_CLK_100KHZ,
+	.clkr = I2C_CLK_400KHZ,
 	.type = I2C_ADDR_7BIT,
-	.addr = 0x39,
+	.addr = 0x39,				// Default address for APDS9960
 	.regb = 1,
 };
 
 i2c_device_t dev_aht21 = {
-	.clkr = I2C_CLK_100KHZ,
+	.clkr = I2C_CLK_400KHZ,
 	.type = I2C_ADDR_7BIT,
-	.addr = 0x38,
+	.addr = 0x38,				// Default address for AHT21
 	.regb = 1,
 };
 
 i2c_device_t dev_htu21 = {
 	.clkr = I2C_CLK_100KHZ,
 	.type = I2C_ADDR_7BIT,
-	.addr = 0x40,
+	.addr = 0x40,				//! Default address for HTU21
 	.regb = 1,
 };
 
 i2c_device_t dev_bmp280 = {
-	.clkr = I2C_CLK_100KHZ,
+	.clkr = I2C_CLK_400KHZ,
 	.type = I2C_ADDR_7BIT,
-	.addr = 0x76, // BMP280 default address
+	.addr = 0x76, 				// Default address for BMP280
 	.regb = 1,
 };
+
+i2c_device_t dev_hdc1080 = {
+	.clkr = I2C_CLK_400KHZ,
+	.type = I2C_ADDR_7BIT,
+	.addr = 0x40, 				//! Default address for HDc1080
+	.regb = 1,
+};
+
+i2c_device_t dev_si7021 = {
+	.clkr = I2C_CLK_400KHZ,
+	.type = I2C_ADDR_7BIT,
+	.addr = 0x40, 				//! Default address for SI7021
+	.regb = 1,
+};
+
+i2c_device_t dev_max44009 = {
+	.clkr = I2C_CLK_400KHZ,
+	.type = I2C_ADDR_7BIT,
+	.addr = 0x4A,		 		// Default address for MAX44009
+	.regb = 1,
+};
+
+i2c_device_t dev_AP3216 = {
+	.clkr = I2C_CLK_400KHZ,
+	.type = I2C_ADDR_7BIT,
+	.addr = 0x1E,				// Default address for AP3216
+	.regb = 1,
+};
+
+i2c_device_t dev_vl35lox = {
+	.clkr = I2C_CLK_400KHZ,
+	.type = I2C_ADDR_7BIT,
+	.addr = 0x29,				// Default address for VL53L0X
+	.regb = 1,
+};
+
+i2c_device_t dev_ens160 = {
+	.clkr = I2C_CLK_400KHZ,
+	.type = I2C_ADDR_7BIT,
+	.addr = 0x53,				// Default address for ENS160
+	.regb = 1,
+};
+
+i2c_device_t dev_sgp30 = {
+	.clkr = I2C_CLK_400KHZ,
+	.type = I2C_ADDR_7BIT,
+	.addr = 0x58,				// Default address for SGP30
+	.regb = 1,
+};
+
 
 uint16_t hexToDecimal(const uint8_t* hexArray, size_t length) {
 	uint16_t result = 0;
