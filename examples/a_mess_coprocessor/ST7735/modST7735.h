@@ -94,8 +94,6 @@ uint8_t rand8(void);
 
 #define DATA_MODE()    (GPIOC->BSHR |= 1 << PIN_DC)  // DC High
 #define COMMAND_MODE() (GPIOC->BCR |= 1 << PIN_DC)   // DC Low
-#define RESET_HIGH()   (GPIOC->BSHR |= 1 << PIN_RESET)
-#define RESET_LOW()    (GPIOC->BCR |= 1 << PIN_RESET)
 
 #ifndef ST7735_NO_CS
     #define START_WRITE() (GPIOC->BCR |= 1 << PIN_CS)   // CS Low
@@ -109,7 +107,6 @@ uint8_t rand8(void);
 // ST7735 Datasheet
 // https://www.displayfuture.com/Display/datasheet/controller/ST7735.pdf
 // Delays
-#define ST7735_RST_DELAY    50   // delay ms wait for reset finish
 #define ST7735_SLPOUT_DELAY 120  // delay ms wait for sleep out finish
 
 // System Function Command List - Write Commands Only
@@ -163,12 +160,19 @@ static uint8_t  _buffer[ST7735_WIDTH << 1] = {0};    // DMA buffer, long enough 
 /// \brief Initialize ST7735
 /// \details Initialization sequence from Arduino_GFX
 /// https://github.com/moononournation/Arduino_GFX/blob/master/src/display/Arduino_ST7735.h
-void tft_init(void) {
+void tft_init(uint8_t rst_pin) {
+    // PC3 - DC
+    GPIOC->CFGLR &= ~(0xf << (PIN_DC << 2));
+    GPIOC->CFGLR |= (GPIO_CNF_OUT_PP | GPIO_Speed_50MHz) << (PIN_DC << 2);
+
+
+    funPinMode(rst_pin, GPIO_Speed_50MHz | GPIO_CNF_OUT_PP);
+
     // Reset display
-    RESET_LOW();
-    Delay_Ms(ST7735_RST_DELAY);
-    RESET_HIGH();
-    Delay_Ms(ST7735_RST_DELAY);
+    funDigitalWrite(rst_pin, 0);
+    Delay_Ms(100);
+    funDigitalWrite(rst_pin, 1);
+    Delay_Ms(100);
 
     START_WRITE();
 
@@ -205,7 +209,7 @@ void tft_init(void) {
 
     Delay_Ms(10);
 
-    // write_command_8(0x26);  //! Gamma disable
+    write_command_8(0x26);  //! Gamma disable
 
     // Invert display
     write_command_8(ST7735_INVON);

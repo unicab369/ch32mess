@@ -231,10 +231,8 @@ int main() {
 	SPI_init();
 	modST7735_setup();
 
-	printf("IM HERE 1\n\r");
-	tft_test();
+	// tft_test();
 
-	printf("IM HERE 2\n\r");
 	return;
 
 	// pinMode(0xD0, OUTPUT);

@@ -3,13 +3,10 @@
 #define SPI_SCLK 5  // PC5
 #define SPI_MOSI 6  // PC6
 
-#define PIN_RESET 2  // PC2
 #define PIN_DC    3  // PC3
 
 #define DATA_MODE()    (GPIOC->BSHR |= 1 << PIN_DC)  // DC High
 #define COMMAND_MODE() (GPIOC->BCR |= 1 << PIN_DC)   // DC Low
-#define RESET_HIGH()   (GPIOC->BSHR |= 1 << PIN_RESET)
-#define RESET_LOW()    (GPIOC->BCR |= 1 << PIN_RESET)
 
 
 #define ST7735_NO_CS
@@ -25,10 +22,6 @@
 static void SPI_init(void) {
     // Enable GPIO Port C and SPI peripheral
     RCC->APB2PCENR |= RCC_APB2Periph_GPIOC | RCC_APB2Periph_SPI1;
-
-    // PC2 - RESET
-    GPIOC->CFGLR &= ~(0xf << (PIN_RESET << 2));
-    GPIOC->CFGLR |= (GPIO_CNF_OUT_PP | GPIO_Speed_50MHz) << (PIN_RESET << 2);
 
     // PC3 - DC
     GPIOC->CFGLR &= ~(0xf << (PIN_DC << 2));
