@@ -410,24 +410,24 @@ static void tft_draw_ring(
 
 void tft_line_tests() {
     //! dots test
-    // tft_draw_pixel(rand8() % 160, rand8() % 80, colors[rand8() % 19]);
+    tft_draw_pixel(rand8() % 160, rand8() % 80, colors[rand8() % 19]);
 
     // //! draw vertical lines
-    // static uint8_t x_idx = 0;
-    // tft_draw_line(x_idx, 0, x_idx, 80, colors[rand8() % 19]);
-    // x_idx += 1;
-    // if (x_idx >= 160) x_idx = 0;
+    static uint8_t x_idx = 0;
+    tft_draw_line(x_idx, 0, x_idx, 80, colors[rand8() % 19], 1);
+    x_idx += 1;
+    if (x_idx >= 160) x_idx = 0;
 
     // //! draw horizontal lines
-    // static uint8_t y_idx = 0;
-    // tft_draw_line(0, y_idx, 180, y_idx, colors[rand8() % 19], 1);
-    // y_idx += 1;
-    // if (y_idx >= 80) y_idx = 0;
+    static uint8_t y_idx = 0;
+    tft_draw_line(0, y_idx, 180, y_idx, colors[rand8() % 19], 1);
+    y_idx += 1;
+    if (y_idx >= 80) y_idx = 0;
 
     //! draw random lines
-    // tft_draw_line(0, 0, 70, 70, RED, 5);
+    tft_draw_line(0, 0, 70, 70, RED, 5);
 
-    // tft_draw_line(rand8() % 160, rand8() % 80, rand8() % 160, rand8() % 80, colors[rand8() % 19]);
+    tft_draw_line(rand8() % 160, rand8() % 80, rand8() % 160, rand8() % 80, colors[rand8() % 19], 1);
 
     //! draw poly
     int16_t triangle_x[] = {10, 40, 80};

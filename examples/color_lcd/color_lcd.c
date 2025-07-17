@@ -62,6 +62,8 @@ int main(void) {
 	int i, dx, iColor;
 	SystemInit();
 
+	printf("IM HERE 1111");
+
 	lcdInit(LCD_ST7735_80x160, 24000000, CS_PIN, DC_PIN, RST_PIN, BL_PIN);
 	lcdFill(COLOR_GREEN);
 	i = 1; dx = 1;

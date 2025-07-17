@@ -115,9 +115,7 @@ void tft_draw_bitmap(
 
 
 
-void modST7735_setup() {
-    SPI_init();
-    
+void modST7735_setup() {    
     tft_init();
     tft_fill_rect(0, 0, 160, 80, PURPLE);
 }

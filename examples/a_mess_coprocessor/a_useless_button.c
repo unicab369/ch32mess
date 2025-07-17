@@ -180,7 +180,6 @@ void test_74hc595() {
 	}
 }
 
-// #include "ST7735/st7735_demo.h"
 #include "ST7735/modTFT.h"
 #include "Storage/modStorage.h"
 
@@ -220,15 +219,24 @@ int main() {
 	Delay_Ms(100);
 
 	// used PC0
-	button_setup(&button_a);
+	// button_setup(&button_a);
 
-	// TIM2 Ch1, Ch2 : uses PD3, PD4.
-	modEncoder_setup(&encoder_a);
+	// // TIM2 Ch1, Ch2 : uses PD3, PD4.
+	// modEncoder_setup(&encoder_a);
 
-	// I2C1: uses PC1 & PC2
-	modI2C_setup();
+	// // I2C1: uses PC1 & PC2
+	// modI2C_setup();
 
-	// modST7735_setup();
+	// uses PC5, PC6, PD2, PC4
+	SPI_init();
+	modST7735_setup();
+
+	printf("IM HERE 1\n\r");
+	tft_test();
+
+	printf("IM HERE 2\n\r");
+	return;
+
 	// pinMode(0xD0, OUTPUT);
 	// modJoystick_setup();		// ADC Ch0, Ch1 | DMA1 Ch1
 	// ws2812_setup();				// DMA1 Ch3
@@ -253,8 +261,6 @@ int main() {
 			sprintf(str_output, "counter %lu", counter++);
 			modI2C_display(str_output, 7);
 
-			// check_sensors();
-
 			// modJoystick_task();
 			// dma_uart_tx(message, sizeof(message) - 1);
 
@@ -262,8 +268,8 @@ int main() {
 			// sprintf(str_output, "I2C runtime: %lu us", runtime_i2c);
 			// ssd1306_print_str_at(str_output, 0, 0);
 
-			// print_runtime("ST7735", st7735_task);
-			// print_runtime("ST7735b", tft_test);
+			// uint32_t tft_test = get_runTime(tft_test);
+			// printf("ST7735 runtime: %lu us\n", tft_test);
 
 			// storage_test();
 		}
