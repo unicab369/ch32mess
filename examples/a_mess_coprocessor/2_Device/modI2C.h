@@ -882,19 +882,19 @@ void i2c_scan_callback(const uint8_t addr) {
 void modI2C_setup() {
 	if(i2c_init(&dev_aht21) != I2C_OK)
 		printf("Failed to init I2C\n");
-	else
-		ssd1306_setup();
-		// modI2C_task();
+	// else
+	// 	ssd1306_setup();
+	// 	// modI2C_task();
 		
-		if (i2c_ping(0x3C) == I2C_OK) {
-			// Scan the I2C Bus, prints any devices that respond
-			printf("----Scanning I2C Bus for Devices---\n");
-			i2c_scan(i2c_scan_callback);
-			printf("----Done Scanning----\n\n");
+	// 	// if (i2c_ping(0x3C) == I2C_OK) {
+	// 	// 	// Scan the I2C Bus, prints any devices that respond
+	// 	// 	printf("----Scanning I2C Bus for Devices---\n");
+	// 	// 	i2c_scan(i2c_scan_callback);
+	// 	// 	printf("----Done Scanning----\n\n");
 
-			sprintf(str_output, "Hello Bee!");
-			ssd1306_print_str_at(str_output, 0, 0);
-		}
+	// 	// 	sprintf(str_output, "Hello Bee!");
+	// 	// 	ssd1306_print_str_at(str_output, 0, 0);
+	// 	// }
 
 	// test_v003Slave();
 	// i2c_device_tests();
@@ -902,3 +902,7 @@ void modI2C_setup() {
 	// SetupI2CSlave(0xFE, i2c_registers, sizeof(i2c_registers), onI2C_SlaveWrite, onI2C_SlaveRead, false);
 }
 
+void modI2C_task2(uint32_t counter) {
+	sprintf(str_output, "counter %lu", counter);
+	modI2C_display(str_output, 7);
+}

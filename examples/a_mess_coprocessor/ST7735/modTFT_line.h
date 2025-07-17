@@ -18,7 +18,7 @@ void tft_draw_pixel(
     y += ST7735_Y_OFFSET;
     START_WRITE();
     tft_set_window(x, y, x, y);
-    write_data_16(color);
+    tft_send_color(color);
     END_WRITE();
 }
 
@@ -37,8 +37,7 @@ static void _draw_fast_vLine(
 
     START_WRITE();
     tft_set_window(x, y, x, y + h - 1);
-    DATA_MODE();
-    SPI_send_DMA(_buffer, sz, 1);
+    tft_send_DMA(_buffer, sz, 1);
     END_WRITE();
 }
 
@@ -58,8 +57,7 @@ static void _draw_fast_hLine(
 
     START_WRITE();
     tft_set_window(x, y, x + w - 1, y);
-    DATA_MODE();
-    SPI_send_DMA(_buffer, sz, 1);
+    tft_send_DMA(_buffer, sz, 1);
     END_WRITE();
 }
 

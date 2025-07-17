@@ -3,12 +3,6 @@
 #define SPI_SCLK 5  // PC5
 #define SPI_MOSI 6  // PC6
 
-#define PIN_DC    3  // PC3
-
-#define DATA_MODE()    (GPIOC->BSHR |= 1 << PIN_DC)  // DC High
-#define COMMAND_MODE() (GPIOC->BCR |= 1 << PIN_DC)   // DC Low
-
-
 #define ST7735_NO_CS
 
 #ifndef ST7735_NO_CS
@@ -22,10 +16,6 @@
 static void SPI_init(void) {
     // Enable GPIO Port C and SPI peripheral
     RCC->APB2PCENR |= RCC_APB2Periph_GPIOC | RCC_APB2Periph_SPI1;
-
-    // PC3 - DC
-    GPIOC->CFGLR &= ~(0xf << (PIN_DC << 2));
-    GPIOC->CFGLR |= (GPIO_CNF_OUT_PP | GPIO_Speed_50MHz) << (PIN_DC << 2);
 
 #ifndef ST7735_NO_CS
     // PC4 - CS
@@ -70,7 +60,9 @@ static void SPI_init(void) {
 }
 
 
-static void SPI_send_DMA(const uint8_t* buffer, uint16_t size, uint16_t repeat) {
+static void SPI_send_DMA(uint8_t dc_pin, const uint8_t* buffer, uint16_t size, uint16_t repeat) {
+    funDigitalWrite(dc_pin, 1);     // Data Mode
+
     DMA1_Channel3->MADDR = (uint32_t)buffer;
     DMA1_Channel3->CNTR  = size;
     DMA1_Channel3->CFGR |= DMA_CFGR1_EN;  // Turn on channel
@@ -96,18 +88,18 @@ static void SPI_send(uint8_t data) {
     while (!(SPI1->STATR & SPI_STATR_TXE)) ;
 }
 
-static void write_command_8(uint8_t cmd) {
-    COMMAND_MODE();
+static void write_command_8(uint8_t dc_pin, uint8_t cmd) {
+    funDigitalWrite(dc_pin, 0);     // Command Mode
     SPI_send(cmd);
 }
 
-static void write_data_8(uint8_t data) {
-    DATA_MODE();
+static void write_data_8(uint8_t dc_pin, uint8_t data) {
+    funDigitalWrite(dc_pin, 1);     // Data Mode
     SPI_send(data);
 }
 
-static void write_data_16(uint16_t data) {
-    DATA_MODE();
+static void write_data_16(uint8_t dc_pin, uint16_t data) {
+    funDigitalWrite(dc_pin, 1);     // Data Mode
     SPI_send(data >> 8);
     SPI_send(data);
 }

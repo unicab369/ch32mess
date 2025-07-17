@@ -33,8 +33,7 @@ void tft_print_char(
 
     // START_WRITE();
     tft_set_window(_cursor_x, _cursor_y, _cursor_x + width - 1, _cursor_y + height - 1);
-    DATA_MODE();
-    SPI_send_DMA(_frame_buffer, sz, 1);
+    tft_send_DMA(_frame_buffer, sz, 1);
     // END_WRITE();
 }
 
@@ -62,8 +61,7 @@ void tft_fill_rect(
 
     START_WRITE();
     tft_set_window(x, y, x + width - 1, y + height - 1);
-    DATA_MODE();
-    SPI_send_DMA(_buffer, sz, height);
+    tft_send_DMA(_buffer, sz, height);
     END_WRITE();
 }
 
@@ -108,41 +106,39 @@ void tft_draw_bitmap(
 
     START_WRITE();
     tft_set_window(x, y, x + width - 1, y + height - 1);
-    DATA_MODE();
-    SPI_send_DMA(bitmap, width * height << 1, 1);
+    tft_send_DMA(bitmap, width * height << 1, 1);
     END_WRITE();
 }
 
 
 
-void modST7735_setup() {    
-    tft_init(PC2);
-    tft_fill_rect(0, 0, 128, 160, PURPLE);
+void modST7735_setup(uint8_t rst_pin, uint8_t dc_pin) {
+    tft_init(rst_pin, dc_pin);
+    tft_fill_rect(0, 0, 160, 128, PURPLE);
 }
 
 
 
 void tft_test() {
-    // tft_set_cursor(0, 0);
-    // tft_print("Hello World!");
-    // tft_print_number(123456789, 0);
+    tft_set_cursor(0, 0);
+    tft_print("Hello World!");
+    tft_print_number(123456789, 0);
 
 
     tft_line_tests();
 
 
+    // draw rectangles
+    static uint8_t rect_idx = 0;
+    tft_draw_rect(rect_idx, rect_idx, 160 - (rect_idx << 1), 80 - (rect_idx << 1), colors[rand8() % 19]);
+    rect_idx += 1;
+    if (rect_idx >= 40) rect_idx = 0;
 
-    // // draw rectangles
-    // static uint8_t rect_idx = 0;
-    // tft_draw_rect(rect_idx, rect_idx, 160 - (rect_idx << 1), 80 - (rect_idx << 1), colors[rand8() % 19]);
-    // rect_idx += 1;
-    // if (rect_idx >= 40) rect_idx = 0;
+    // draw random rectangles
+    tft_draw_rect(rand8() % 140, rand8() % 60, 20, 20, colors[rand8() % 19]);
 
-    // // draw random rectangles
-    // tft_draw_rect(rand8() % 140, rand8() % 60, 20, 20, colors[rand8() % 19]);
-
-    // // draw filled rectangles
-    // tft_fill_rect(rand8() % 140, rand8() % 60, 20, 20, colors[rand8() % 19]);
+    // draw filled rectangles
+    tft_fill_rect(rand8() % 140, rand8() % 60, 20, 20, colors[rand8() % 19]);
 
 
     // static uint8_t x = 0, y = 0, step_x = 1, step_y = 1;
@@ -165,7 +161,7 @@ void tft_test() {
 static uint32_t frame = 0;
 
 int st7735_test(void) {
-    tft_set_color(RED);
+    // tft_set_color(RED);
     tft_set_background_color(BLACK);
 
     // popup("Draw Point", 1000);

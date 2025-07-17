@@ -218,22 +218,20 @@ int main() {
 	systick_init();			//! required for millis()
 	Delay_Ms(100);
 
+	funGpioInitAll();
+
 	// used PC0
-	// button_setup(&button_a);
+	button_setup(&button_a);
 
-	// // TIM2 Ch1, Ch2 : uses PD3, PD4.
-	// modEncoder_setup(&encoder_a);
+	// TIM2 Ch1, Ch2 : uses PD3, PD4.
+	modEncoder_setup(&encoder_a);
 
-	// // I2C1: uses PC1 & PC2
-	// modI2C_setup();
+	// I2C1: uses PC1 & PC2
+	modI2C_setup();
 
-	// uses PC5, PC6, PD2, PC4
+	// uses SCK-PC5, MOSI-PC6, RST-PD2, CD-PC4
 	SPI_init();
-	modST7735_setup();
-
-	// tft_test();
-
-	return;
+	modST7735_setup(PD2, PC4);
 
 	// pinMode(0xD0, OUTPUT);
 	// modJoystick_setup();		// ADC Ch0, Ch1 | DMA1 Ch1
@@ -250,24 +248,23 @@ int main() {
 	for(;;) {			
 		uint32_t now = millis();
 
-		button_run(&button_a, button_onChanged);
-		modEncoder_task(now, &encoder_a, encoder_onChanged);
+		// button_run(&button_a, button_onChanged);
+		// modEncoder_task(now, &encoder_a, encoder_onChanged);
 
 		if (now - sec_time > 2000) {
 			sec_time = now;
 
-			sprintf(str_output, "counter %lu", counter++);
-			modI2C_display(str_output, 7);
+			// modI2C_task2(counter++);
 
-			// modJoystick_task();
-			// dma_uart_tx(message, sizeof(message) - 1);
+			// // modJoystick_task();
+			// // dma_uart_tx(message, sizeof(message) - 1);
 
-			// uint32_t runtime_i2c = get_runTime(modI2C_task);
-			// sprintf(str_output, "I2C runtime: %lu us", runtime_i2c);
-			// ssd1306_print_str_at(str_output, 0, 0);
+			// // uint32_t runtime_i2c = get_runTime(modI2C_task);
+			// // sprintf(str_output, "I2C runtime: %lu us", runtime_i2c);
+			// // ssd1306_print_str_at(str_output, 0, 0);
 
-			// uint32_t tft_test = get_runTime(tft_test);
-			// printf("ST7735 runtime: %lu us\n", tft_test);
+			uint32_t runtime_tft = get_runTime(tft_test);
+			printf("ST7735 runtime: %lu us\n", runtime_tft);
 
 			// storage_test();
 		}
