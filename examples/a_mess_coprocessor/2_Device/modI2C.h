@@ -194,6 +194,13 @@ i2c_device_t dev_apds9960 = {
 	.regb = 1,
 };
 
+i2c_device_t dev_v003Slave = {
+	.clkr = I2C_CLK_400KHZ,
+	.type = I2C_ADDR_7BIT,
+	.addr = 0x77,				// Default address for V003 Slave
+	.regb = 1,
+};
+
 uint16_t hexToDecimal(const uint8_t* hexArray, size_t length) {
 	uint16_t result = 0;
 	
@@ -770,6 +777,20 @@ void test_ina219() {
 	printf("INA219 Shunt: %duV, Bus: %duV, Current: %duA\n\n", shunt, bus, current);
 }
 
+void test_v003Slave() {
+	if (i2c_ping(dev_v003Slave.addr) != I2C_OK) {
+		printf("v003Slave not found\n");
+		return;
+	}
+
+	ret = i2c_read_reg(&dev_v003Slave, 0x00, buff, 3);
+	printf("v003Slave: %02X, %02X, %02X\n", buff[0], buff[1], buff[2]);
+
+	ret = i2c_write_reg(&dev_v003Slave, 0x01, (uint8_t[]){0x11, 0x22}, 2);
+
+	ret = i2c_read_reg(&dev_v003Slave, 0x00, buff, 3);
+	printf("v003Slave: %02X, %02X, %02X\n", buff[0], buff[1], buff[2]);
+}
 
 uint8_t decimal_to_bcd(uint8_t val) { return ((val/10)*16) + (val%10); }
 uint8_t bcd_to_decimal(uint8_t val) { return ((val/16)*10) + (val%16); }
@@ -826,9 +847,58 @@ void i2c_device_tests() {
 	// test_as5600();
 	// test_max30102();
 	// test_amg88xx();
-
-	test_bh1750();
-	test_sht3x();
-	test_apds9960();
-	test_ina219();
+	// test_bh1750();
+	// test_sht3x();
+	// test_apds9960();
+	// test_ina219();
 }
+
+char str_output[20];
+
+volatile uint8_t i2c_registers[32] = {0xaa};
+
+void onI2C_SlaveWrite(uint8_t reg, uint8_t length) {
+	printf("IM WRITEEN TO\n\r");
+}
+
+void onI2C_SlaveRead(uint8_t reg) {
+	printf("IM READEN FROM.\n\r");
+}
+
+void modI2C_display(const char *str, uint8_t line) {
+	if (line != 7) { printf(str); printf("\n"); }
+	if (i2c_ping(0x3C) != I2C_OK) return;
+	ssd1306_print_str_at(str, line, 0);
+}
+
+void i2c_scan_callback(const uint8_t addr) {
+	if (addr == 0x00 || addr == 0x7F) return; // Skip reserved addresses
+	
+	static int line = 1;
+	sprintf(str_output, "I2C: 0x%02X", addr);
+	modI2C_display(str_output, line++);
+}
+
+void modI2C_setup() {
+	if(i2c_init(&dev_aht21) != I2C_OK)
+		printf("Failed to init I2C\n");
+	else
+		ssd1306_setup();
+		// modI2C_task();
+		
+		if (i2c_ping(0x3C) == I2C_OK) {
+			// Scan the I2C Bus, prints any devices that respond
+			printf("----Scanning I2C Bus for Devices---\n");
+			i2c_scan(i2c_scan_callback);
+			printf("----Done Scanning----\n\n");
+
+			sprintf(str_output, "Hello Bee!");
+			ssd1306_print_str_at(str_output, 0, 0);
+		}
+
+	// test_v003Slave();
+	// i2c_device_tests();
+
+	// SetupI2CSlave(0xFE, i2c_registers, sizeof(i2c_registers), onI2C_SlaveWrite, onI2C_SlaveRead, false);
+}
+

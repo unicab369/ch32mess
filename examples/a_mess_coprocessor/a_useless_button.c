@@ -147,55 +147,6 @@ void turnOffGPIOs(uint8_t* arr, uint8_t len) {
 #include "2_Device/ssd1306_draw.h"
 
 
-volatile uint8_t i2c_registers[32] = {0xaa};
-
-void onWrite(uint8_t reg, uint8_t length) {
-	printf("IM HERE.\n\r");
-    funDigitalWrite(PA2, i2c_registers[0] & 1);
-}
-
-void onRead(uint8_t reg) {
-	printf("IM HERE.\n\r");
-	digitalWrite(0xC0, !digitalRead(0xD0));
-}
-
-
-// #include "ST7735/st7735_demo.h"
-#include "ST7735/modTFT.h"
-#include "Storage/modStorage.h"
-
-char str_output[20];
-
-void encoder_onChanged(M_Encoder *model) {
-	sprintf(str_output, "Pos %ld delta %ld",
-			(int32_t)model->count - model->initial_count, 
-			(int32_t)model->count - model->last_count);
-	ssd1306_print_str_at(str_output, 0, 0);
-	printf(str_output); printf("\n\r");
-}
-
-void button_onChanged(int btn, uint32_t duration) {
-	if (btn == BTN_SINGLECLICK) {
-		sprintf(str_output, "BTN 1x CLICK");
-	} else if (btn == BTN_DOUBLECLICK) {
-		sprintf(str_output, "BTN 2x CLICK");
-	} else if (btn == BTN_LONGPRESS) {
-		sprintf(str_output, "BTN LONGPRESS %ld", duration);
-	}
-
-	ssd1306_print_str_at(str_output, 0, 0);
-	printf(str_output); printf("\n\r");
-}
-
-void i2c_scan_callback(const uint8_t addr) {
-	if (addr == 0x00 || addr == 0x7F) return; // Skip reserved addresses
-	
-	static int line = 1;
-	sprintf(str_output, "I2C: 0x%02X", addr);
-	ssd1306_print_str_at(str_output, line++, 0);
-	printf(str_output); printf("\n\r");
-}
-
 void shiftOut(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder, uint8_t val) {
 	for (uint8_t i = 0; i < 8; i++) {
 		// bitOrder = 1 LSBFIRST, 0 MSBFIRST
@@ -211,20 +162,7 @@ void shiftOut(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder, uint8_t val) 
 	}
 }
 
-int main() {
-	static const char message[] = "Hello World!\r\n";
-	uint32_t counter = 0;
-	uint32_t ledc_time = 0;
-	uint32_t sec_time = 0;
-	uint32_t time_ref = 0;
-
-	M_Encoder encoder_a = {0, 0, 0};
-	M_Button button_a = {0xC0, BUTTON_IDLE, 0, 0, 0, 0, 0, 0};
-
-	SystemInit();
-	systick_init();			//! required for millis()
-	Delay_Ms(100);
-
+void test_74hc595() {
 	uint8_t dataArray[8] = { 1, 2, 4, 8, 16, 32, 64, 128 };	// 8 LEDs
 
 	funGpioInitAll(); // Enable GPIOs
@@ -240,8 +178,46 @@ int main() {
 			Delay_Ms(1000);
 		}
 	}
+}
 
-	return;
+// #include "ST7735/st7735_demo.h"
+#include "ST7735/modTFT.h"
+#include "Storage/modStorage.h"
+
+
+void encoder_onChanged(M_Encoder *model) {
+	sprintf(str_output, "Pos %ld delta %ld",
+			(int32_t)model->count - model->initial_count, 
+			(int32_t)model->count - model->last_count);
+	modI2C_display(str_output, 0);
+}
+
+void button_onChanged(int btn, uint32_t duration) {
+	if (btn == BTN_SINGLECLICK) {
+		sprintf(str_output, "BTN 1x CLICK");
+	} else if (btn == BTN_DOUBLECLICK) {
+		sprintf(str_output, "BTN 2x CLICK");
+	} else if (btn == BTN_LONGPRESS) {
+		sprintf(str_output, "BTN LONGPRESS %ld", duration);
+	}
+
+	modI2C_display(str_output, 0);
+}
+
+
+int main() {
+	static const char message[] = "Hello World!\r\n";
+	uint32_t counter = 0;
+	uint32_t ledc_time = 0;
+	uint32_t sec_time = 0;
+	uint32_t time_ref = 0;
+
+	M_Encoder encoder_a = {0, 0, 0};
+	M_Button button_a = {0xC0, BUTTON_IDLE, 0, 0, 0, 0, 0, 0};
+
+	SystemInit();
+	systick_init();			//! required for millis()
+	Delay_Ms(100);
 
 	// used PC0
 	button_setup(&button_a);
@@ -250,14 +226,7 @@ int main() {
 	modEncoder_setup(&encoder_a);
 
 	// I2C1: uses PC1 & PC2
-	if(i2c_init(&dev_aht21) != I2C_OK)
-		printf("Failed to init I2C\n");
-	else
-		ssd1306_setup();
-		// modI2C_task();
-
-	// sprintf(str_output, "Hello Bee!");
-	// ssd1306_print_str_at(str_output, 0, 0);
+	modI2C_setup();
 
 	// modST7735_setup();
 	// pinMode(0xD0, OUTPUT);
@@ -272,14 +241,6 @@ int main() {
 
     // SPI_init2();
 
-	// Scan the I2C Bus, prints any devices that respond
-	printf("----Scanning I2C Bus for Devices---\n");
-	i2c_scan(i2c_scan_callback);
-	printf("----Done Scanning----\n\n");
-
-	i2c_device_tests();
-
-
 	for(;;) {			
 		uint32_t now = millis();
 
@@ -290,7 +251,7 @@ int main() {
 			sec_time = now;
 
 			sprintf(str_output, "counter %lu", counter++);
-			ssd1306_print_str_at(str_output, 7, 0);
+			modI2C_display(str_output, 7);
 
 			// check_sensors();
 
